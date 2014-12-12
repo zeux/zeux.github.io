@@ -1,6 +1,7 @@
 ---
 layout: post
-title: Mesh optimization - Quantizing floats
+title: Quantizing floats
+redirect_from: "/2010/12/14/mesh-optimization-quantizing-floats/"
 ---
 
 Over the next few posts I'd like to write about optimizing mesh data for run-time performance (i.e. producing vertex/index buffers that accurately represent the source model and are as fast to render for GPU as possible).

@@ -9,7 +9,7 @@ From the start I knew it was not going to be easy – ps.2.0 means that no arbit
 
 I decided to compute lighting in world space, as I thought that passing all lighting data from VS to PS is going to consume too much interpolators. So I passed world-space view vector, world-space position and tangent to world space conversion matrix from VS to PS, and had PS transform normal to world space and compute everything else. This proved to be insufficient to reach target result, but I am going to show you the shader anyway, as it has some interesting ideas, some of which are still in the final shader.
 
-Here is the shader: [link](http://www.everfall.com/paste/id.php?ppzzlcq4t5rt). Ignore stuff like bindings.h, TRILINEAR_SAMPLER, etc. – these are to allow FX Composer bindings of parameters.
+[Here is the shader](https://gist.github.com/zeux/01d4555fb000fa25bc3c/b7b422f8f853eb591c2f69700db64ee529637d3b). Ignore stuff like bindings.h, TRILINEAR_SAMPLER, etc. – these are to allow FX Composer bindings of parameters.
 
 Interesting things to note:
 
@@ -60,7 +60,7 @@ And lo and behold, a lot of slow dot product instructions are now just 3 muls an
 
 > This was a triumph. I’m making a note here: HUGE SUCCESS.
 
-I decided to try the same thing with my shader code. It solved all problems like magic. The resulting code ([link](http://www.everfall.com/paste/id.php?7ta01v3jpzki)) while doing exactly the same calculations, now compiles in 54 instructions.
+I decided to try the same thing with my shader code. It solved all problems like magic. [The resulting code](https://gist.github.com/zeux/01d4555fb000fa25bc3c/f0879a95cef520ffff9e47b8139eb43700cf1514) while doing exactly the same calculations, now compiles in 54 instructions.
 
 The reason is simple, of course. For example, where in the previous shader we computed squared lengths in 1 instruction per light, here we do it for 3 instructions for 4 lights, effectively using 25% less ALU. The new layout also made it possible to pass lights via interpolators (light data fits into 6 interpolators), which allowed to remove 1 sub instruction per light, and also 3 instructions for transforming normal into tangent space (at the expense of adding 1 expand instruction, of course).
 

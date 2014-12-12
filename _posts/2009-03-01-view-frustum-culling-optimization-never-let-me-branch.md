@@ -1,6 +1,7 @@
 ---
 layout: post
 title: View frustum culling optimization – Never let me branch
+redirect_from: "/2009/03/01/view-frustum-culling-optimization-–-never-let-me-branch/"
 ---
 
 In previous iteration we converted the code to SoA instead of AoS, which enabled us to transform OBB points to world space relatively painlessly, and eliminated ugly and slow dot product, thus making the code faster. Still, the code is slow. Why?

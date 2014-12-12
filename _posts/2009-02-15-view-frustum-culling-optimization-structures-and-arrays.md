@@ -1,6 +1,7 @@
 ---
 layout: post
 title: View frustum culling optimization – Structures and arrays
+redirect_from: "/2009/02/15/view-frustum-culling-optimization-–-structures-and-arrays/"
 ---
 
 Last week I've tried my best at optimizing the underlying functions without touching the essence of algorithm (if there was a function initially that filled a 8-vector array with AABB points, optimizations from previous post could be done in math library). It seems the strategy has to be changed.

@@ -1,6 +1,7 @@
 ---
 layout: post
 title: On joys and sorrows of library development
+redirect_from: "/2009/09/29/on-joys-and-sorrows-of-library-development-–-part-1/"
 ---
 
 This may come as a surprise, but I am not dead. In fact, what you see is a new post! As usual I have a lot of interesting themes to cover, and barely enough time to spare. While I'm at it, let me tell you about NDAs. I hate NDAs with a passion – I've got some things to blog about that are partially covered by NDA (of course, the interesting parts are NOT); also I've been thinking that this is a non-issue and basically that I can blog about things that are not quite critical, but half a year ago or so I was forced to remove a blog post; the reasons are not exactly clear but it seems that it was because of a single sentence that mentioned something that's NOT secret in my point of view and was NOT relevant to post contents. For this reason I'm hesitant to write about some topics so I'll either skip them altogether (which is a shame) or find a way to omit all details that might seem sensitive to people. Also I'm not sure if blogging about post removal due to NDA is an NDA violation?..

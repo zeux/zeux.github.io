@@ -1,6 +1,7 @@
 ---
 layout: post
 title: View frustum culling optimization - Vectorize me
+redirect_from: "/2009/02/08/view-frustum-culling-optimization-–-vectorize-me/"
 ---
 
 Last week I've posted some teaser code that will be transformed several times, each time yielding a faster one - “faster” in terms of “taking less cycles for the test case on SPU”. A lot of you probably looked at my admittedly lame excuse for, uhm, math library and want to ask – why the hell do you use scalar code? We're going to address the problem in this issue. This is probably a no-brainer for most of my readers, but this is a good opportunity to introduce some important points about SPUs and introduce some actual vector code before diving further.

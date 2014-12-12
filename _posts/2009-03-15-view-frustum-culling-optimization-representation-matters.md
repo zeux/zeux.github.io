@@ -1,6 +1,7 @@
 ---
 layout: post
 title: View frustum culling optimization – Representation matters
+redirect_from: "/2009/03/15/view-frustum-culling-optimization-–-representation-matters/"
 ---
 
 Before getting into professional game development I've spent a fair amount of time doing it for fun (in fact, I still do it now, although less intensively). The knowledge came from a variety of sources, but the only way that I knew and used to calculate frustum planes equations was as follows – get the equations in clip space (they're really simple – (1, 0, 0, 1), (0, -1, 0, 1), etc.) and then get world space ones by transforming the planes with inverse transpose of view projection camera matrix [correction: in fact, you need to transform with inverse transpose of inverse view projection matrix, which equals to just transpose of view projection matrix]. It's very simple and intuitive – if you know a simple way to express what you need in some space, and a simple way to transform things from that space to your target one, you're good to go.
