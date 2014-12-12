@@ -1,0 +1,9 @@
+{% include header.html %}
+<h2>{{ page.title }}</h2>
+{% include postnav.html %}
+<small>{{ page.date | date_to_long_string }}</small>
+<br><br>
+{{ content }}
+{% include postnav.html %}
+{% include comments.html %}
+{% include footer.html %}

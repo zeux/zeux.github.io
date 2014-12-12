@@ -1,0 +1,14 @@
+<table>
+<tr>
+{% if page.previous.url %} 
+<td style="border: 0; text-align: left;">
+<a class="prev" href="{{page.previous.url}}">&laquo;&nbsp;{{page.previous.title}}</a>
+</td>
+{% endif %} 
+{% if page.next.url %} 
+<td style="border: 0; text-align: right;">
+<a class="next" href="{{page.next.url}}">{{page.next.title}}&nbsp;&raquo;</a>
+</td>
+{% endif %} 
+</tr>
+</table>

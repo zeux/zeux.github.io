@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="chrome=1">
+	<title>zeuxcg.org - {{ page.title }}</title>
+
+	<link rel="stylesheet" href="/stylesheets/styles.css">
+	<link rel="stylesheet" href="/stylesheets/pygment_trac.css">
+	<link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml">
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body>
+	<div class="wrapper">
+		<header>
+			<a href="/"><h1>zeuxcg.org</h1></a>
+			<p>Blogging like there is no tomorrow.</p>
+
+			Recent posts:
+			<ul>
+			{% for post in site.posts limit:10 %}
+			  <li>
+			    <a href="{{ post.url }}"><small>{{ post.title }}</small></a>
+			  </li>
+			{% endfor %}
+			</ul>
+
+			Meta:
+			<ul>
+			<li><a href="/archive/">Archive</a></li>
+			<li><a href="/about/">About</a></li>
+			<li><a href="/projects/">Projects</a></li>
+			<li><a href="/feed/">RSS</a></li>
+			<li><a href="mailto:arseny.kapoulkine@gmail.com">E-mail</a></li>
+			</ul>
+		</header>
+		<section>
