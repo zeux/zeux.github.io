@@ -1,6 +1,6 @@
 ---
 layout: post
-title: View frustum culling optimization – Representation matters
+title: View frustum culling optimization - Representation matters
 redirect_from: "/2009/03/15/view-frustum-culling-optimization-–-representation-matters/"
 ---
 

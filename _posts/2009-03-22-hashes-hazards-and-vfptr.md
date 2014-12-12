@@ -1,13 +1,14 @@
 ---
 layout: post
-title: Miscellanea
+title: Hashes, hazards and vfptr
+redirect_from: "/2009/03/22/miscellanea/"
 ---
 
 There is a bunch of small notes I'd like to share – none of them deserves a post, but I don't want them to disappear forever.
 
 ### Using hash table as a fixed-size cache
 
-When I worked with Direct3D 10, I found state objects quite cumbersome to work with – they're very slow to create (or at least were back then) and the exact separation of states into objects was sometimes inconvenient from design point of view. Also I've already had a set of classes that divided states into groups and functions like setDepthState with redundancy checking, so I needed to write an implementation for existing interface. The solution I came up with was very simple and elegant, so I'd like to outline it once more (although I sort of mentioned it in the [original post](http://zeuxcg.org/2007/10/06/render-state-rant/)).
+When I worked with Direct3D 10, I found state objects quite cumbersome to work with – they're very slow to create (or at least were back then) and the exact separation of states into objects was sometimes inconvenient from design point of view. Also I've already had a set of classes that divided states into groups and functions like setDepthState with redundancy checking, so I needed to write an implementation for existing interface. The solution I came up with was very simple and elegant, so I'd like to outline it once more (although I sort of mentioned it in the [original post](/2007/10/06/render-state-rant/)).
 
 The natural thing to do here is to cache state object pointer inside state class, and recompute it if necessary (when binding newly created/modified state). There are two issues to solve here – 1. state object creation is expensive (even if you're creating an object with the same data several times in a row – in which case D3D10 runtime returns the same pointer – the call takes 10k cycles), 2. there is a limit on the amount of state objects (4096 for each type). Solving the first one is easy – just make a cache with key being state object description and value being the actual pointer; solving the second one is slightly harder because you'll have to evict entries from your cache based on some policy.The way I went with was to create a fixed size array (the size should be a power of two less or equal than 4096 and depends on the state usage pattern), make a hash function for state description and use this array as a cache indexed by hash. In case of cache collision the old state object got released.
 

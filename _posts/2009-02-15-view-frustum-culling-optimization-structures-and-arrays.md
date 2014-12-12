@@ -1,6 +1,6 @@
 ---
 layout: post
-title: View frustum culling optimization – Structures and arrays
+title: View frustum culling optimization - Structures and arrays
 redirect_from: "/2009/02/15/view-frustum-culling-optimization-–-structures-and-arrays/"
 ---
 

@@ -1,6 +1,6 @@
 ---
 layout: post
-title: View frustum culling optimization – Never let me branch
+title: View frustum culling optimization - Never let me branch
 redirect_from: "/2009/03/01/view-frustum-culling-optimization-–-never-let-me-branch/"
 ---
 
