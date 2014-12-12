@@ -21,4 +21,3 @@ title: Archives
     <li>{{ post.date | date:"%b %d" }} <a href="{{ post.url }}">{{ post.title }}</a></li>
   {% endfor %}
 </ul>
-which was shamelessly ripped off from http://blog.tracefunc.com/2009/12/04/jekyll-custom-liquid-tags/
