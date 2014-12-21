@@ -7,7 +7,7 @@ Execution time in many programs is dominated by memory access time, not compute 
 
 Oh, hi. [^1]
 
-Last week Bruce Dawson has published a post [Hidden Costs of Memory Allocation](http://randomascii.wordpress.com/2014/12/10/hidden-costs-of-memory-allocation/) that explain an unconventional wisdom - large block allocation is expensive. While any seasoned C++ programmer has an adequate cost model [^2] for small allocations, and there are all sorts of tools to deal with the cost - specialized free lists, bump-pointer allocators, data structures that favor arrays over separately allocated nodes - the allocations are usually perceived to have a cost associated with their number, not size.
+Last week Bruce Dawson has published a post [Hidden Costs of Memory Allocation](http://randomascii.wordpress.com/2014/12/10/hidden-costs-of-memory-allocation/) that explains an unconventional wisdom - large block allocation is expensive. While any seasoned C++ programmer has an adequate cost model [^2] for small allocations, and there are all sorts of tools to deal with the cost - specialized free lists, bump-pointer allocators, data structures that favor arrays over separately allocated nodes - the allocations are usually perceived to have a cost associated with their number, not size.
 
 Turns out, nothing is free - and allocating a multi-megabyte block has a real cost. What's worse, this cost is not paid when the allocation is performed - it can be paid when you perform a memory access or even when a background thread in another process fills it with zeros. The post mentioned above describes the problem in more detail using synthetic tests - I want to focus on an easily measurable impact in a real application.
 
