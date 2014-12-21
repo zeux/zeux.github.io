@@ -5,7 +5,7 @@ title: A queue of page faults
 
 Execution time in many programs is dominated by memory access time, not compute time. This is becoming increasingly true  with higher instruction-level parallelism, wider SIMD, larger core counts and a lack of breakthroughs in memory access latency. A lot of performance talks now start by explaining that in a cache hierarchy the last-level cache miss is 100x or more expensive than a first-level cache hit, TLB misses are scary and contiguous data is great. But there is another beast that lurks in the depths of virtual memory subsystem, and its name is Page Fault.
 
-Oh, hi. [^1] If you remember this blog from 4 years ago you may have noticed that I changed the blogging platform again. This resulted in some spurious RSS updates - sorry about that! Posts and comments have been migrated and the feed should be stable now. Please let me know if something is off. Oh, and I will not promise to blog on a regular basis since apparently it does not end well.
+Oh, hi. [^1]
 
 Last week Bruce Dawson has published a post [Hidden Costs of Memory Allocation](http://randomascii.wordpress.com/2014/12/10/hidden-costs-of-memory-allocation/) that explain an unconventional wisdom - large block allocation is expensive. While any seasoned C++ programmer has an adequate cost model [^2] for small allocations, and there are all sorts of tools to deal with the cost - specialized free lists, bump-pointer allocators, data structures that favor arrays over separately allocated nodes - the allocations are usually perceived to have a cost associated with their number, not size.
 
@@ -76,9 +76,9 @@ This is the bane of page faults. When we start using a memory page that has not 
 
 Let's look at some numbers. When the pool is not used, we're allocating ~600 Mb from the system. We can confirm that we get page faults on all of this memory by inspecting the page fault counter (we can read it using `GetProcessMemoryInfo` call from `Psapi.h`); it's 152k in our case which, given a 4k page size, means that every single allocation we perform is initially using non-committed pages so we have to pay the page fault cost.
 
-Bruce Dawson measures the cost of page faults to be 175 us per Mb, which for 500 Mb (600 Mb without pool vs 100 Mb with pool) is... wait for it... 87 ms. Which is suspiciously close to the observed timing difference (204 ms - 120 ms) for 8 threads. For 1 thread the memory difference is 200 Mb, and the timing difference is 38 ms which is exactly equal to 471 ms - 433 ms!
+Bruce Dawson measures the cost of page faults to be 175 &mu;s per Mb, which for 500 Mb (600 Mb without pool vs 100 Mb with pool) is... wait for it... 87 ms. Which is suspiciously close to the observed timing difference (204 ms - 120 ms) for 8 threads. For 1 thread the memory difference is 200 Mb, and the timing difference is 38 ms which is exactly equal to 471 ms - 433 ms!
 
-It looks like based on the observed behavior we can come to a conclusion - you will pay 175 us for every megabyte of pagefaults (so ~680 ns for one page fault), page fault processing is single-threaded and if you happen to hit a page fault in two threads their execution will be serialized. Which can be a significant problem if you're processing a lot of data using all available cores with otherwise heavily optimized code.
+It looks like based on the observed behavior we can come to a conclusion - you will pay 175 &mu;s for every megabyte of pagefaults (so ~680 ns for one page fault), page fault processing is single-threaded and if you happen to hit a page fault in two threads their execution will be serialized. Which can be a significant problem if you're processing a lot of data using all available cores with otherwise heavily optimized code.
 
 ### The devil is in the detail
 
@@ -128,7 +128,7 @@ Having said that, this is actually quite common - a lot of components that are w
 
 Investigating performance issues requires good tools and willingness to dive deeply into implementation details. I wish more platforms had good built-in profilers with timeline visualization similar to Concurrency Visualizer. I wish some platforms shipped with an open-source kernel. Will we see Windows kernel on GitHub one day?
 
-[^1]: The last post on this blog was slightly over 4 years ago! Time flies.
+[^1]: Time flies. If you remember this blog from 4 years ago you may have noticed that I changed the blogging platform again. This resulted in some spurious RSS updates - sorry about that! Posts and comments have been migrated and the feed should be stable now. Please let me know if something is off. Oh, and I will not promise to blog on a regular basis since apparently it does not end well.
 [^2]: I may be exaggerating here since the actual overhead of small allocations depends a lot on the implementation details (operating system version, process bitness, etc). The cost model usually boils down to "they can be expensive", which is probably good enough.
 [^3]: Why not `foobar`? Wait until another article about `qgrep` internals to find out!
 [^4]: This is a profiler that uses ETW to gather important events about the system and displays them with a UI that you can actually enjoy using, unlike other ETW-based tools Microsoft provides. The tool is not yet available for Visual Studio 2015 so we'll use Visual Studio 2013.
