@@ -39,4 +39,4 @@ The first steps are easy - you get a testing framework, and start writing tests.
 
 It seems that even after all these tests, there is a wide gap between testing and what I'll call the serious testing. Next time I'll discuss the features of the serious testing process, as I see it; for now let me tease you with a screenshot with pugixml automated test report (it's clickable), taken while I was writing the post:
 
-![](/images/pugixml-autotest.png)
+![](/images/pugixml_autotest.png)
