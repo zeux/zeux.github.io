@@ -124,7 +124,7 @@ Interestingly, the timing differences for mmap may suggest that the OSX kernel a
 
 This article takes another look on an effect of (soft) page faults on performance. Note that the resulting performance difference is very dramatic - admittedly, this is a somewhat special case because the rest of the processing is highly optimized (page faults at 5.7 Gb/s start to be noticeable once your processing itself performs at 6 Gb/s...).
 
-Having said that, this is actually quite common - a lot of components that are widely used turn out to be really slow once you set very aggressive performance limits. Slow single-core page remapping makes certain interesting approaches like [C4 garbage collector](http://www.azulsystems.com/technology/c4-garbage-collector) infeasible[^6].
+Having said that, this is actually quite common - a lot of components that are widely used turn out to be really slow once you set very aggressive performance limits. Slow single-core page remapping makes certain interesting approaches like [C4 garbage collector](http://www.azulsystems.com/technology/c4-garbage-collector) infeasible, among other things[^6].
 
 Investigating performance issues requires good tools and willingness to dive deeply into implementation details. I wish more platforms had good built-in profilers with timeline visualization similar to Concurrency Visualizer. I wish some platforms shipped with an open-source kernel. Will we see Windows kernel on GitHub one day?
 
