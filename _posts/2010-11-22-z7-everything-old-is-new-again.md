@@ -39,51 +39,11 @@ Obviously, the compile and link file access pattern change greatly. The change i
 
 Here are my completely unscientific benchmark results on OGRE builds with cold cache in four build variants: /Zi (PDB files, single core build), /Zi /MP (PDB files, multicore build), /Z7 (no PDB files, single core build), /Z7 /MP (no PDB files, multicore build). For each configuration, I did a clean build of the OgreMain.dll using a new source folder every time, then I rebooted to force file cache cleanup, changed a single source file and did a build once again. Both compilation and linking times are included. The tests were done on a Core i7 920.
 
-<table >
-<tr >/Zi/Zi /MP/Z7/Z7 /MP</tr>
-<tr >
-<td >clean cl
-</td>
-<td >6:45
-</td>
-<td >1:51
-</td>
-<td >6:32
-</td>
-<td >1:32
-</td></tr>
-<tr >
-<td >clean link
-<td >0:20
-</td>
-<td >0:20
-</td>
-<td >0:17
-</td>
-<td >0:17
-</td></tr>
-<tr >
-<td >incremental cl
-</td>
-<td >0:15
-</td>
-<td >0:15
-</td>
-<td >0:08
-</td>
-<td >0:08
-</td></tr>
-<tr >
-<td >incremental link
-</td>
-<td >0:17
-</td>
-<td >0:17
-</td>
-<td >0:24
-</td>
-<td >0:24
-</td></tr>
-</table>
+| /Zi | /Zi /MP | /Z7 | /Z7 /MP |
+|-----|---------|-----|---------|
+| clean cl | 6:45 | 1:51 | 6:32 | 1:32 |
+| clean link | 0:20 | 0:20 | 0:17 | 0:17 |
+| incremental cl | 0:15 | 0:15 | 0:08 | 0:08 |
+| incremental link | 0:17 | 0:17 | 0:24 | 0:24 |
 
 While there are some savings for the clean build, the total incremental build time is the same (which can be explained if this is the cost of reading old debug information - since it is moved from link time to compilation of the single changed source file). With that in mind, Z7 and Zi are probably more or less interchangeable - unless you need Edit & Continue support, which is not supported with old-style debug information. Still, I like the /Z7 approach better.
