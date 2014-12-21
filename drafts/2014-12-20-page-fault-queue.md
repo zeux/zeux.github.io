@@ -19,7 +19,7 @@ One of my projects, [qgrep](https://github.com/zeux/qgrep), is a fast grep datab
 
 Chunks are usually around 512 Kb (uncompressed); the average compression ratio for source code is 1:4 so the main thread performs an allocation of roughly 512+128=640 Kb for every chunk, reads 128 Kb from the file and passes the result to one of the threads (there is a worker thread per core). [Back in March 2012](https://github.com/zeux/qgrep/commit/4885f8a88dec0d8329b11d12692bd018f7051232) I implemented a simple free-list pool for these allocations that resulted in significant speedups on some queries... But this free-list contains huge blocks - we're using block size of 512+256=768 Kb to satisfy ~640 Kb requests; how can it possibly be a win?
 
-To find out, let's profile the application and figure this out. I'm using [Linux kernel v3.19-rc1](https://github.com/torvalds/linux/releases/tag/v3.19-rc1) as a source, and looking for the regular expression `fooo?bar` that has the following matches[^3]:
+To find out, let's profile the application and figure this out. I'm using [Linux kernel v3.19-rc1](https://github.com/torvalds/linux/releases/tag/v3.19-rc1) as the data set, and grepping for the regular expression `fooo?bar` that has the following matches[^3]:
 
 	$ qgrep init linux ~/linux
 	$ qgrep update linux
@@ -43,7 +43,7 @@ To find out, let's profile the application and figure this out. I'm using [Linux
 	~/linux/tools/perf/util/quote.h:15:
 	 * sprintf(cmd, "foobar %s %s", sq_quote(arg0), sq_quote(arg1))
 
-To find these matches, `qgrep` has to scan through 466 Mb of source data that is compressed to 122 Mb in 932 chunks. On my laptop it takes 110 ms to find the matches using 8 threads. To analyze the effect the aforementioned change has on performance, we'll run the tests on Mac OSX (32/64 bit) and Windows 7 (32/64 bit), using 1 or 8 threads and with or without allocation pooling and look at the time. Here are the results (averaged over 100 runs):
+To find these matches, `qgrep` has to scan through 466 Mb of source data that is compressed to 122 Mb in 932 chunks. On my laptop it takes around 100 ms to find the matches using 8 threads. To analyze the effect the aforementioned change has on performance, we'll run the tests on Mac OSX (32/64 bit) and Windows 7 (32/64 bit), using 1 or 8 threads and with or without allocation pooling and measure the wall time. Here are the results (averaged over 100 runs):
 
 | Platform | 8 threads<br>pool | 8 threads<br>no pool | 1 thread<br>pool | 1 thread<br>no pool |
 |----------|-----------|--------------------|----------|-------------------|
@@ -54,7 +54,7 @@ To find these matches, `qgrep` has to scan through 466 Mb of source data that is
 
 When the pool is not used, we end up requesting ~600 Mb from the system; when the pool is used, we can satisfy some requests using the free list so we end up requesting ~100 Mb with 8 threads and ~300 Mb with 1 thread. This makes sense since with 1 thread the data processing is slower so worker threads return allocated blocks to the pool slower and we end up with a larger queue of chunks.
 
-The results in the table above mostly make sense - there must be some overhead associated with allocating memory and as Bruce Dawson's post suggests this overhead grows with the total requested size. Switching to 64-bit improves performance since we have more registers so compiler can optimize inner loops better. However, there is an outlier - in 32-bit on Windows pool increases our performance almost two-fold. Wait, what?
+The results in the table above mostly make sense - there must be some overhead associated with allocating memory and as Bruce Dawson's post suggests this overhead grows with the total requested size. Switching to 64-bit improves performance since we have more registers so compiler can optimize inner loops better. However, there is an outlier - in 32-bit on Windows using the pool increases our performance almost two-fold. Wait, what?
 
 ### Finding the reason
 
@@ -72,9 +72,9 @@ As we can see, when we're using the pool the threads are generally either doing 
 
 [![](/images/qgrep_pf_nopool_details.png)](/images/qgrep_pf_nopool_details.png)
 
-This is the bane of page faults. When we start using a memory page that has not yet been mapped to a physical location, we get a page fault that is handled by the kernel - so an otherwise unsuspecting code (like LZ4 decompression in this case) can suddenly get slower and if you're not looking at the kernel stacks there is no way for you to find out. There is something else suspicious in this image though. In several instances we have multiple threads performing page fault handling, and the threads continue execution at almost exactly the same time! Is it possible that... page fault handling is serialized in the kernel?
+This is the bane of page faults. When we start using a memory page that has not yet been mapped to a physical location, we get a page fault that is handled by the kernel - so whatever code touches the memory first (like LZ4 decompression in this case) can suddenly get slower and if you're not looking at the kernel stacks there is no way for you to find out. There is something else suspicious in this image though. In several instances we have multiple threads performing page fault handling, and the threads continue execution at almost exactly the same time! Is it possible that... page fault handling is serialized in the kernel?
 
-Let's look at some numbers. When the pool is not used, we're allocating ~600 Mb from the system. We can confirm that we get page faults on all of this memory by inspecting the page fault counter (we can read it using `GetProcessMemoryInfo` call from `Psapi.h`); it's 152k in our case which, given a 4k page size, means that every single allocation we perform is initially using non-committed pages so we have to pay the page fault cost.
+Let's look at some numbers. When the pool is not used, we're allocating ~600 Mb from the system. We can confirm that we get page faults on all of this memory by inspecting the page fault counter (we can read it using `GetProcessMemoryInfo` call from `Psapi.h`); it's 152k faults in our case which, given a 4k page size, means that every single allocation we perform is initially using non-committed pages so we have to pay the page fault cost.
 
 Bruce Dawson measures the cost of page faults to be 175 &mu;s per Mb, which for 500 Mb (600 Mb without pool vs 100 Mb with pool) is... wait for it... 87 ms. Which is suspiciously close to the observed timing difference (204 ms - 120 ms) for 8 threads. For 1 thread the memory difference is 200 Mb, and the timing difference is 38 ms which is exactly equal to 471 ms - 433 ms!
 
@@ -82,9 +82,9 @@ It looks like based on the observed behavior we can come to a conclusion - you w
 
 ### The devil is in the detail
 
-But wait, why do we not see the problem on x64? Does the kernel map pages on x64 in a more performant way? Ah, I wish...
+But wait, why do we not see the problem on x64? Does the kernel map pages on x64 in a more performant way? Yeah, right.
 
-Remember that you're not really paying for memory that you *allocate* - you're paying for memory that you use after *mapping* it into the address space of the process. Normally heap implementation is designed to get memory from the system and keep it in various free lists without deallocating it - however, not all block sizes are treated like this. Most heap implementations fall back to using virtual memory allocation above certain size.
+Remember that you're not really paying for memory that you *allocate* - you're paying for memory that you use after *mapping* it into the address space of the process. Normally heap implementation is designed to get memory from the system and keep it in various free lists without returning it to the system - however, not all block sizes are treated like this. Most heap implementations fall back to using virtual memory allocation above certain size.
 
 You can refer to [Windows 8 Heap Internals](http://illmatics.com/Windows%208%20Heap%20Internals.pdf) for an in-depth look at how Windows heap allocation/deallocation works; notice that for allocations larger than `VirtualMemoryThreshold` the implementation switches to `VirtualAlloc`[^5] that reserves the pages but does not fully commit them. `VirtualMemoryThreshold` is set to 520192 and our allocations are slightly larger than 512 Kb so we should use memory allocated with `VirtualAlloc` even on x64... right?
 
@@ -118,13 +118,13 @@ Now that we know that allocations have to use virtual memory subsystem directly 
 
 Upon a cursory glance at [magazine_malloc.c](http://www.opensource.apple.com/source/Libc/Libc-594.1.4/gen/magazine_malloc.c) it looks like large allocations are cached (see `LARGE_CACHE`) under certain circumstances, which can explain why using `mmap` results in a noticeable performance difference when disabling allocation pooling.
 
-Interestingly, the timing differences for mmap may suggest that the OSX kernel actually does not serialize page fault requests from multiple cores - disabling the pool with 8 threads results in extra 58 ms for extra 500 Mb of allocated memory (8.6 Mb/ms), whereas disabling the pool with 1 thread results in 94 ms cost for 200 Mb of memory (2.1 Mb/ms), so the processing seems to scale with the number of cores. It should be possible to confirm or disprove this by reading the kernel sources but this post is already too long - please leave a comment if you know whether this is accurate!
+Interestingly, the timing differences for mmap may suggest that the OSX kernel actually does not serialize page fault requests from multiple cores - disabling the pool with 8 threads results in extra 58 ms for extra 500 Mb of allocated memory (8.4 Gb/s), whereas disabling the pool with 1 thread results in 94 ms cost for 200 Mb of memory (2 Gb/s), so the processing seems to scale with the number of cores. It should be possible to confirm or disprove this by reading the kernel sources but this post already took too long to write - please leave a comment if you know whether this is accurate!
 
 ### Conclusion
 
-This article takes another look on an effect of (soft) page faults on performance. Note that the resulting performance difference is very dramatic - admittedly, this is a somewhat special case because the rest of the processing is highly optimized (page faults at 5.7 Gb/sec start to be noticeable once your processing itself performs at 6 Gb/sec...).
+This article takes another look on an effect of (soft) page faults on performance. Note that the resulting performance difference is very dramatic - admittedly, this is a somewhat special case because the rest of the processing is highly optimized (page faults at 5.7 Gb/s start to be noticeable once your processing itself performs at 6 Gb/s...).
 
-Having said that, this is actually quite common - a lot of components that are widely used actually turn out to be really slow once you set very aggressive performance limits. For example, having slow single-core page remapping makes certain interesting approaches like [C4 garbage collector](http://www.azulsystems.com/technology/c4-garbage-collector) infeasible, in addition to causing other problems[^6].
+Having said that, this is actually quite common - a lot of components that are widely used turn out to be really slow once you set very aggressive performance limits. Slow single-core page remapping makes certain interesting approaches like [C4 garbage collector](http://www.azulsystems.com/technology/c4-garbage-collector) infeasible[^6].
 
 Investigating performance issues requires good tools and willingness to dive deeply into implementation details. I wish more platforms had good built-in profilers with timeline visualization similar to Concurrency Visualizer. I wish some platforms shipped with an open-source kernel. Will we see Windows kernel on GitHub one day?
 
