@@ -58,7 +58,7 @@ The results in the table above mostly make sense - there must be some overhead a
 
 ### Finding the reason
 
-Let's use the awesome [Visual Studio Concurrency Visualizer](http://msdn.microsoft.com/en-us/library/dd537632.aspx) tool[^4] to find out what's going on! Here are the screenshots with 8-thread mode (click to enlarge):
+Let's use the excellent [Visual Studio Concurrency Visualizer](http://msdn.microsoft.com/en-us/library/dd537632.aspx) tool[^4] to find out what's going on! Here are the screenshots with 8-thread mode (click to enlarge):
 
 [![](/images/qgrep_pf_pool.png)](/images/qgrep_pf_pool.png)
 <div class="caption">Using the pool</div>
@@ -118,7 +118,7 @@ Now that we know that allocations have to use virtual memory subsystem directly 
 
 Upon a cursory glance at [magazine_malloc.c](http://www.opensource.apple.com/source/Libc/Libc-594.1.4/gen/magazine_malloc.c) it looks like large allocations are cached (see `LARGE_CACHE`) under certain circumstances, which can explain why using `mmap` results in a noticeable performance difference when disabling allocation pooling.
 
-Interestingly, the timing differences for mmap may suggest that the OSX kernel actually does not serialize page fault requests from multiple cores - disabling the pool with 8 threads results in extra 58 ms for extra 500 Mb of allocated memory (8.4 Gb/s), whereas disabling the pool with 1 thread results in 94 ms cost for 200 Mb of memory (2 Gb/s), so the processing seems to scale with the number of cores. It should be possible to confirm or disprove this by reading the kernel sources but this post already took too long to write - please leave a comment if you know whether this is accurate!
+Interestingly, the timing differences for `mmap` may suggest that the OSX kernel actually does not serialize page fault requests from multiple cores - disabling the pool with 8 threads results in extra 58 ms for extra 500 Mb of allocated memory (8.4 Gb/s), whereas disabling the pool with 1 thread results in 94 ms cost for 200 Mb of memory (2 Gb/s), so the processing seems to scale with the number of cores. It should be possible to confirm or disprove this by reading the kernel sources but this post already took too long to write - please leave a comment if you know whether this is accurate!
 
 ### Conclusion
 
