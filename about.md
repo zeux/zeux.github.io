@@ -8,7 +8,21 @@ I’m a technical director at [ROBLOX](http://corp.roblox.com/). Previously I wo
 
 > Games in reverse chronological order:
 >
-> FIFA 13^(PC/PS3/X360), UEFA EURO 2012^(PC/PS3/X360), FIFA Street 2012^(PS3/X360), Battle: Los Angeles^(PC/PS3/X360), SkyFighter^(PS3), TerRover^(PS3), Hamster Ball^(PS3), Wakeboarding HD^(PS3), Mushroom Wars^(PS3), Digger HD^(PS3), Smash Cars^(PS3), Magic Ball^(PS3), Cuboid^(PS3), Mahjong Tales^(PS3), Aqua Teen Hunger Force^(PS2)
+> FIFA 13^(<small>PC/PS3/X360</small>),
+> UEFA EURO 2012^(<small>PC/PS3/X360</small>),
+> FIFA Street 2012^(<small>PS3/X360</small>),
+> Battle: Los Angeles^(<small>PC/PS3/X360</small>),
+> SkyFighter^(<small>PS3</small>),
+> TerRover^(<small>PS3</small>),
+> Hamster Ball^(<small>PS3</small>),
+> Wakeboarding HD^(<small>PS3</small>),
+> Mushroom Wars^(<small>PS3</small>),
+> Digger HD^(<small>PS3</small>),
+> Smash Cars^(<small>PS3</small>),
+> Magic Ball^(<small>PS3</small>),
+> Cuboid^(<small>PS3</small>),
+> Mahjong Tales^(<small>PS3</small>),
+> Aqua Teen Hunger Force^(<small>PS2</small>)
 
 ## Projects
 
