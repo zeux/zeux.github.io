@@ -1,6 +1,5 @@
 name: zeuxcg.org
 url: http://zeuxcg.org
-disqusid: http://zeuxcg.org
 markdown: redcarpet
 redcarpet:
   extensions: ['no_intra_emphasis', 'autolink', 'superscript', 'footnotes', 'tables']
