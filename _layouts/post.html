@@ -1,12 +1,14 @@
 {% include header.html %}
-<h2>{{ page.title }}</h2>
 {% include postnav.html %}
+<div class="post">
+<h1 class="post-title">{{ page.title }}</h1>
+<span class="post-date">
 {% if page.date %}
-<small>{{ page.date | date_to_long_string }}</small>
+{{ page.date | date_to_string }}
 {% else %}
-<small>DRAFT</small>
+DRAFT
 {% endif %}
-<br><br>
+</span>
 {{ content }}
 {% include postnav.html %}
 {% include comments.html %}

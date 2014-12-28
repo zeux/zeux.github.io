@@ -1,40 +1,51 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="chrome=1">
-	<title>zeuxcg.org - {{ page.title }}</title>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
 
-	<link rel="stylesheet" href="/stylesheets/styles.css">
-	<link rel="stylesheet" href="/stylesheets/pygment_trac.css">
-	<link rel="alternate" type="application/rss+xml" title="RSS" href="/feed/">
-	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+  <!--[if lt IE 9]>
+  <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    {{ site.name }} - {{ page.title }}
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/default.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed/">
 </head>
 <body>
-	<div class="wrapper">
-		<header>
-			<a href="/"><h2>zeuxcg.org</h2></a>
-			<p><i>Bits, pixels, cycles and more.</i></p>
+<div class="sidebar">
+  <div class="container">
+    <div class="sidebar-about">
+      <p class="lead"><a href="/"><nobr>Bits, pixels, cycles and more</nobr></a></p>
+    </div>
 
-			Heya! My name is Arseny Kapoulkine and this is my blog. I write about graphics, optimization, languages and other game and software development topics.
-			<br><br>
-			I'm a technical director at <a href="http://www.roblox.com/">ROBLOX</a> and the author of <a href="http://pugixml.org">pugixml</a> and other projects (<a href="https://github.com/zeux/">GitHub</a>). If you want to get in touch, use <a href="mailto:arseny.kapoulkine@gmail.com">e-mail</a> or <a href="https://twitter.com/zeuxcg">Twitter</a>.
-			<br><br>
-			If you like this blog, you should follow it <a href="/feed/">via RSS</a> and read <a href="/archives.html">older posts</a>.
-			<br><br>
+    <p>
+    My name is Arseny Kapoulkine and this is my blog where I write about graphics, optimization, programming languages and related topics.
+    I'm the author of <a href="http://pugixml.org">pugixml</a> and <a href="https://github.com/zeux/">other projects</a>.
+    You can use <a href="mailto:arseny.kapoulkine@gmail.com">e-mail</a> or <a href="https://twitter.com/zeuxcg">Twitter</a> to get in touch.
+    </p>
 
-			<h4>Recent posts</h4>
-			<ul>
-			{% for post in site.posts limit:10 %}
-			  <li>
-			    <a href="{{ post.url }}"><small>{{ post.title }}</small></a>
-			  </li>
-			{% endfor %}
-			</ul>
-
-			<p><small>Hosted on GitHub &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
-		</header>
-		<section>
+    <p>
+    If you like this blog, you should follow it <a href="/feed/">via RSS</a> and read <a href="/archives.html">older posts</a>. Here are the recent posts:
+    </p>
+      <ul>
+      {% for post in site.posts limit:10 %}
+        <li>
+          <small><a href="{{ post.url }}">{{ post.title }}</a></small>
+        </li>
+      {% endfor %}
+      </ul>
+  </div>
+</div>
+<div class="content container">
