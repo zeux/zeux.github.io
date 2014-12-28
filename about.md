@@ -4,7 +4,11 @@ title: About
 ---
 ## Work
 
-I’m a technical director at [ROBLOX](http://corp.roblox.com/). Previously I worked as a rendering engineer at [Sperasoft, Inc.](http://sperasoft.com/) on FIFA 13 and FIFA Street titles, as a PS3 programmer at [Saber Interactive](http://www.saber3d.com/) and as a lead engine developer at CREAT Studios; during my career I’ve helped ship many games on PS2/PS3/XBox 360/PC; check out the [screenshots and brief information about my contribution to them](http://zeuxcg.org/projects/).
+I’m a technical director at [ROBLOX](http://corp.roblox.com/). Previously I worked as a rendering engineer at [Sperasoft, Inc.](http://sperasoft.com/) on FIFA 13 and FIFA Street titles, as a PS3 programmer at [Saber Interactive](http://www.saber3d.com/) and as a lead engine developer at CREAT Studios; during my career I’ve helped ship many games on PS2/PS3/XBox 360/PC.
+
+> Games in reverse chronological order:
+>
+> FIFA 13^(PC/PS3/X360), UEFA EURO 2012^(PC/PS3/X360), FIFA Street 2012^(PS3/X360), Battle: Los Angeles^(PC/PS3/X360), SkyFighter^(PS3), TerRover^(PS3), Hamster Ball^(PS3), Wakeboarding HD^(PS3), Mushroom Wars^(PS3), Digger HD^(PS3), Smash Cars^(PS3), Magic Ball^(PS3), Cuboid^(PS3), Mahjong Tales^(PS3), Aqua Teen Hunger Force^(PS2)
 
 ## Projects
 
