@@ -6,7 +6,7 @@ redirect_from: "/2009/02/15/view-frustum-culling-optimization-–-structures-and
 
 Last week I've tried my best at optimizing the underlying functions without touching the essence of algorithm (if there was a function initially that filled a 8-vector array with AABB points, optimizations from previous post could be done in math library). It seems the strategy has to be changed.
 
-There are several reasons why the code is still slow. One is branching. We'll cover that in the next issue though. Another one has already been discussed on this blog related to shaders – we have 4-way SIMD instructions, but we are not using them properly. For example, our point transformation function wastes 1 scalar operation per each si_fma, and requires additional .w component fixup after that. Our dot product function is simply horrible. Once again we're going to switch layout for intermediate data from Array of Structures to Structure of Arrays.
+There are several reasons why the code is still slow. One is branching. We'll cover that in the next issue though. Another one has already been discussed on this blog related to shaders – we have 4-way SIMD instructions, but we are not using them properly. For example, our point transformation function wastes 1 scalar operation per each `si_fma`, and requires additional .w component fixup after that. Our dot product function is simply horrible. Once again we're going to switch layout for intermediate data from Array of Structures to Structure of Arrays.
 
 We have 8 AABB points, so we'll need 6 vectors – 2 vectors per each component. Do we need all 6? Nah. Since it's an AABB, we can organize stuff so that we need only 4 like this:
 
@@ -19,9 +19,9 @@ Z Z Z Z
 
 Note that vectors for x and y components are shared between two 4-point groups. Of course this sharing will go away after we transform our points to world space – but that makes it easier to generate SoA points from min/max vectors.
 
-How do we generate them? Well, we already know the solution for Z – there is some magical si_shufb instruction, that worked for us before. It's time to know what exactly it does, as it can be used to generate x/y vectors too.
+How do we generate them? Well, we already know the solution for Z – there is some magical `si_shufb` instruction, that worked for us before. It's time to know what exactly it does, as it can be used to generate x/y vectors too.
 
-What si_shufb(a, b, c) does is it takes a/b registers, and permutes their contents using c as pattern, yielding a new value. Permutation is done at a byte level - each byte of c corresponds to a resulting byte, which is computed one of the following ways:
+What `si_shufb(a, b, c)` does is it takes a/b registers, and permutes their contents using c as pattern, yielding a new value. Permutation is done at a byte level - each byte of c corresponds to a resulting byte, which is computed one of the following ways:
 
 1. 0x0v corresponds to a byte of left operand with index v
 2. 0x1v corresponds to a byte of right operand with index v
@@ -98,7 +98,7 @@ static inline void transform_points_4(qword* dest, qword x, qword y, qword z, co
 }
 ```
 
-Note that it's not really that much different from the scalar version, only now it transforms 4 points in 9 si_fma and 12 si_shufb instructions. We're going to transform 2 groups of points, so we'll need 18 si_fma instructions, si_shufb can be shared – luckily, the compiler does it for us so we just need to call transform_points_4 twice:
+Note that it's not really that much different from the scalar version, only now it transforms 4 points in 9 `si_fma` and 12 `si_shufb` instructions. We're going to transform 2 groups of points, so we'll need 18 `si_fma` instructions, `si_shufb` can be shared – luckily, the compiler does it for us so we just need to call transform_points_4 twice:
 
 ```c++
 // transform points to world space
@@ -110,7 +110,7 @@ transform_points_4(points_ws_0, minmax_x, minmax_y, minmax_z_0, transform);
 transform_points_4(points_ws_1, minmax_x, minmax_y, minmax_z_1, transform);
 ```
 
-Previous vectorized version required 24 si_fma and 24 si_shufb, plus 8 correcting si_selb (to be fair, it could be actually optimized to require 6 si_shufb + 8 si_selb, but it's still not a win over SoA). Note that 18 si_fma + 12 si_shufb does not mean 30 cycles. SPUs are capable of dual-issuing some instructions – there are two groups of instructions, one group runs at even pipeline, another one – at odd. si_fma and si_shufb run on different pipelines, so the net throughput will be closer to 18 cycles (slightly larger than that if si_shufb latency can't be hidden).
+Previous vectorized version required 24 `si_fma` and 24 `si_shufb`, plus 8 correcting `si_selb` (to be fair, it could be actually optimized to require 6 `si_shufb` + 8 `si_selb`, but it's still not a win over SoA). Note that 18 `si_fma` + 12 `si_shufb` does not mean 30 cycles. SPUs are capable of dual-issuing some instructions – there are two groups of instructions, one group runs at even pipeline, another one – at odd. `si_fma` and `si_shufb` run on different pipelines, so the net throughput will be closer to 18 cycles (slightly larger than that if `si_shufb` latency can't be hidden).
 
 Now all that's left is to calculate dot products with a plane. Of course we'll have to calculate them 4 at a time. But wait – in our case execution of inner loop terminated after the first iteration. So previously we were doing only one (albeit ugly) dot product, and now we're doing 4, or even 8! Isn't that a little bit excessive? Well, that's not – but we'll save a more detailed explanation for the later post, for now let the results speak for themselves.
 
@@ -154,9 +154,9 @@ for (int i = 0; i < 6; ++i)
 }
 ```
 
-si_fcgt is just a floating-point greater comparison; I'm abusing the fact that 0.0f is represented as a vector with all bytes equal to zero here. si_fcgt operates like SSE comparisons and returns 0xffffffff for elements where the comparison result is true, and 0 for others. After that I and the results together, and then use si_gb instruction to gather bits of results. si_gb takes least significant bit from each element and inserts it into corresponding bit of the result; we get a 4-bit value in preferred slot, everything else is zeroed out. If it's equal to 15, then si_and returned a mask where all elements are 0xffffffff, which means that all dot products are less than zero, so the box is outside.
+`si_fcgt` is just a floating-point greater comparison; I'm abusing the fact that 0.0f is represented as a vector with all bytes equal to zero here. `si_fcgt` operates like SSE comparisons and returns 0xffffffff for elements where the comparison result is true, and 0 for others. After that I and the results together, and then use `si_gb` instruction to gather bits of results. `si_gb` takes least significant bit from each element and inserts it into corresponding bit of the result; we get a 4-bit value in preferred slot, everything else is zeroed out. If it's equal to 15, then `si_and` returned a mask where all elements are 0xffffffff, which means that all dot products are less than zero, so the box is outside.
 
-Note that si_gb is like _mm_movemask_ps, only it takes least significant bits instead of most significant – in case of SSE, we don't need to do comparisons. We can avoid comparisons here by anding dot products directly, and then moving the sign bit to least significant bit (it can be done by rotating each element 1 bit to the left, that's achieved by si_roti(v, 1)), but this is slightly slower, so we won't do it.
+Note that `si_gb` is like `_mm_movemask_ps`, only it takes least significant bits instead of most significant – in case of SSE, we don't need to do comparisons. We can avoid comparisons here by anding dot products directly, and then moving the sign bit to least significant bit (it can be done by rotating each element 1 bit to the left, that's achieved by `si_roti(v, 1)`), but this is slightly slower, so we won't do it.
 
 Now, the results. The code runs at 376 cycles, which is more than 2 times faster than the previous version, and almost 4 times faster than the original. This speedup is partially because we're doing things more efficiently, partially because we got rid of branches; we'll discuss this the next week. A million calls takes 117 msec, which is still worse than x86 results – but it's not the end of the story. Astonishingly, applying exactly the same optimizations to SSE code results in 81 msec for gcc (which is 30% faster than naively vectorized version), and in 104 msec for msvc8 (which is 40% slower!).
 

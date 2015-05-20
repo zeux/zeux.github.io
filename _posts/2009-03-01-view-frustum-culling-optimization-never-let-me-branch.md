@@ -12,7 +12,7 @@ I wanted to write a long post about branches and why they are often a bad idea f
 
 First, code performance depends on input data. Visible boxes are worst case (this is the one the cycle count is for); invisible boxes are faster, with the fastest case (where the box is behind the first plane) taking 128 cycles. Because of this, it's hard to estimate the run time of culling, given the number of objects – upper bound is three times bigger than lower bound.
 
-Second, branches divide the code in blocks, and compiler has problems performing optimizations between blocks. We have a constant-length loop, inside we compute 8 dot products for a single plane, then check if all of them are negative, and in this case we early-out. Note that there are a lot of dependencies in computation of dot products – si_fmas in dot4 depend on the result of previous si_fmas, si_fcgt depends on the result of dot4, etc. Here is an example of disassembly for performing a single dot4 operation, assuming that we already have SPLAT(v, i) in registers:
+Second, branches divide the code in blocks, and compiler has problems performing optimizations between blocks. We have a constant-length loop, inside we compute 8 dot products for a single plane, then check if all of them are negative, and in this case we early-out. Note that there are a lot of dependencies in computation of dot products – `si_fma`s in dot4 depend on the result of previous `si_fma`s, `si_fcgt` depends on the result of dot4, etc. Here is an example of disassembly for performing a single dot4 operation, assuming that we already have SPLAT(v, i) in registers:
 
 ```
 fma res, v2, z, v3
@@ -62,9 +62,9 @@ static inline qword is_not_outside(qword plane, const qword* points_ws_0, const 
 }
 ```
 
-si_orx is a horizontal or (or across) instruction, which ors 4 32-bit components of source register together and returns the result in preferred slot, filling the rest of vector with zeroes. Thus is_not_outside will return 0xffffffff in preferred slot if box is not outside of plane, and 0 if it's outside.
+`si_orx` is a horizontal or (or across) instruction, which ors 4 32-bit components of source register together and returns the result in preferred slot, filling the rest of vector with zeroes. Thus is_not_outside will return 0xffffffff in preferred slot if box is not outside of plane, and 0 if it's outside.
 
-Now all we have to do is to call this function for all planes, and combine the results – we can do it with si_and, since the box is not outside of the frustum only if it's not outside of all planes; if any is_not_outside call returns 0, we have to return 0.
+Now all we have to do is to call this function for all planes, and combine the results – we can do it with `si_and`, since the box is not outside of the frustum only if it's not outside of all planes; if any is_not_outside call returns 0, we have to return 0.
 
 ```c++
 // for each plane…

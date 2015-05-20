@@ -129,7 +129,7 @@ qword nout5 = NOUT(points_cs_0[3], points_cs_0[2], points_cs_1[3], points_cs_1[2
 
 is to calculate, for each plane, if any point is not outside the plane, i.e. if there is any point with i.e. z < w for far plane. The code does it by computing z < w for all points, and then or-ing together the results. Instead we can abuse the fact that for negative numbers, the sign (most significant) bit is 1. For far plane we can take w - z instead; now, if it is negative for all points, then z < w does not hold for all points, and the point is outside. We can take w - z for all points, `and` together the results, and check the most significant bit - it is 1 iff the point is outside.
 
-SPU does not have a horizontal-and instruction (a straightforward way to do the above would be to do something like si_andx(si_and(..., ...))), but we can replace this with the equivalent:
+SPU does not have a horizontal-and instruction (a straightforward way to do the above would be to do something like `si_andx(si_and(..., ...))`), but we can replace this with the equivalent:
 
 ```c++
 not(andx(and(a, b), and(c, d))) == orx(not(and(a, b)), not(and(c, d)))
