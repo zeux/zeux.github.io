@@ -147,7 +147,7 @@ $$ K\_2(d, t) = A\_2(d)(t-0.5)\^2 + B\_2(d) $$
 
 All of the approximations we computed above were using least-squares error metric in terms of $K$. However, $K$ is not really meaningful since this is just an intermediate value necessary to compute $t$. We can compute the error in $t$ but the ultimate metric that we care about is the interpolation result - how much does the resulting quaternion deviate from the one obtained using $slerp$?
 
-Without a loss of generality we can assume that the input quaternions were $q\_1=(0,0,0,1)$ and $q\_2=(\sqrt{1-d\^2},0,0,d)$. The scalar component of the result of $nlerp$ is thus:
+Without loss of generality we can assume that the input quaternions were $q\_1=(0,0,0,1)$ and $q\_2=(\sqrt{1-d\^2},0,0,d)$. The scalar component of the result of $nlerp$ is thus:
 
 $$ q\_{lerp} = (\sqrt{1-d\^2}t',0,0,(1-t')+dt') $$
 $$ q\_{nlerp} = \frac{(\sqrt{1-d\^2}t',0,0,(1-t')+dt')}{\|(\sqrt{1-d\^2}t',0,0,(1-t')+dt')\|} $$
@@ -173,7 +173,7 @@ $$ K\_2: e\_2 = 7.22881 * 10\^{-5} = 0.004\^{\circ} $$
 
 It's interesting that while our approximations do help, they are not that different from each other once the angle between the quaternions is not too high. This makes sense if you recall that $K$ was very flat for large values of $d$ - so we don't really get more precision because our basic approximation was good enough!
 
-Note also how our approximations ended up quite good despite the fact that we did not optimize for the maximum error. All of the fits that we did minimized the sum of squares of the errors; even worse, our error was not in terms of the angle but in terms of some internal parameters. I tried to explicitly refit the equations to minimize the maximum angular error, but was not very successful - the results ended up being close so let's leave it at that.
+Note also how we got pretty good results despite the fact that we did not optimize for the maximum error. All of the fits that we did minimized the sum of squares of the errors; additionally, our error was not in terms of the angle but in terms of some internal parameters. I tried to explicitly refit the equations to minimize the maximum angular error, but was not very successful - the results ended up being close so let's leave it at that.
 
 Now that we got two good approximations and analyzed the error we can make an informed decision of whether to use a more or less precise implementation. In the next article we will look at the implementation of proposed approximations to see the relative performance of all interpolation methods.
 
