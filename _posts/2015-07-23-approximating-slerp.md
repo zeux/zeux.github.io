@@ -145,7 +145,7 @@ $$ K\_2(d, t) = A\_2(d)(t-0.5)\^2 + B\_2(d) $$
 
 ## Evaluating approximation error
 
-All of the approximations we computed above were using least-squares error metric in terms of $K$. However, $K$ is not really meaningful since this is just a step to computing $t$. We can compute the error in $t$ but the ultimate metric that we care about is the interpolation result - how much does the resulting quaternion deviate from the one obtained using $slerp$?
+All of the approximations we computed above were using least-squares error metric in terms of $K$. However, $K$ is not really meaningful since this is just an intermediate value necessary to compute $t$. We can compute the error in $t$ but the ultimate metric that we care about is the interpolation result - how much does the resulting quaternion deviate from the one obtained using $slerp$?
 
 Without a loss of generality we can assume that the input quaternions were $q\_1=(0,0,0,1)$ and $q\_2=(\sqrt{1-d\^2},0,0,d)$. The scalar component of the result of $nlerp$ is thus:
 
