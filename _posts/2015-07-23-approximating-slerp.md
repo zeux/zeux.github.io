@@ -19,7 +19,7 @@ $$ slerp(q_0, q_1, t) = q_0\frac{\sin((1 - t) a)}{\sin(a)} + q_1\frac{\sin(t a)}
 
 This function has a singularity at $a = 0$ (which corresponds to $q_0 = q_1$), so in practice $slerp$ is replaced by a simple linear interpolation as $q_0$ approaches $q_1$. In addition, because of quaternion double-cover - for each rotation there are two unit quaternions that represent it, $q$ and $-q$ - $slerp$ implementation has to account for that and negate one of the quaternions if $q_0 \cdot q_1$ is negative.
 
-The problem with $slerp$ is that it's expensive to compute. You have to evaluate four trigonometric functions; since they are usually implemented using a reduction step followed by a polynomial approximation with a relatively high power, this can get expensive. We can try to replace them with simpler approximations that are less precise, but it's more efficient to solve this issue in a more direct way.
+The problem with $slerp$ is that it's expensive to compute. You have to evaluate four trigonometric functions; since they are usually implemented using a range reduction step followed by a polynomial approximation with a relatively high power, this can get expensive. We can try to replace them with simpler approximations that are less precise, but it's more efficient to solve this issue in a more direct way.
 
 One other way to interpolate quaternions is $nlerp$ - which is just a linear interpolation, followed by a renormalization step (as well as aforementioned negation to solve issues with double-cover). Here's how it can work:
 
