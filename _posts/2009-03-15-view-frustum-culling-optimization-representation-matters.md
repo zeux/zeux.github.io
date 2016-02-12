@@ -113,7 +113,7 @@ This concludes the computation part of view-frustum culling. There is still some
 
 I'm going to write one final post regarding VFC, which deals with the code that will use is_visible to perform culling of the given batch array – the topics include DMA and double buffering; after that the whole VFC series will be over and I'm going to switch to something different.
 
-The complete source for this post can be [grabbed here](http://www.everfall.com/paste/id.php?scp5jznaxt6w).
+The complete source for this post can be [grabbed here](https://gist.github.com/zeux/1fb08fb04ae97c79852e).
 
 View Frustum Culling series contents:
 

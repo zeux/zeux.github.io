@@ -105,7 +105,7 @@ Note that in case of SPU, there is only one register set – thus there is no pe
 
 Anyway, the current code runs at 820 cycles, which is 50% faster than scalar code. This equals to approximately 256 msec per million calls, the corresponding numbers for x86 being 136 msec for gcc and 74 msec for msvc8. Once x86 code is changed so that dot() function returns its result in a vector register, and resulting sign is then analyzed via `_mm_movemask_ps` instruction, timings change to 126/68, respectively. We've made some progress there, but our SPU implementation is still far from x86 in terms of speed though we're using the same techniques. I promise that the end result will be much more pleasing though :)
 
-The current source can be [grabbed here](http://www.everfall.com/paste/id.php?9cn4737gz8or).
+The current source can be [grabbed here](https://gist.github.com/zeux/218be90b7ce38c81777e).
 
 That's all for now – stay tuned for the next weekend's post!
 

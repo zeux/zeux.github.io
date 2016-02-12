@@ -247,4 +247,4 @@ std::vector<size_t> generate_array(size_t count)
 }
 ```
 
-Here is [the full source code](http://www.everfall.com/paste/id.php?r4mk6lhujy0g) for this post. It contains the above code for generating the killer sequence for a quick sort implementation, and additionally the instrumented sorting function from MSVC2008 STL. This code may not compile on other compilers because of the MS-specific parts of the sorting function itself, but otherwise should work fine.
+Here is [the full source code](https://gist.github.com/zeux/148aed5d4bbc8c74a7f4) for this post. It contains the above code for generating the killer sequence for a quick sort implementation, and additionally the instrumented sorting function from MSVC2008 STL. This code may not compile on other compilers because of the MS-specific parts of the sorting function itself, but otherwise should work fine.

@@ -85,4 +85,4 @@ void debug_printf(const char* format, …)
 
 Finally, the last problem is that some CRT code checks global variable _crtheap prior to allocation, so we have to initialize it to something (that affects fopen() and other functions that use dynamically created critical sections).
 
-Well, now it works and I'm quite happy with the results. Of course it's slightly hackish, but CRT code is such a mess that it blends in nicely. The more or less complete source code [is here](http://www.everfall.com/paste/id.php?aivmcjmkmvy7). Note that if you're using C++ `new`/`delete` and you have not overridden them globally for some reason, you might want to patch `_nh_malloc`/`_heap_alloc` with `malloc_stub` as well.
+Well, now it works and I'm quite happy with the results. Of course it's slightly hackish, but CRT code is such a mess that it blends in nicely. The more or less complete source code [is here](https://gist.github.com/zeux/9e05771f7edca8165a3e). Note that if you're using C++ `new`/`delete` and you have not overridden them globally for some reason, you might want to patch `_nh_malloc`/`_heap_alloc` with `malloc_stub` as well.

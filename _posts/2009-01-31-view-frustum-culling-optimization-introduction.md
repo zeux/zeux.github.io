@@ -69,7 +69,7 @@ bool is_visible(struct matrix43_t* transform, struct aabb_t* aabb, struct frustu
 }
 ```
 
-It uses five predefined data structures (vector3_t, matrix43_t, aabb_t, frustum_t and plane_t which is the type of frustum->planes array elements); those, and the (again, naïve) code of two used functions is available [here (along with the rest of the code)](http://www.everfall.com/paste/id.php?e7nyaefyeins).
+It uses five predefined data structures (vector3_t, matrix43_t, aabb_t, frustum_t and plane_t which is the type of frustum->planes array elements); those, and the (again, naïve) code of two used functions is available [here (along with the rest of the code)](https://gist.github.com/zeux/a3114def35a16ad63e6b).
 
 Note that matrix43_t is laid out so that three translation components are adjacent to each other in memory (I don't use the term “whatever major” here because it's very misleading); in our real code, rows actually consist of four components, with the fourth one being undefined for matrix43_t (of course, all operations should proceed as if the column was filled with 0 0 0 1). Similarly, vector3_t has four components, with the fourth one being undefined (this affects aabb_t). This is something that is assumed to stay this way forever, so all of our discussed code will somehow work around that when needed. From the next post and onwards, data layout of the sample code will be exactly the same as in our engine, I've omitted padding fields in today's version for simplicity.
 

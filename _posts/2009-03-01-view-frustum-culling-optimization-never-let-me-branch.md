@@ -92,7 +92,7 @@ I changed return type for is_visible to unsigned int, with 0 meaning false and 0
 
 Now when we compute everything in a single block, compiler schedules instructions in a way that we waste close to zero cycles because of latency. The new branchless version runs at 119 cycles, which is more than 3 times faster than the previous version, and 10 times faster than initial scalar version. This results in 37 msec for million calls, which is almost 2 times faster than fastest result on x86 (finally!). Moreover, this is slightly faster than the best case of previous version – so there is no tradeoff here, new version is always faster than old one. Note that eliminating branches is not worth it for x86 code (i.e. it does not make worst case faster, which is expected, if you remember that we had to do 2 checks per plane in order to make SoA approach faster than AoS).
 
-The current source can be [grabbed here](http://www.everfall.com/paste/id.php?5ja74ki4tozi).
+The current source can be [grabbed here](https://gist.github.com/zeux/9707c36deb26e8297e28).
 
 That's all for now – stay tuned for the next weekend's post! I plan to post something not VFC-related the next week, then another VFC post the week after that. If you're starting to hate frustums, SPU, me and my blog - sorry about that, but we'll be done with VFC some day, I swear! :)
 

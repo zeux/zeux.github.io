@@ -7,7 +7,7 @@ Last time (I don't blame you if you forgot, that was a year and a half ago) I de
 
 The fastest version back then stopped at 104 cycles per test. Let's look at the code, count the instructions, and think about the further optimization possibilities.
 
-The full version of previous code [is here](http://www.everfall.com/paste/id.php?scp5jznaxt6w).
+The full version of previous code [is here](https://gist.github.com/zeux/1fb08fb04ae97c79852e).
 
 SPU instructions can be separated into several groups; instruction in each group usually share the latency and the pipeline. SPU have two pipelines - even and odd. The instruction set is separated into odd and even instructions; even instructions should execute on even pipe, odd - on odd pipe. SPU can execute two instructions per cycle, if they are executed on different pipes, if there are no stalls due to register dependencies, and if the addresses of instructions are "even" and "odd", respectively (all instructions are 4-byte, so even/odd distinction refers to the offset modulo 8 - it can be either 0 or 4).
 
@@ -206,7 +206,7 @@ This code runs at 74 cycles per iteration at 1024 iterations, which is much clos
 
 There is another technique that can reduce stalls and improve dual-issue rate, which is called software pipelining. I currently don't know if it will prove useful for this case; if it will, I'll demonstrate it on this code, otherwise I'll show it on a different (simpler) code.
 
-The complete source for this post can be [grabbed here](http://www.everfall.com/paste/id.php?sf2vwasxpr3o).
+The complete source for this post can be [grabbed here](https://gist.github.com/zeux/ef12716faf6e3b54a2b3).
 
 View Frustum Culling series contents:
 

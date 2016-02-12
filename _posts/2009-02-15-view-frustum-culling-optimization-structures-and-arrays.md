@@ -162,7 +162,7 @@ Now, the results. The code runs at 376 cycles, which is more than 2 times faster
 
 The fastest version is still produced by msvc8 from previous version. This should not be very surprising, as we changed inner loop from performing one dot-product to performing 8 at once, so that shows. We can optimize it in this case by adding early out – after we compute first 4 dot products, we'll check if all of them are positive; if some of them are not, we can safely skip additional 4 dot products and continue to the next iteration. It results in 87 ms for msvc8 and 65 ms for gcc, with gcc-compiled SoA finally being faster than all previous approaches. Of course, this is a worst case for SoA – in case inner loops actually did not terminate after first iteration the performance gain would be greater. Adding the same optimization to SPU code makes it slightly (by 3 cycles) slower; the penalty is tens of cycles if the early out does not happen and we have to compute all 8 dot products, so it's definitely not worth it.
 
-The current source can be [grabbed here](http://www.everfall.com/paste/id.php?njpol06sfdmh).
+The current source can be [grabbed here](https://gist.github.com/zeux/d0b700f0e8e700bec5c8).
 
 That's all for now – stay tuned for the next weekend's post!
 
