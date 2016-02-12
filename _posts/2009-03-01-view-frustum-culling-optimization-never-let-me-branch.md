@@ -48,7 +48,7 @@ Of course, eliminating branches is often a tradeoff – sometimes it makes worst
 
 So, in order to eliminate branches, we'll restructure our code a bit – instead of checking for each plane if all points are outside, we'll check if any point is inside, i.e. if the box is not outside of the plane:
 
-```c++
+```cpp
 static inline qword is_not_outside(qword plane, const qword* points_ws_0, const qword* points_ws_1)
 {
     qword dp0 = dot4(plane, points_ws_0[0], points_ws_0[1], points_ws_0[2]);
@@ -66,7 +66,7 @@ static inline qword is_not_outside(qword plane, const qword* points_ws_0, const 
 
 Now all we have to do is to call this function for all planes, and combine the results – we can do it with `si_and`, since the box is not outside of the frustum only if it's not outside of all planes; if any is_not_outside call returns 0, we have to return 0.
 
-```c++
+```cpp
 // for each plane…
 qword nout0 = is_not_outside((qword)frustum->planes[0], points_ws_0, points_ws_1);
 qword nout1 = is_not_outside((qword)frustum->planes[1], points_ws_0, points_ws_1);
@@ -97,6 +97,7 @@ The current source can be [grabbed here](http://www.everfall.com/paste/id.php?5j
 That's all for now – stay tuned for the next weekend's post! I plan to post something not VFC-related the next week, then another VFC post the week after that. If you're starting to hate frustums, SPU, me and my blog - sorry about that, but we'll be done with VFC some day, I swear! :)
 
 View Frustum Culling series contents:
+
 >1. [Introduction](/2009/01/31/view-frustum-culling-optimization-introduction/)
 2. [Vectorize me](/2009/02/08/view-frustum-culling-optimization-vectorize-me/)
 3. [Structures and arrays](/2009/02/15/view-frustum-culling-optimization-structures-and-arrays/)

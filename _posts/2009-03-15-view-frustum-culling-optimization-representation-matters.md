@@ -22,7 +22,7 @@ Note that if you're using OpenGL clip space convention, the near plane equation 
 
 First, to transform points to clip space, we're going to need a world view projection matrix – I hope the code does not require any additional explanations:
 
-```c++
+```cpp
 static inline void transform_matrix(struct matrix_t* dest, const struct matrix_t* lhs, const struct matrix_t* rhs)
 {
 #define COMP_0(c) \
@@ -50,7 +50,7 @@ static inline void transform_matrix(struct matrix_t* dest, const struct matrix_t
 
 After that we'll transform the points to clip space, yielding 2 groups with 4 vectors (x, y, z, w) in each one; the code is almost the same as in the previous post, only we now have 4 components:
 
-```c++
+```cpp
 static inline void transform_points_4(qword* dest, qword x, qword y, qword z, const struct matrix_t* mat)
 {
 #define COMP(c) \
@@ -70,7 +70,7 @@ static inline void transform_points_4(qword* dest, qword x, qword y, qword z, co
 }
 ```
 
-```c++
+```cpp
 // transform points to clip space
 qword points_cs_0[4];
 qword points_cs_1[4];
@@ -81,7 +81,7 @@ transform_points_4(points_cs_1, minmax_x, minmax_y, minmax_z_1, &clip);
 
 If all 8 clip-space points are outside left plane, i.e. if for all 8 points p.x <= -p.w, then the box is completely outside. Since we're going to use SoA layout, such tests are very easy to perform. We'll need a vector which contains -w for 4 points; SPU do not have a special negation instruction, but you can easily emulate it either by subtracting from zero or by xoring with 0x80000000. Theoretically xor is better (it has 2 cycles of latency, subtract has 6), but in our case there is no difference in speed; I'll use xor nonetheless:
 
-```c++
+```cpp
 // calculate -w
 qword points_cs_0_negw = si_xor(points_cs_0[3], (qword)(vec_uint4)(0×80000000));
 qword points_cs_1_negw = si_xor(points_cs_1[3], (qword)(vec_uint4)(0×80000000));
@@ -89,7 +89,7 @@ qword points_cs_1_negw = si_xor(points_cs_1[3], (qword)(vec_uint4)(0×80000000))
 
 Now we'll calculate “not outside” flags for each plane; the method is exactly the same as in previous post (as is the final result computation), only now we're not doing dot products.
 
-```c++
+```cpp
 // for each plane…
 #define NOUT(a, b, c, d) si_orx(si_or(si_fcgt(a, b), si_fcgt(c, d)))
 
@@ -116,6 +116,7 @@ I'm going to write one final post regarding VFC, which deals with the code that 
 The complete source for this post can be [grabbed here](http://www.everfall.com/paste/id.php?scp5jznaxt6w).
 
 View Frustum Culling series contents:
+
 >1. [Introduction](/2009/01/31/view-frustum-culling-optimization-introduction/)
 2. [Vectorize me](/2009/02/08/view-frustum-culling-optimization-vectorize-me/)
 3. [Structures and arrays](/2009/02/15/view-frustum-culling-optimization-structures-and-arrays/)

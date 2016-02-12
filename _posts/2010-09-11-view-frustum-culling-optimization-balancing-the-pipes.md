@@ -75,7 +75,7 @@ We have 48 floating-point instructions (even), 12 loads (odd), 13 per-component 
 
 The first problem is that we call transform_points4 twice; while the shuffles are shared between the calls (each call to transform_points has 16 shuffles, but they are the same across two calls, because they operate on the same view projection matrix), some math could be shared but is not. We call the function like so:
 
-```c++
+```cpp
 static inline void transform_points_4(qword* dest, qword x, qword y, qword z, const struct matrix_t* mat)
 {
 #define COMP(c) \
@@ -101,7 +101,7 @@ Note that X and Y vectors for two groups of points are the same, which is expect
 
 Rearranging the computations in xyz or yxz order enables us to share 8 floating points operations with the previous call:
 
-```c++
+```cpp
 res_ ## c = si_fma(x, SPLAT((qword)mat->row0, c), res_ ## c); \
 res_ ## c = si_fma(y, SPLAT((qword)mat->row1, c), res_ ## c); \
 res_ ## c = si_fma(z, SPLAT((qword)mat->row2, c), res_ ## c); \
@@ -109,7 +109,7 @@ res_ ## c = si_fma(z, SPLAT((qword)mat->row2, c), res_ ## c); \
 
 Another minor annoyance is that we have to negate the w component and to compare Z with 0. The point of the code in question:
 
-```c++
+```cpp
 // calculate -w
 qword points_cs_0_negw = si_xor(points_cs_0[3], (qword)(vec_uint4)(0x80000000));
 qword points_cs_1_negw = si_xor(points_cs_1[3], (qword)(vec_uint4)(0x80000000));
@@ -131,13 +131,13 @@ is to calculate, for each plane, if any point is not outside the plane, i.e. if 
 
 SPU does not have a horizontal-and instruction (a straightforward way to do the above would be to do something like `si_andx(si_and(..., ...))`), but we can replace this with the equivalent:
 
-```c++
+```cpp
 not(andx(and(a, b), and(c, d))) == orx(not(and(a, b)), not(and(c, d)))
 ```
 
 Fortunately, there is a not(and(a, b)) instruction available, so we can write the code as follows:
 
-```c++
+```cpp
 // for each plane...
 #define NOUT(op, idx0, idx1) si_orx(si_nand(op(points_cs_0[idx0], points_cs_0[idx1]), op(points_cs_1[idx0], points_cs_1[idx1])))
 
@@ -153,7 +153,7 @@ qword nout5 = NOUT(si_fs, 3, 2); // (w - z) >= 0 for any point
 
 With these two modifications, we remove 10 floating-point operations and two xor's (and replace or with nand, which are similar); we have to convert the most-significant bit of the result to a 0/1 mask, which can be done with a single arithmetic right shift:
 
-```c++
+```cpp
 return si_to_int(nout) >> 31;
 ```
 
@@ -182,25 +182,26 @@ because the first one issues 1 instruction per cycle (given no register dependen
 
 Making this change is trivial - just rename the old function to is_visible_impl and make it inline, and add a new function:
 
-```c++
+```cpp
 __attribute__((noinline)) void is_visible(qword* result, const struct matrix_t* transform, const struct aabb_t* aabb, unsigned int count, const struct matrix_t* frustum)
 {
-	for (unsigned int i = 0; i < count; i += 4)
-	{
-		qword r0 = si_from_uint(is_visible_impl(transform + i + 0, aabb + i + 0, frustum));
-		qword r1 = si_from_uint(is_visible_impl(transform + i + 1, aabb + i + 1, frustum));
-		qword r2 = si_from_uint(is_visible_impl(transform + i + 2, aabb + i + 2, frustum));
-		qword r3 = si_from_uint(is_visible_impl(transform + i + 3, aabb + i + 3, frustum));
+    for (unsigned int i = 0; i < count; i += 4)
+    {
+        qword r0 = si_from_uint(is_visible_impl(transform + i + 0, aabb + i + 0, frustum));
+        qword r1 = si_from_uint(is_visible_impl(transform + i + 1, aabb + i + 1, frustum));
+        qword r2 = si_from_uint(is_visible_impl(transform + i + 2, aabb + i + 2, frustum));
+        qword r3 = si_from_uint(is_visible_impl(transform + i + 3, aabb + i + 3, frustum));
 
-		result[i + 0] = r0;
-		result[i + 1] = r1;
-		result[i + 2] = r2;
-		result[i + 3] = r3;
-	}
+        result[i + 0] = r0;
+        result[i + 1] = r1;
+        result[i + 2] = r2;
+        result[i + 3] = r3;
+    }
 }
 ```
 
 Note that the frustum is the same for all AABB/matrix pairs, which makes sense for common usage patterns.
+
 This code runs at 74 cycles per iteration at 1024 iterations, which is much closer to the optimal 50. Of course, the code size is larger now, and we'll have to restructure the calling code.
 
 There is another technique that can reduce stalls and improve dual-issue rate, which is called software pipelining. I currently don't know if it will prove useful for this case; if it will, I'll demonstrate it on this code, otherwise I'll show it on a different (simpler) code.
@@ -208,6 +209,7 @@ There is another technique that can reduce stalls and improve dual-issue rate, w
 The complete source for this post can be [grabbed here](http://www.everfall.com/paste/id.php?sf2vwasxpr3o).
 
 View Frustum Culling series contents:
+
 >1. [Introduction](/2009/01/31/view-frustum-culling-optimization-introduction/)
 2. [Vectorize me](/2009/02/08/view-frustum-culling-optimization-vectorize-me/)
 3. [Structures and arrays](/2009/02/15/view-frustum-culling-optimization-structures-and-arrays/)

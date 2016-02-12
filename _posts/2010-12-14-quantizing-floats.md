@@ -16,9 +16,9 @@ The goal of quantization is to preserve the original value with as much accuracy
 
 Note that the error function is defined in terms of both encode and decode functions - the search for quantization function should start with the decode function. For GPU, decode functions are usually fixed - there are special 'normalized' formats, that, when used in a vertex declaration, automatically decode the value from small precision integer to a limited-range floating point value. While it is certainly possible to use integer formats and do the decoding yourself, the default decode functions are usually sane.
 
-So, what are the functions? For DirectX 10, there are *_UNORM and *_SNORM formats. Their decoding is described in the documentation: for *_UNORM formats of n-bit length, the decode function is `decode(x) = x / (2^n - 1)`, for *_SNORM formats of n-bit length the decode function is `decode(x) = clamp(x / (2^(n-1) - 1), -1, 1)`. In the first case x is assumed to be an unsigned integer in [0..2^(n)-1] interval, in the second case it's a signed integer in [-2^(n-1)..2^(n-1)-1] interval. 
+So, what are the functions? For DirectX 10, there are *_UNORM and *_SNORM formats. Their decoding is described in the documentation: for *_UNORM formats of n-bit length, the decode function is `decode(x) = x / (2^n - 1)`, for *_SNORM formats of n-bit length the decode function is `decode(x) = clamp(x / (2^(n-1) - 1), -1, 1)`. In the first case x is assumed to be an unsigned integer in [0..2<sup>n</sup>-1] interval, in the second case it's a signed integer in [-2<sup>n-1</sup>..2<sup>n-1</sup>-1] interval. 
 
-In for the UNORM case the [0..1] interval is divided in 2^n - 1 equal parts. You can see that 0.0 and 1.0 are represented exactly; 0.5, on the other hand, is not. The SNORM case is slightly more complex - the integer range is not symmetric, so two values map to -1.0 (-2^(n-1) and -2^(n-1) - 1).
+In for the UNORM case the [0..1] interval is divided in 2^n - 1 equal parts. You can see that 0.0 and 1.0 are represented exactly; 0.5, on the other hand, is not. The SNORM case is slightly more complex - the integer range is not symmetric, so two values map to -1.0 (-2<sup>n-1</sup> and -2<sup>n-1</sup> - 1).
 
 This is only one example; other APIs may specify different behaviors. For example, OpenGL 2.0 specification has the same decoding function for unsigned numbers, but a different one for signed: `decode(x) = (2x + 1) / (2^n - 1)`. This has slightly better precision (all numbers encode distinct values), but can't represent 0 exactly. [AMD GPU documentation](http://www.x.org/docs/AMD/R5xx_Acceleration_v1.3.pdf) describes a VAP_PSC_SGN_NORM_CNTL register, which may be used to set the normalization behavior to that of either OpenGL, Direct3D 10 or a similar method to Direct3D 10, but without [-1..1] range clamping (i.e. the actual range is not symmetrical).
 
@@ -30,7 +30,7 @@ First let's mark all values that are exactly representable using the decode func
 
 Now we can visualize the encoding; all that's left is to provide a function. Note that the encoding is not exactly uniform - the size of leftmost and rightmost subranges is half that of all other subranges. This is not a problem, since we're optimizing for the minimal error, not for the equal range length.
 
-The function is easy - if you multiply all numbers from the row 'original' by 7 (2^n - 1), you'll see that all that's left is to apply the round-to-nearest function; since we're limited to unsigned numbers, the encode function is `encode(x) = int (x / 7.0 + 0.5)`. (which is a standard way to turn round-to-zero, which is the C float-to-int cast behavior, to round-to-nearest for positive numbers).
+The function is easy - if you multiply all numbers from the row 'original' by 7 (2<sup>n</sup> - 1), you'll see that all that's left is to apply the round-to-nearest function; since we're limited to unsigned numbers, the encode function is `encode(x) = int (x / 7.0 + 0.5)` (which is a standard way to turn round-to-zero, which is the C float-to-int cast behavior, to round-to-nearest for positive numbers).
 
 [![](http://zeuxcg.files.wordpress.com/2010/12/snorm.png)](http://zeuxcg.files.wordpress.com/2010/12/snorm.png)
 
@@ -38,7 +38,7 @@ Here is another image for the signed numbers, using Direct3D 10 rules. The range
 
 Just for reference, three functions for quantizing values to 8 bits are:
 
-```c++
+```cpp
 // Unsigned quantization: input: [0..1] float; output: [0..255] integer
 encode(x) = int (x * 255.0 + 0.5)
 

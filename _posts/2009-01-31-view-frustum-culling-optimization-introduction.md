@@ -21,7 +21,7 @@ Two approaches differ in the methodology of box-plane testing – one (bruteforc
 
 The naïve version of the algorithm first extracts the plane equations, using frustum combined view projection matrix (this is done once for each frustum, so it is not performance sensitive; as such, the code for this is omitted and frustum is assumed to have 6 computed plane equations initially). Then it applies the described bruteforce algorithm as follows:
 
-```c++
+```cpp
 bool is_visible(struct matrix43_t* transform, struct aabb_t* aabb, struct frustum_t* frustum)
 {
     // get aabb points
@@ -80,6 +80,7 @@ The cycle count for this naïve code is 1204, which (given a 3.2 GHz SPU) transl
 That's all for now – stay tuned for the next weekend's post!
 
 View Frustum Culling series contents:
+
 >1. **Introduction**
 2. [Vectorize me](/2009/02/08/view-frustum-culling-optimization-vectorize-me/)
 3. [Structures and arrays](/2009/02/15/view-frustum-culling-optimization-structures-and-arrays/)

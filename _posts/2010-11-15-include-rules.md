@@ -17,7 +17,7 @@ Do not include a header for a dependency declaration where a forward declaration
 
 With the rules above, there is only one thing left - since we can include a header twice accidentally (i.e. A depends on B and C, and B depends on C, so C is included twice into A), we'll need some protection against that. So each file should include the guards against multiple inclusion. There are two methods for this - either use #pragma once or use header guards. #pragma once is a non-standard technique, that tells the preprocessor explicitly "don't include this file more than once in a single translation unit". Header guards can emulate the behavior using preprocessor defines:
 
-```c++
+```cpp
 #ifndef FILE_NAME_H
 #define FILE_NAME_H
 ...

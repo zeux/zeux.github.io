@@ -11,7 +11,7 @@ Also let’s suppose for the sake of simplicity that our particles are actually 
 
 What we’d like to do ideally is to upload particles to a buffer, and have GPU render from it. To keep the amount of data low, we’d like to copy exactly one instance of each particle, without duplication. The classical (trivial) approach is to fill VB with particle data, 4 vertices per each particle, while doing all computations on CPU – that is, vertex shader only transforms particle in clip space. This is of course not very wise (after all, we’re trying to save some CPU clocks here), so another classical (slightly less trivial) approach is to fill VB with particle data, 4 vertices per each particle, where those 4 vertices differ only in their UV coordinates. UVs act like corner identifications – you know UV coordinate in vertex shader, and you know the corner of the particle you’re processing ((0, 0) = upper left corner, etc.). Thus you can easily perform actual coordinate position calculation in vertex shader like this:
 
-```c++
+```cpp
 float3 corner_position = particle_position + camera_axis_x * (uv.x – 0.5) * size + camera_axis_y * (uv.y – 0.5) * size;
 ```
 
@@ -45,7 +45,7 @@ Unfortunately, D3D9 does not have “quad” primitive type, so we’ll have to 
 
 5. Draw as follows:
 
-```c++
+```cpp
 device->SetStreamSource(0, shared_buffer_with_corner_data, 0, sizeof(CornerVertex));
 device->SetStreamSourceFreq(0, D3DSTREAMSOURCE_INDEXEDDATA | particle_count);
 
@@ -63,7 +63,7 @@ Note that:
 
 In theory, this method uses hardware instancing, and hardware instancing is supported only for SM3.0-compliant cards. However, in practice, all SM2.0-capable ATi cards support hardware instancing – it’s just that Direct3D9 does not let you use it. ATi engineers made a hack that lets you enable instancing for their cards – just do this once at application startup:
 
-```c++
+```cpp
 if (SUCCEEDED(d3d->CheckDeviceFormat(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, 0, D3DRTYPE_SURFACE, (D3DFORMAT)MAKEFOURCC('I','N','S','T'))))
 { 
     // Enable instancing 

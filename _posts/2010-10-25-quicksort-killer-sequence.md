@@ -7,7 +7,7 @@ Today I'm going to describe a not very practical but neat experiment, the result
 
 First, a quick refresher on how std::sort [in Microsoft STL] works. It is a variant of introsort with insertion sort for small chunks. It proceeds as follows:
 
-* For small sequences (32 elements or less), it uses insertion sort, which has O(n^(2)) average complexity, but has a better constant than a quick sort;
+* For small sequences (32 elements or less), it uses insertion sort, which has O(n<sup>2</sup>) average complexity, but has a better constant than a quick sort;
 
 * For other sequences, a median of either three or nine elements, depending on the sequence size, is selected as a pivot;
 
@@ -15,7 +15,7 @@ First, a quick refresher on how std::sort [in Microsoft STL] works. It is a vari
 
 * Left and right chunks are sorted recursively (actually, only the smaller one is sorted via a recursive call, but that's not significant);
 
-* Finally, if the recursion depth is too big (more than 1.5*log2(N)), the algorithm switches to heap sort, which has a worst-case complexity of O(n*log(n)).
+* Finally, if the recursion depth is too big (more than 1.5\*log2(N)), the algorithm switches to heap sort, which has a worst-case complexity of O(n*log(n)).
 
 This, given a careful implementation, results in a good general sorting function - it uses quicksort (which has a lower constant than heapsort), but falls back to heap sort on inputs that sort slowly with quicksort. However, due to unfortunate debug checks inside pop_heap function in MSVC2005 and 2008, the heap sort is quadratic in debug builds (this has been fixed in MSVC2010), so if we can make a sequence that'll make quicksort quadratic, this introsort implementation will also go quadratic in debug builds.
 
@@ -42,23 +42,23 @@ Our goal, in order to make the worst possible sequence, is to maximize the size 
 
 In order to get the information about the median candidates, the median and the partition results, we need to slightly instrument the sorting function; I made the following interface:
 
-```c++
+```cpp
 struct sort_context
 {
-	virtual bool less(const element& lhs, const element& rhs) { return lhs.last < rhs.last; }
-	virtual void partition_begin() {}
-	virtual void partition_median(const element* med) {}
-	virtual void partition_end(const element* right_begin, const element* right_end) {}
+    virtual bool less(const element& lhs, const element& rhs) { return lhs.last < rhs.last; }
+    virtual void partition_begin() {}
+    virtual void partition_median(const element* med) {}
+    virtual void partition_end(const element* right_begin, const element* right_end) {}
 };
 
 struct predicate
 {
-	sort_context* context;
+    sort_context* context;
 
-	bool operator()(const element& lhs, const element& rhs) const
-	{
-		return context->less(lhs, rhs);
-	}
+    bool operator()(const element& lhs, const element& rhs) const
+    {
+        return context->less(lhs, rhs);
+    }
 };
 ```
 
@@ -66,143 +66,143 @@ The sorting function should call partition_begin before each sorting pass, parti
 
 Then we can implement the function that retrieves indices of median candidates:
 
-```c++
+```cpp
 std::pair<std::vector<size_t>, size_t> get_first_median_positions(element* data, size_t count)
 {
-	struct median_context: sort_context
-	{
-		bool inside;
-		unsigned int counter;
+    struct median_context: sort_context
+    {
+        bool inside;
+        unsigned int counter;
 
-		const element* median;
-		std::vector<const element*> positions;
+        const element* median;
+        std::vector<const element*> positions;
 
-		median_context(): inside(false), counter(0), median(0)
-		{
-		}
+        median_context(): inside(false), counter(0), median(0)
+        {
+        }
 
-		virtual bool less(const element& lhs, const element& rhs)
-		{
-			if (inside && counter == 0)
-			{
-				positions.push_back(&lhs);
-				positions.push_back(&rhs);
-			}
+        virtual bool less(const element& lhs, const element& rhs)
+        {
+            if (inside && counter == 0)
+            {
+                positions.push_back(&lhs);
+                positions.push_back(&rhs);
+            }
 
-			return sort_context::less(lhs, rhs);
-		}
+            return sort_context::less(lhs, rhs);
+        }
 
-		virtual void partition_begin()
-		{
-			assert(!inside);
-			inside = true;
-		}
+        virtual void partition_begin()
+        {
+            assert(!inside);
+            inside = true;
+        }
 
-		virtual void partition_median(const element* med)
-		{
-			assert(inside);
-			inside = false;
-			if (counter++ == 0) median = med;
-		}
-	};
+        virtual void partition_median(const element* med)
+        {
+            assert(inside);
+            inside = false;
+            if (counter++ == 0) median = med;
+        }
+    };
 
-	// collect median data
-	median_context c;
-	sort(data, count, &c);
+    // collect median data
+    median_context c;
+    sort(data, count, &c);
 
-	if (!c.median)
-	{
-		assert(c.positions.size() == 0);
-		return std::make_pair(std::vector<size_t>(), 0);
-	}
+    if (!c.median)
+    {
+        assert(c.positions.size() == 0);
+        return std::make_pair(std::vector<size_t>(), 0);
+    }
 
-	// sort & remove duplicates
-	std::sort(c.positions.begin(), c.positions.end());
-	c.positions.erase(std::unique(c.positions.begin(), c.positions.end()), c.positions.end());
+    // sort & remove duplicates
+    std::sort(c.positions.begin(), c.positions.end());
+    c.positions.erase(std::unique(c.positions.begin(), c.positions.end()), c.positions.end());
 
-	// convert from pointers to offsets
-	std::vector<size_t> result(c.positions.size());
+    // convert from pointers to offsets
+    std::vector<size_t> result(c.positions.size());
 
-	for (size_t i = 0; i < result.size(); ++i) result[i] = c.positions[i] - data;
+    for (size_t i = 0; i < result.size(); ++i) result[i] = c.positions[i] - data;
 
-	// get median position
-	std::vector<const element*>::iterator median = std::find(c.positions.begin(), c.positions.end(), c.median);
-	assert(median != c.positions.end());
+    // get median position
+    std::vector<const element*>::iterator median = std::find(c.positions.begin(), c.positions.end(), c.median);
+    assert(median != c.positions.end());
 
-	return std::make_pair(result, median - c.positions.begin());
+    return std::make_pair(result, median - c.positions.begin());
 }
 ```
 
 a function that sorts the array and returns the partition information for the first pass:
 
-```c++
+```cpp
 std::pair<size_t, size_t> get_first_partition_right_modify(element* data, size_t count)
 {
-	struct partition_context: sort_context
-	{
-		unsigned int counter;
-		const element* begin;
-		const element* end;
+    struct partition_context: sort_context
+    {
+        unsigned int counter;
+        const element* begin;
+        const element* end;
 
-		partition_context(): counter(0), begin(0), end(0)
-		{
-		}
+        partition_context(): counter(0), begin(0), end(0)
+        {
+        }
 
-		void partition_end(const element* right_begin, const element* right_end)
-		{
-			if (counter++ != 0) return;
+        void partition_end(const element* right_begin, const element* right_end)
+        {
+            if (counter++ != 0) return;
 
-			begin = right_begin;
-			end = right_end;
-		}
-	};
+            begin = right_begin;
+            end = right_end;
+        }
+    };
 
-	// get partitioning data
-	partition_context c;
-	predicate pred = {&c};
-	std::sort_instrumented(data, data + count, pred);
+    // get partitioning data
+    partition_context c;
+    predicate pred = {&c};
+    std::sort_instrumented(data, data + count, pred);
 
-	// get indices
-	return (c.begin == 0 && c.end == 0) ? std::make_pair(0, 0) : std::make_pair(c.begin - data, c.end - data);
+    // get indices
+    return (c.begin == 0 && c.end == 0) ? std::make_pair(0, 0) : std::make_pair(c.begin - data, c.end - data);
 }
 ```
 
 and finally the main function, that uses the above helpers:
 
-```c++
+```cpp
 void update_array(element* data, size_t count)
 {
-	// get positions of the first median candidates (along with the median itself)
-	std::pair<std::vector<size_t>, size_t> p = get_first_median_positions(data, count);
+    // get positions of the first median candidates (along with the median itself)
+    std::pair<std::vector<size_t>, size_t> p = get_first_median_positions(data, count);
 
-	if (p.first.empty()) return;
+    if (p.first.empty()) return;
 
-	// fill elements as follows:
-	// - elements from median candidates before median get an 'a' appended
-	// - median element gets a 'b' appended
-	// - all other elements get a 'c' appended (so that they go into the right half after partition)
-	std::map<size_t, char> actions;
+    // fill elements as follows:
+    // - elements from median candidates before median get an 'a' appended
+    // - median element gets a 'b' appended
+    // - all other elements get a 'c' appended (so that they go into the right half after partition)
+    std::map<size_t, char> actions;
 
-	for (size_t i = 0; i < p.second; ++i) actions[p.first[i]] = 'a';
-	actions[p.first[p.second]] = 'b';
-	char action_otherwise = 'c';
+    for (size_t i = 0; i < p.second; ++i) actions[p.first[i]] = 'a';
+    actions[p.first[p.second]] = 'b';
+    char action_otherwise = 'c';
 
-	for (size_t i = 0; i < count; ++i)
-	{
-		std::map<size_t, char>::iterator ait = actions.find(i);
+    for (size_t i = 0; i < count; ++i)
+    {
+        std::map<size_t, char>::iterator ait = actions.find(i);
 
-		data[i].last = (ait == actions.end()) ? action_otherwise : ait->second;
-		*data[i].data += data[i].last;
-	}
+        data[i].last = (ait == actions.end()) ? action_otherwise : ait->second;
+        *data[i].data += data[i].last;
+    }
 
-	// copy the elements to preserve the original data
-	std::vector<element> copy(data, data + count);
+    // copy the elements to preserve the original data
+    std::vector<element> copy(data, data + count);
 
-	// get the right partition (left should be very small so we don't care)
-	std::pair<size_t, size_t> partition = get_first_partition_right_modify(&copy[0], count);
+    // get the right partition (left should be very small so we don't care)
+    std::pair<size_t, size_t> partition = get_first_partition_right_modify(&copy[0], count);
 
-	// process the right half
-	update_array(&copy[0] + partition.first, partition.second - partition.first);
+    // process the right half
+    update_array(&copy[0] + partition.first, partition.second - partition.first);
 }
 ```
 
@@ -210,40 +210,40 @@ Note that as an optimization, the predicate only compares the last characters of
 
 The only task that remains is to convert the string array to the integer array with the same order; this is straightforward, except that we have to use std::multiset for sorting since std::sort is slow on this set of data (which was the goal, after all :):
 
-```c++
+```cpp
 std::vector<size_t> generate_array(size_t count)
 {
-	// create element array with empty strings
-	element* data = new element[count];
+    // create element array with empty strings
+    element* data = new element[count];
 
-	for (size_t i = 0; i < count; ++i)
-	{
-		data[i].data = new std::string;
-		data[i].last = 0;
-	}
+    for (size_t i = 0; i < count; ++i)
+    {
+        data[i].data = new std::string;
+        data[i].last = 0;
+    }
 
-	// update it to make worst possible order
-	update_array(data, count);
+    // update it to make worst possible order
+    update_array(data, count);
 
-	// make a sorted copy using std::multiset because std::sort is slow on this data (we prepared the data this way!)
-	std::multiset<element> copy_set(data, data + count);
-	std::vector<element> copy(copy_set.begin(), copy_set.end());
+    // make a sorted copy using std::multiset because std::sort is slow on this data (we prepared the data this way!)
+    std::multiset<element> copy_set(data, data + count);
+    std::vector<element> copy(copy_set.begin(), copy_set.end());
 
-	// create an order remap
-	std::map<std::string*, size_t> order;
+    // create an order remap
+    std::map<std::string*, size_t> order;
 
-	for (size_t i = 0; i < copy.size(); ++i) order[copy[i].data] = i;
+    for (size_t i = 0; i < copy.size(); ++i) order[copy[i].data] = i;
 
-	// create an integer array with the same order
-	std::vector<size_t> result;
+    // create an integer array with the same order
+    std::vector<size_t> result;
 
-	for (size_t i = 0; i < count; ++i) result.push_back(order[data[i].data]);
+    for (size_t i = 0; i < count; ++i) result.push_back(order[data[i].data]);
 
-	// cleanup
-	for (size_t i = 0; i < count; ++i) delete data[i].data;
-	delete[] data;
+    // cleanup
+    for (size_t i = 0; i < count; ++i) delete data[i].data;
+    delete[] data;
 
-	return result;
+    return result;
 }
 ```
 

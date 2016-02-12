@@ -39,7 +39,7 @@ The only problem now is to call the right constructor for each object. We have a
 
 Well, that's cute and stuff, but how do we fill the table? In essence, we have to call this:
 
-```c++
+```cpp
 template <class T> static void registerClassByType()
 {
     _registerClass(T::rttiType(), sizeof(T), T::_Creator, T::_Destructor);
@@ -48,7 +48,7 @@ template <class T> static void registerClassByType()
 
 for each serializable type. For this, we have the following auto-registration class:
 
-```c++
+```cpp
 template <class ClassType> struct AutoRegister
 {
     void ping() {}
@@ -66,7 +66,7 @@ template <class ClassType> AutoRegister<ClassType> AutoRegister<ClassType>::regi
 
 Now, if we ensure that this class has a proper instantiation (which is done by calling `AutoRegister::registrator.ping()`), we're set. The ping call is performed from a function, that's generated from a macro inside the class declaration:
 
-```c++
+```cpp
 struct Foo
 {
     RTTI(Foo);

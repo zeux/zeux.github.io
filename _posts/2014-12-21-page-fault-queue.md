@@ -21,27 +21,27 @@ Chunks are usually around 512 Kb (uncompressed); the average compression ratio f
 
 To find out, let's profile the application and figure this out. I'm using [Linux kernel v3.19-rc1](https://github.com/torvalds/linux/releases/tag/v3.19-rc1) as the data set, and grepping for the regular expression `fooo?bar` that has the following matches[^3]:
 
-	$ qgrep init linux ~/linux
-	$ qgrep update linux
-	$ qgrep search linux fooo?bar
-	~/linux/arch/m68k/include/asm/openprom.h:298:
-		int vector; /* This is foobar, what does it do? */
-	~/linux/arch/sparc/include/asm/openprom.h:205:
-		int vector; /* This is foobar, what does it do? */
-	~/linux/arch/um/include/shared/init.h:23:
-	 * extern int initialize_foobar_device(int, int, int) __init;
-	~/linux/drivers/block/pktcdvd.c:1462:
-	static int kcdrwd(void *foobar)
-	~/linux/drivers/block/pktcdvd.c:1464:
-		struct pktcdvd_device *pd = foobar;
-	~/linux/drivers/of/unittest.c:407:
-		selftest(rc == 0 && !strcmp(strings[0], "foobar"), "of_property_read_string_index() failure; rc=%i\n", rc);
-	~/linux/drivers/usb/storage/unusual_devs.h:667:
-	/* Submitted by Michal Mlotek <mlotek@foobar.pl> */
-	~/linux/include/linux/init.h:26:
-	 * extern int initialize_foobar_device(int, int, int) __init;
-	~/linux/tools/perf/util/quote.h:15:
-	 * sprintf(cmd, "foobar %s %s", sq_quote(arg0), sq_quote(arg1))
+    $ qgrep init linux ~/linux
+    $ qgrep update linux
+    $ qgrep search linux fooo?bar
+    ~/linux/arch/m68k/include/asm/openprom.h:298:
+        int vector; /* This is foobar, what does it do? */
+    ~/linux/arch/sparc/include/asm/openprom.h:205:
+        int vector; /* This is foobar, what does it do? */
+    ~/linux/arch/um/include/shared/init.h:23:
+     * extern int initialize_foobar_device(int, int, int) __init;
+    ~/linux/drivers/block/pktcdvd.c:1462:
+    static int kcdrwd(void *foobar)
+    ~/linux/drivers/block/pktcdvd.c:1464:
+        struct pktcdvd_device *pd = foobar;
+    ~/linux/drivers/of/unittest.c:407:
+        selftest(rc == 0 && !strcmp(strings[0], "foobar"), "of_property_read_string_index() failure; rc=%i\n", rc);
+    ~/linux/drivers/usb/storage/unusual_devs.h:667:
+    /* Submitted by Michal Mlotek <mlotek@foobar.pl> */
+    ~/linux/include/linux/init.h:26:
+     * extern int initialize_foobar_device(int, int, int) __init;
+    ~/linux/tools/perf/util/quote.h:15:
+     * sprintf(cmd, "foobar %s %s", sq_quote(arg0), sq_quote(arg1))
 
 To find these matches, `qgrep` has to scan through 466 Mb of source data that is compressed to 122 Mb in 932 chunks. On my laptop it takes around 100 ms to find the matches using 8 threads. To analyze the effect the aforementioned change has on performance, we'll run the tests on Mac OSX (32/64 bit process) and Windows 7 (32/64 bit process), using 1 or 8 threads and with or without allocation pooling and measure the wall time. Here are the results (averaged over 100 runs):
 
@@ -61,10 +61,10 @@ The results in the table above mostly make sense - there must be some overhead a
 Let's use the excellent [Visual Studio Concurrency Visualizer](http://msdn.microsoft.com/en-us/library/dd537632.aspx) tool[^4] to find out what's going on! Here are the screenshots with 8-thread mode (click to enlarge):
 
 [![](/images/qgrep_pf_pool.png)](/images/qgrep_pf_pool.png)
-<div class="caption">Using the pool</div>
+<p class="caption">Using the pool</p>
 
 [![](/images/qgrep_pf_nopool.png)](/images/qgrep_pf_nopool.png)
-<div class="caption">Not using the pool</div>
+<p class="caption">Not using the pool</p>
 
 The first "worker thread" in these timelines is the thread that handles output processing (it usually is not CPU-heavy but for some reason there's a significant time in the first capture spent initializing console output...), and the remaining 8 threads handle decompression and search. Green sections represent CPU activity, red sections represent the thread waiting on a synchronization primitive and orange sections represent "memory management" - in our case, page fault handling.
 
@@ -130,6 +130,7 @@ Investigating performance issues requires good tools and willingness to dive dee
 
 *Thanks to Bruce Dawson for corrections and suggestions for clarification.*
 
+---
 [^1]: Time flies. If you remember this blog from 4 years ago you may have noticed that I changed the blogging platform again. This resulted in some spurious RSS updates - sorry about that! Posts and comments have been migrated and the feed should be stable now. Please let me know if something is off. Oh, and I will not promise to blog on a regular basis since apparently it does not end well.
 [^2]: I may be exaggerating here since the actual overhead of small allocations depends a lot on the implementation details (operating system version, process bitness, etc). The cost model usually boils down to "they can be expensive", which is probably good enough.
 [^3]: Why not `foobar`? Wait until another article about `qgrep` internals to find out!

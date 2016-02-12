@@ -39,7 +39,7 @@ During the export, there are several parts of a document that can reference the 
 
 The cache is organized as follows: there is an associative container with the key being the object, and the value being a list of parts. Each part holds the attribute and the cached value:
 
-```c++
+```cpp
 struct Part { MPlug plug; FloatList values; };
 struct Node { MObject node; vector<Part> parts; };
 
@@ -55,7 +55,7 @@ Still, somebody thought that this code is not fast enough. I do not know if the 
 
 It's easy to optimize the map lookup if we assume that the consecutive cache lookups happen with the same object, but with a different attribute - this is a reasonable assumption and it holds in practice. So, the code was modified and looked like this:
 
-```c++
+```cpp
 struct Cache
 {
     map<MObject, Node*> cache;

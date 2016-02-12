@@ -32,7 +32,7 @@ Why do you need to know class layout? Well, it's useful while writing code so yo
 
 Anyway, the first weird point is related to CodeWarrior – it had been like this on PS2, and it's like this on Wii – I doubt that'll ever change. You see, while on normal compilers there is no way to control vfptr placement – for simple classes without inheritance it always goes in the first word – on CodeWarrior it lies in the place of declaration – except that you can't declare vfptr in C++, so it lies in the place where the first virtual function is declared. Some examples follow:
 
-```c++
+```cpp
 // layout is vfptr, a, b
 struct Foo { virtual void foo1(); unsigned int a; unsigned int b; };
 
@@ -50,7 +50,7 @@ Marvelous, isn't it? Now there is an entry in our coding standard at work which 
 
 The second point was discovered only recently and appears to happen with MSVC. Let's look at the following classes:
 
-```c++
+```cpp
 struct Foo1 { virtual void foo1(); unsigned int a; float b; };
 struct Foo2 { virtual void foo1(); unsigned int a; double b; };
 ```

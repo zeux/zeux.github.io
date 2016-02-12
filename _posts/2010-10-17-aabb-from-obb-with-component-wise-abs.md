@@ -61,7 +61,7 @@ Note that this is the matrix-vector multiplication, with the matrix being the co
 
 The resulting code looks like this (this is F# with SlimDX math classes):
 
-```fsharp
+```ocaml
 let matrix_abs (matrix: Matrix) =
     let mutable m = Matrix()
     for i in 0..3 do

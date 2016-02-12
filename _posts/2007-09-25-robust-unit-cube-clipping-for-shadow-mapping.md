@@ -19,7 +19,7 @@ Now we have to build a new matrix that transforms our light viewprojection matri
 
 At first, let’s deal with XY extents. Many papers propose choosing receivers’ XY extents, because we don’t care about points of casters that are outside receivers’ extents – i.e. can’t cast shadows on receivers. This provides correct results, but we can do slightly better – we can select intersection of casters’ and receivers’ XY extents:
 
-```c++
+```cpp
 float min_x = max(receivers.min_x, casters.min_x);
 float min_y = max(receivers.min_y, casters.min_y);
 float max_x = min(receivers.max_x, casters.max_x);
@@ -43,7 +43,7 @@ Let’s suppose we’ve chosen ZN and ZF as our Z extents. This would mean that:
 
 At first, we can’t let our casters be clipped by near plane – this would produce artifacts – so the resulting ZN value has to be less or equal to casters’ minimal Z value. If there are no receivers with Z < casters.min_z, there is no sense to push ZN further (to decrease ZN, that is). If there ARE receivers left with Z < casters.min_z, then there should not be any shadows there. Let’s look at our shadow test.
 
-```c++
+```cpp
 float is_in_shadow = shadowmap_depth < pixel_depth ? 1 : 0;
 ```
 

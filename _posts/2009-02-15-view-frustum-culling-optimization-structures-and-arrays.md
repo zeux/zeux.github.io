@@ -32,13 +32,13 @@ What `si_shufb(a, b, c)` does is it takes a/b registers, and permutes their cont
 
 This is a superset of Altivec vec_perm instruction, and can be used to do very powerful things, as we'll realize soon enough. For example, you can implement usual GPU-style swizzling like so:
 
-```c++
+```cpp
 src_zxxx = si_shufb(src, src, ((qword)(vec_uint4){0x08090a0b, 0×00010203, 0×00010203, 0×00010203}));
 ```
 
 First four bytes of my pattern correspond to bytes 8-11 of left argument, all other four-byte groups correspond to bytes 0-3 of left argument. This is equal to applying .zxxx swizzle. As you can probably see, the code can get very obscure if you use shuffles a lot, so I've made some helper macros:
 
-```c++
+```cpp
 // shuffle helpers
 #define L0 0×00010203
 #define L1 0×04050607
@@ -61,7 +61,7 @@ SHUFFLE is for general shuffling, SPLAT is for component replication (.yyyy-like
 
 Let's generate AABB points then.
 
-```c++
+```cpp
 // get aabb points (SoA)
 qword minmax_x = SHUFFLE(min, max, L0, R0, L0, R0); // x X x X
 qword minmax_y = SHUFFLE(min, max, L1, L1, R1, R1); // y y Y Y
@@ -73,13 +73,13 @@ That was easy. Now if we want first 4 points, we use minmax_x, minmax_y, minmax_
 
 Now, we have 2 groups of 4 points in each, SoA style – we have to transform them to world space. It's actually quite easy – remember the first scalar version? If you've glanced at the code, you've seen a macro for computing single resulting component:
 
-```c++
+```cpp
 #define COMP(c) p->c = op.x * mat->row0.c + op.y * mat->row1.c + op.z * mat->row2.c + mat->row3.c
 ```
 
 As it turns out, this can be converted to SoA style multiplication almost literally – you just need to think of op.x, op.y, op.z as of vectors with 4 values of some component; mat->rowi.c has to be splatted over all components. The resulting function becomes:
 
-```c++
+```cpp
 static inline void transform_points_4(qword* dest, qword x, qword y, qword z, const struct matrix43_t* mat)
 {
 #define COMP(c) \
@@ -100,7 +100,7 @@ static inline void transform_points_4(qword* dest, qword x, qword y, qword z, co
 
 Note that it's not really that much different from the scalar version, only now it transforms 4 points in 9 `si_fma` and 12 `si_shufb` instructions. We're going to transform 2 groups of points, so we'll need 18 `si_fma` instructions, `si_shufb` can be shared – luckily, the compiler does it for us so we just need to call transform_points_4 twice:
 
-```c++
+```cpp
 // transform points to world space
 qword points_ws_0[3];
 qword points_ws_1[3];
@@ -116,7 +116,7 @@ Now all that's left is to calculate dot products with a plane. Of course we'll h
 
 In order to calculate 4 dot products, we'll make a helper function:
 
-```c++
+```cpp
 static inline qword dot4(qword v, qword x, qword y, qword z)
 {
     qword result = SPLAT(v, 3);
@@ -132,7 +132,7 @@ static inline qword dot4(qword v, qword x, qword y, qword z)
 
 And call it twice. Again, we'll be doing four splats twice, but compiler is smart enough to eliminate this. After that we'll have to compare all 8 dot products with zero, and return false if all of those are negative.
 
-```c++
+```cpp
 // for each plane...
 for (int i = 0; i < 6; ++i)
 {
@@ -167,6 +167,7 @@ The current source can be [grabbed here](http://www.everfall.com/paste/id.php?nj
 That's all for now – stay tuned for the next weekend's post!
 
 View Frustum Culling series contents:
+
 >1. [Introduction](/2009/01/31/view-frustum-culling-optimization-introduction/)
 2. [Vectorize me](/2009/02/08/view-frustum-culling-optimization-vectorize-me/)
 3. **Structures and arrays**

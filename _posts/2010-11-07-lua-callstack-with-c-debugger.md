@@ -23,18 +23,18 @@ This approach is superior to the third one because you can have arbitrarily comp
 
 Anyway, at first you'll need the function itself. The trivial implementation looks like this:
 
-```c++
+```cpp
 void lua_stacktrace(lua_State* L)
 {
     lua_Debug entry;
     int depth = 0; 
 
     while (lua_getstack(L, depth, &entry))
-	{
+    {
         int status = lua_getinfo(L, "Sln", &entry);
-		assert(status);
+        assert(status);
 
-		dprintf("%s(%d): %s\n", entry.short_src, entry.currentline, entry.name ? entry.name : "?");
+        dprintf("%s(%d): %s\n", entry.short_src, entry.currentline, entry.name ? entry.name : "?");
         depth++;
     }
 }
@@ -44,7 +44,7 @@ In order to get local variable information, you'll have to use lua_getlocal and 
 
 Now we have the function; you'll have to make sure that the function is linked in your executable; just reference it from some other function like this:
 
-```c++
+```cpp
 volatile bool x = false;
 if (x) lua_stacktrace(NULL);
 ```

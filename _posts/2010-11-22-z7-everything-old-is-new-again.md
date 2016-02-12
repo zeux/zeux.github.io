@@ -39,8 +39,8 @@ Obviously, the compile and link file access pattern change greatly. The change i
 
 Here are my completely unscientific benchmark results on OGRE builds with cold cache in four build variants: /Zi (PDB files, single core build), /Zi /MP (PDB files, multicore build), /Z7 (no PDB files, single core build), /Z7 /MP (no PDB files, multicore build). For each configuration, I did a clean build of the OgreMain.dll using a new source folder every time, then I rebooted to force file cache cleanup, changed a single source file and did a build once again. Both compilation and linking times are included. The tests were done on a Core i7 920.
 
-| /Zi | /Zi /MP | /Z7 | /Z7 /MP |
-|-----|---------|-----|---------|
+| | /Zi | /Zi /MP | /Z7 | /Z7 /MP |
+|--|----|---------|-----|---------|
 | clean cl | 6:45 | 1:51 | 6:32 | 1:32 |
 | clean link | 0:20 | 0:20 | 0:17 | 0:17 |
 | incremental cl | 0:15 | 0:15 | 0:08 | 0:08 |

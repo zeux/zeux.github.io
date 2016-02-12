@@ -16,13 +16,13 @@ So, our code is bad because we have lots of scalar memory accesses and lots of s
 
 One option is to code in assembly; this has obvious benefits and obvious pitfalls, and we'll use intrinsics instead. For SPUs, we have three intrinsics sets to choose from – Altivec emulated (vec_*, the same as we use on PPU), generic type-aware (spu_*) and low-level (si_*). GCC compiler provides several vector types as language extensions (some examples are 'vector float' and 'vector unsigned char', which correspond to 4 32-bit floats and 16 8-bit unsigned integers, respectively); a single spu_* instruction translates to different assembly instructions depending on a type, while si_* instructions operate on abstract register (it has type 'qword', which corresponds to 'vector signed char') – i.e. to add two vectors, you can use spu_add(v1, v2) with typed registers, or one of si_a, si_ah, si_fa, si_dfa to add registers as 32-bit integer, 16-bit integer, 32-bit floating point or 64-bit floating point, respectively. We'll be using si_* family for several reasons – one, they map to assembly exactly, so getting used to si_* instructions make it much easier to read (and possibly write) actual assembly, which is very useful when debugging or optimizing code, two, spu_* family is not available in C, as it uses function overloading. I'll explain specific intrinsics as we start using them.
 
-First thing we'll do is dispose of redundant vector3_t/plane_t structures (in a real math library, we won't do this of course, but this is a sample), and replace them with qwords. This way, everything will be properly aligned, and we won't need to write load/store instructions ourselves (as opposed to something like struct vector3_t { float v[4]; }).
+First thing we'll do is dispose of redundant vector3_t/plane_t structures (in a real math library, we won't do this of course, but this is a sample), and replace them with qwords. This way, everything will be properly aligned, and we won't need to write load/store instructions ourselves (as opposed to something like `struct vector3_t { float v[4]; }`).
 
-Then, we have to generate an array of points. Each resulting point is a combination of aabb->min and aabb->max – for each component we select either minimum or maximum value. As it turns out, there is the instruction that does exactly that – it accepts two registers with actual values and a third one with pattern; for each bit in pattern, it takes left bit for 0 and right bit for 1 – it's equivalent to (a & ~c) | (b & c), only in one instruction.
+Then, we have to generate an array of points. Each resulting point is a combination of aabb->min and aabb->max – for each component we select either minimum or maximum value. As it turns out, there is the instruction that does exactly that – it accepts two registers with actual values and a third one with pattern; for each bit in pattern, it takes left bit for 0 and right bit for 1 – it's equivalent to `(a & ~c) | (b & c)`, only in one instruction.
 
 The code becomes
 
-```c++
+```cpp
 // get aabb points
 qword points[] =
 {
@@ -43,7 +43,7 @@ Note that I'm using another gcc extension to form vector constants. This is very
 
 Then we have transform_point; we'll have to transform a given vector by matrix, and additionally to stuff a 1.0f in .w component of the result in order for the following dot product to work (I sort of hacked this in scalar version by using dot(vector3, vector4)). Vector-matrix SIMD multiplication is very well-known – we'll need add/multiply instructions, and ability to replicate a vector element across the whole vector. For this we'll use a si_shufb instruction – I'll leave the detailed explanation for the next issue, for now just assume that it works as desired :)
 
-```c++
+```cpp
 static inline qword transform_point(qword p, const struct matrix43_t* mat)
 {
     qword px = si_shufb(p, p, (qword)(vec_uint4)(0×00010203));
@@ -69,7 +69,7 @@ Note that in this case we are fortunate to have our matrix laid out as it is –
 
 Finally, we'll have to compute dot product. As there is no dedicated dot product instruction, we'll have to emulate it, which is not pretty.
 
-```c++
+```cpp
 static inline float dot(qword lhs, qword rhs)
 {
     qword mul = si_fm(lhs, rhs);
@@ -110,6 +110,7 @@ The current source can be [grabbed here](http://www.everfall.com/paste/id.php?9c
 That's all for now – stay tuned for the next weekend's post!
 
 View Frustum Culling series contents:
+
 >1. [Introduction](/2009/01/31/view-frustum-culling-optimization-introduction/)
 2. **Vectorize me**
 3. [Structures and arrays](/2009/02/15/view-frustum-culling-optimization-structures-and-arrays/)
