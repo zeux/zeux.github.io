@@ -214,7 +214,7 @@ The reason we need to pass `-ffast-math` is that this optimization changes the o
 
 ## Results
 
-Ok, after all the hard work is done let's see what we got in the end. We'll use IACA again to measure the performance of a loop - this time every loop iteration is processing 4 quaternions instead of 1, so we'll divide the numbers we get from IACA by 4 (and for the AVX2 version we'll divide by 8).
+Ok, all the hard work is done  - let's see what we got in the end. We'll use IACA again to measure the performance of a loop - for SSE2 versions every loop iteration is processing 4 quaternions instead of 1, so we'll divide the numbers we get from IACA by 4 (and for the AVX2 version we'll divide by 8).
 
 | Function | Cycles/element
 |----------|------
