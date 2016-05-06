@@ -172,7 +172,7 @@ Here's an interesting property of the code that we ended up with. Since instead 
 * Replace `si128` with `si256` (damn it, Intel)
 * Multiply offsets in `load`/`store` instructions by 2
 
-After this we end up with one final piece - we don't have a macro to transpose elements. Since we load 8 quaternions into 4 AVX2 registers, we need a special transposition macro. We could implement one but unfortunately AVX2 does not have a very good supply of cross-lane operations - in other words, most AVX2 instructions work within separate 128-bit halves. However, it's easy to create a operation that transposes two blocks of 4x4 elements like this:
+After this we are left with one final piece - we don't have a macro to transpose elements. Since we load 8 quaternions into 4 AVX2 registers, we need a special transposition macro. We could implement one but unfortunately AVX2 does not have a very good supply of cross-lane operations - in other words, most AVX2 instructions work within separate 128-bit halves. However, it's easy to create a operation that transposes two blocks of 4x4 elements like this:
 
 ```cpp
 x0 y0 z0 w0 x1 y1 z1 w1        x0 x2 x4 x6 x1 x3 x5 x7
