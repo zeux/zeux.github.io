@@ -198,6 +198,20 @@ _mm256_permutevar8x32_ps(tt, _mm256_setr_epi32(0, 2, 4, 6, 1, 3, 5, 7))
 
 We'll do just that, and this is the final step we need to take to make an AVX2 version of our lerping functions that works on 8 quaternion pairs at a time.
 
+## FMA
+
+... no, not [*that* FMA](https://en.wikipedia.org/wiki/Fullmetal_Alchemist). One last thing that we can do is take advantage of fused multiply-add instructions available on some architectures (like Haswell). This instruction computes the expression `a * b + c` at the cost of one multiplication (with slightly higher precision).
+
+It's pretty trivial to identify these expressions in our code - it has a fair share of them, used for computing the dot product between two quaternions, computing interpolation coefficients, etc.
+
+However, since we're using clang we don't need to do that - we can ask it to automatically fuse instructions whenever possible by passsing these command-line arguments:
+
+```cpp
+-mfma -ffast-math
+```
+
+The reason we need to pass `-ffast-math` is that this optimization changes the output of the program since the precision is different. In our case this is not something to be concerned about - in fact, using FMA reduces the error slightly (as expected).
+
 ## Results
 
 Ok, after all the hard work is done let's see what we got in the end. We'll use IACA again to measure the performance of a loop - this time every loop iteration is processing 4 quaternions instead of 1, so we'll divide the numbers we get from IACA by 4 (and for the AVX2 version we'll divide by 8).
@@ -211,8 +225,11 @@ Ok, after all the hard work is done let's see what we got in the end. We'll use 
 | fnlerp4 | 6.14
 | onlerp4 | 7.19
 | onlerp8 | 3.65
+| onlerp8 FMA | 2.63
 
-Our SSE2 code is 2.5-3x faster than scalar, which is reasonable - we still lose time on AoS <-> SoA conversion. The AVX2 code is even more impressive, at 6x faster than scalar - the AVX2 function takes roughly as many cycles as the SSE2 function but processes twice as many elements per iteration! Keep in mind that these timings are estimated, not measured.
+Our SSE2 code is 2.5-3x faster than scalar, which is reasonable - we still lose time on AoS <-> SoA conversion. The AVX2 code is even more impressive, at 6x faster than scalar - the AVX2 function takes roughly as many cycles as the SSE2 function but processes twice as many elements per iteration! And FMA version is allegedly a full cycle faster.
+
+Keep in mind that these timings are estimated, not measured. My ghetto measurements don't agree with these numbers, but they are performed in a setting where other factors, such as memory access time, may play a significant factor in determining the execution time.
 
 All of the above code and more is [available here](https://gist.github.com/zeux/1935b5f6d1c8c311e68bbd4a13955dfa). Note that the SIMD code is admittedly pretty ugly - the intrinsic names, sign bit manipulations etc. obscure the meaning of the code which is unfortunate because really the SIMD code is very much like the scalar code and the process of converting one to the other is pretty automatic, even if the results look wildly different. But that's a problem for another time.
 
