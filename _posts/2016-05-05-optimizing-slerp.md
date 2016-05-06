@@ -5,7 +5,7 @@ title: Optimizing slerp
 
 In the last article ([Approximating slerp](/2015/07/23/approximating-slerp/)) we discussed a need for a fast and reasonably precise quaternion interpolation method. By looking at the data we arrived at two improvements to `nlerp`, a less precise one and a more precise one. Let's look at their implementations and performance!
 
-We will implement three functions - `nlerp`, which is the baseline normalized linear interpolation, `fnlerp`, which will use the simpler approximation for the interpolation parameter, and `onlerp` which will use the more exact approximation from the previous article. While implementing these functions seems trivial given the results of the hard work, we will focus on vectorized version using SSE2. This post demonstrates what is probably the most important way to vectorize computations - it's frequently pretty simple to implement, yields very good results and scales to arbitrary SIMD width, a topic we will explore in the future.
+We will implement three functions - `nlerp`, which is the baseline normalized linear interpolation, `fnlerp`, which will use the simpler approximation for the interpolation parameter, and `onlerp` which will use the more exact approximation from the previous article. While implementing these functions seems trivial given the results of the hard work, we will focus on vectorized version using SSE2. This post demonstrates what is probably the most important way to vectorize computations - it's frequently pretty simple to implement, yields very good results and scales to arbitrary SIMD width.
 
 ## Scalar first
 
