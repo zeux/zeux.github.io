@@ -11,4 +11,4 @@ title: Home
 {{ post.excerpt }}
 {% endfor %}
 
-### [More...](/archives.html)
+### [More...](/archives/)
