@@ -41,13 +41,20 @@ Beyond that, Metal allows us to fix some other performance issues by giving easi
 
 ![](/images/metalr_diag2.png)
 
-Both of these methods were slower than I'd like - the first one wasn't really available since we had to support efficient partial updates, and it worked purely on CPU using what looked like a very slow address translation implementation. The second one worked but seemed to use a series of 2D blits to fill the 3D texture which were both pretty expensive to set up commands for on the CPU side and also had a very high GPU overhead for whatever reason. If this were OpenGL it would be over - in fact, the performance of these two methods roughly matched the observed cost of a similar update in OpenGL. Fortunately, this being Metal, it has easy access to compute shaders - and a super simple compute shader gave us the capability to do a buffer -> 3D texture upload that was very fast on CPU and GPU and basically solved our performance problems in this part of the code for good.
+Both of these methods were slower than I'd like - the first one wasn't really available since we had to support efficient partial updates, and it worked purely on CPU using what looked like a very slow address translation implementation. The second one worked but seemed to use a series of 2D blits to fill the 3D texture which were both pretty expensive to set up commands for on the CPU side and also had a very high GPU overhead for whatever reason. If this were OpenGL it would be over - in fact, the performance of these two methods roughly matched the observed cost of a similar update in OpenGL. Fortunately, this being Metal, it has easy access to compute shaders - and a super simple compute shader gave us the capability to do a buffer -> 3D texture upload that was very fast on CPU and GPU and basically solved our performance problems in this part of the code for good[^1]:
+
+| Method | CPU cost | GPU cost |
+|--------|----------|----------|
+| replaceRegion | 2.3 ms | 0.0 ms |
+| copyFromBuffer | 0.2 ms | 3.0 ms |
+| copyFromTexture | 1.0 ms | 3.0 ms |
+| compute copy | 0.2 ms | 0.3 ms |
 
 As a final general comment, maintaining Metal code is pretty much effortless as well - all extra features we had to add so far were easier to add there than on any other API we support, and I expect this trend to continue. There was a bit of a concern that adding one more API would require constant maintenance, but compared to OpenGL this does not really require much work; in fact, since we won't have to support OpenGL ES 3 on iOS any more, this means we can simplify some OpenGL code we have as well.
 
 ## Stability
 
-Today on iOS, Metal feels very stable. I am not sure what the situation was like at launch in 2014, or what it is like on Mac today, but both the drivers and the tools feel pretty solid.
+Today on iOS Metal feels very stable. I am not sure what the situation was like at launch in 2014, or what it is like on Mac today, but both the drivers and the tools feel pretty solid.
 
 We had one small driver issue on iOS 10 that had to do with loading shaders compiled with Xcode 7 (which we fixed by switching to Xcode 8), and one small driver issue on iOS 9 that turned out to be our fault. Other than that we haven't seen any behavioral bugs or any crashes - for a relatively new API Metal has been very solid across the board.
 
@@ -68,3 +75,6 @@ Metal is a great API to both write code for, and ship applications with. It's ea
 If you are using a third-party engine like Unity or UE4, Metal is already supported there; if you aren't and you enjoy graphics programming or care deeply about performance and take iOS or Mac seriously, I strongly urge you to give Metal a try. You will not be disappointed.
 
 It is not to say that Metal is without faults - in fact, my next blog post will be precisely about that.
+
+---
+[^1]: The numbers are for 128 KB worth of data updated per frame (two 32x16x32 RGBA8 regions) on A10
