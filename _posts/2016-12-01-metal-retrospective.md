@@ -45,10 +45,11 @@ Both of these methods were slower than I'd like - the first one wasn't really av
 
 | Method | CPU cost | GPU cost |
 |--------|----------|----------|
-| replaceRegion | 2.3 ms | 0.0 ms |
-| copyFromBuffer | 0.2 ms | 3.0 ms |
-| copyFromTexture | 1.0 ms | 3.0 ms |
-| compute shader copy | 0.2 ms | 0.3 ms |
+| OpenGL, glTexSubImage3D | 1.0 ms | 3.0 ms |
+| Metal, replaceRegion | 2.3 ms | 0.0 ms |
+| Metal, copyFromBuffer | 0.2 ms | 3.0 ms |
+| Metal, copyFromTexture | 1.0 ms | 3.0 ms |
+| Metal, compute shader copy | 0.2 ms | 0.3 ms |
 
 As a final general comment, maintaining Metal code is pretty much effortless as well - all extra features we had to add so far were easier to add there than on any other API we support, and I expect this trend to continue. There was a bit of a concern that adding one more API would require constant maintenance, but compared to OpenGL this does not really require much work; in fact, since we won't have to support OpenGL ES 3 on iOS any more, this means we can simplify some OpenGL code we have as well.
 
