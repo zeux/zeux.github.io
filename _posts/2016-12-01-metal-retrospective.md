@@ -35,7 +35,7 @@ One other thing that helped is that our API interface was ready for Metal-like A
 
 ![](/images/metalr_diag3.png)
 
-So, a week to get the shaders compiling, two weeks to get a polished optimized implementation - what are the results? The results are great - Metal absolutely delivers on the performance promise. For one, the single threaded dispatch performance is noticeably better than with OpenGL (shrinking the draw dispatch part of our render frame by 2-3x depending on the workload), and this is given that our OpenGL implementation is pretty well tuned in terms of reducing redundant state setup and playing nice with the driver by using fast paths. But it does not stop there - multithreading in Metal is trivial to utilize provided that your rendering code is ready for it. We haven't switched to threaded draw dispatch yet but are already converting some other parts that prepare resources to happen off the render thread, which, unlike with OpenGL, is pretty much effortless.
+So, a week to get the shaders compiling, two weeks to get a polished optimized implementation[^2] - what are the results? The results are great - Metal absolutely delivers on the performance promise. For one, the single threaded dispatch performance is noticeably better than with OpenGL (shrinking the draw dispatch part of our render frame by 2-3x depending on the workload), and this is given that our OpenGL implementation is pretty well tuned in terms of reducing redundant state setup and playing nice with the driver by using fast paths. But it does not stop there - multithreading in Metal is trivial to utilize provided that your rendering code is ready for it. We haven't switched to threaded draw dispatch yet but are already converting some other parts that prepare resources to happen off the render thread, which, unlike with OpenGL, is pretty much effortless.
 
 Beyond that, Metal allows us to fix some other performance issues by giving easily accessible and reliable tools. One of the central parts of our rendering code is the system that computes lighting data on the CPU in world space and uploads it to regions of a 3D texture (which we have to emulate on OpenGL ES 2 hardware). The updates are partial so we can't duplicate the entire texture and have to rely on however the driver implements `glTexSubImage3D`. At one point we tried to use PBO to improve update performance but faced significant stability issues across the board, both on Android and iOS. On Metal there are two builtin ways to upload a region - `MTLTexture.replaceRegion` that you can use if GPU is not currently reading the texture, or `MTLBlitCommandEncoder` (`copyFromBufferToTexture` or `copyFromTextureToTexture`) that can upload the region asynchronously just in time for GPU to start using the texture.
 
@@ -55,9 +55,9 @@ As a final general comment, maintaining Metal code is pretty much effortless as 
 
 ## Stability
 
-Today on iOS Metal feels very stable. I am not sure what the situation was like at launch in 2014, or what it is like on Mac today, but both the drivers and the tools feel pretty solid.
+Today on iOS Metal feels very stable. I am not sure what the situation was like at launch in 2014, or what it is like on Mac today, but both the drivers and the tools for iOS feel pretty solid.
 
-We had one small driver issue on iOS 10 that had to do with loading shaders compiled with Xcode 7 (which we fixed by switching to Xcode 8), and one small driver issue on iOS 9 that turned out to be our fault. Other than that we haven't seen any behavioral bugs or any crashes - for a relatively new API Metal has been very solid across the board.
+We had one driver issue on iOS 10 that had to do with loading shaders compiled with Xcode 7 (which we fixed by switching to Xcode 8), and one driver crash on iOS 9 that turned out to be a result of misusing `nextDrawable` API. Other than that we haven't seen any behavioral bugs or any crashes - for a relatively new API Metal has been very solid across the board.
 
 Additionally, the tools you get with Metal are varied and rich; specifically, you can use:
 
@@ -79,3 +79,4 @@ It is not to say that Metal is without faults - in fact, my next blog post will 
 
 ---
 [^1]: The numbers are for 128 KB worth of data updated per frame (two 32x16x32 RGBA8 regions) on A10
+[^2]: Yeah, okay, and maybe a week to fix a few bugs discovered during testing
