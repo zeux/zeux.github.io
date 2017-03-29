@@ -76,7 +76,7 @@ After we shipped the first version of our voxel system and started seeing a lot 
 At this point we had a lot of code written to assume that you can read a box of voxels from a terrain region and be able to iterate over the box very efficiently; some areas of the code went beyond reading a cell from a box one by one (which required two integer multiplications to compute the offset in a linear array) and used fast row access via a function like this:
 
 ```cpp
-const Cell* getRow(int y, int z) const;
+const Cell* readRow(int y, int z) const;
 ```
 
 We wanted to store voxel data more efficiently but we did not want to compromise on the access performance - we were willing to make voxel writes a bit slower, but voxel reads - which are required by every subsystem that works with voxel data - had to stay fast, and for some inner loops it was important to be able to quickly iterate through a row of voxels. In addition to the amount of effort to extract a voxel from the box memory locality was also crucial - we considered using some complicated tree structure but ultimately decided against it.
@@ -87,7 +87,7 @@ One of the issues was the chunk size. For some content 32^3 chunks weren't impos
 
 This is where we decided to use the ideas from our RLE packing to make a new in-memory compressed box representation. What worked well in RLE is packing each voxel in common cases into just one byte and assuming long contiguous runs of the same voxel data. If we now assume that these runs occupy full rows of data we can store chunks as follows:
 
-- Each row (in a 32^3 chunks there are 32^2 rows) is either allocated or not.
+- Each row (32^3 chunk has 32^2 rows) is either allocated or not.
 - For unallocated rows, we store one byte - which represents the material value - and assume that all cells In this row are filled with this material and have "default" occupancy (1 for solid materials and 0 for air).
 - For allocated rows, we store an offset into cell data, which is a linear array that contains data for all allocated rows in an uncompressed fashion.
 
@@ -95,7 +95,7 @@ This is where we decided to use the ideas from our RLE packing to make a new in-
 
 You can see how for a typical chunk (the diagram above shows a 4^3 chunk for simplicity), most rows will not be allocated - in this case 10 are empty and 4 are filled with grass with occupancy 1 - and the remaining rows, 2 in this case, need extra storage to specify material and occupancy for every cell.
 
-In a 32^3 chunk, we'd need up to 1024 allocated rows which meant the row offset did not fit into one byte (it also doesn't fit into one byte for 16^3 chunks because you need to dedicate some bits for the row state). There are some ways to work around the problem for 16^3 chunks but we decided to just use two bytes per row for the row header, which contains the "allocated" bit, and either the offset or the material value. To implement the function `getRow`, we have a global (read-only) array that contains pre-filled arrays of voxels for every material up to a certain chunk size, so we could implement the function like this:
+In a 32^3 chunk we'd need up to 1024 allocated rows, which meant the row offset did not fit into one byte (it also doesn't fit into one byte for 16^3 chunks because you need to dedicate some bits for the row state). There are some ways to work around the problem for 16^3 chunks but we decided to just use two bytes per row for the row header, which contains the "allocated" bit, and either the offset or the material value. To implement the function `readRow`, we have a global (read-only) array that contains pre-filled arrays of voxels for every material up to a certain chunk size, so we could implement the function like this:
 
 ```cpp
 const Cell* readRow(int y, int z) const
