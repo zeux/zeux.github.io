@@ -1,4 +1,4 @@
 site:
-	bundle exec jekyll serve
+	bundle exec jekyll serve --force_polling
 	
 .PHONY: site
