@@ -21,7 +21,6 @@ Whenever you design a voxel system you have to answer a basic question - what de
 
 We experimented with the material model and rejected it because it did not give us enough flexibility for tools - our voxels had to be pretty big for the solution to be practical for low end platforms, and thus we needed to be able to represent sub-voxel information (for example, to have a tool that can "erode" terrain on a scale much finer than a voxel size).
 
-
 Hermite data was very interesting - you could build pretty rich tooling based on boolean operations and allow a fine control over smoothness of the surface. However, what wasn't clear was how we would present this to developers in a form of API. We felt like CSG-based API such as "subtract a sphere out of terrain" was not sufficient - how do you implement a smoothing tool if this is all you have? - and we wanted to give our developers an API that allows full control over the terrain data such that you can implement any tool with it (in fact, all our existing terrain manipulation tools are using the public terrain API and are written in Lua). We didn't feel like exposing raw Hermite data was an option due to its complexity so we had to discard this approach.
 
 Signed distance field was more expressive than occupancy model, but ultimately resulted in similarly looking content and ended up having a more complicated mental model (how do I fill voxels that are far away from the surface? Does it even matter? How is the distance clamped? etc.) so we did not feel like it was worth the tradeoff.
@@ -42,7 +41,7 @@ this->material = material;
 this->occupancy = occupancy & (-static_cast<int>(material) >> 31);
 ```
 
-When we originally developed the system, we decided to settle on a simple sparse storage format: all voxels will be stored in chunks 32x32x32 with each chunk represented as a linear 3D array (since esch voxel needs two bytes for storage, this adds up to 64 KB per chunk; we also experimented with 16x16x16 chunks but the difference wasn't very noticeable), and the entire voxel grid is simply a hash map, mapping the index of the chunk to the chunk contents itself:
+When we originally developed the system, we decided to settle on a simple sparse storage format: all voxels would be stored in chunks 32x32x32 with each chunk represented as a linear 3D array (since esch voxel needs two bytes for storage, this adds up to 64 KB per chunk; we also experimented with 16x16x16 chunks but the difference wasn't very noticeable), and the entire voxel grid is simply a hash map, mapping the index of the chunk to the chunk contents itself:
 
 ```cpp
 HashMap<Vector3int32, Chunk> chunks;
@@ -72,21 +71,21 @@ It's definitely possible to improve on this encoding but this ended up working w
 
 ## Memory format, take two
 
-After we shipped the first version of our voxel system and started seeing a lot of adoption, we started working on different ways to optimize the system in terms of both memory and performance. This is when we implemented rendering LOD which uses the mipmap levels and substantially reduces both time to render terrain and also memory required to store terrain geometry. After this optimization the bulk of memory cost of new terrain became the voxel data - storing two bytes per voxel just wasn't going to cut it for low-end mobile devices.
+After we shipped the first version of our voxel system and started seeing a lot of adoption among developers, we started working on different ways to optimize the system in terms of both memory and performance. This was when we implemented rendering LOD which uses the mipmap levels and substantially reduces both time to render terrain and also memory required to store terrain geometry. After this optimization the bulk of memory cost of new terrain became the voxel data - storing two bytes per voxel just wasn't going to cut it for low-end mobile devices.
 
-At this point we had a lot of code written to assume that you can read a box of voxels from a terrain region and be able to iterate over the box very efficiently; some areas of the code went beyond reading a cell from a box one by one (which required two integer multiplications to compute the offset in the linear array) and used fast row access via a function like this:
+At this point we had a lot of code written to assume that you can read a box of voxels from a terrain region and be able to iterate over the box very efficiently; some areas of the code went beyond reading a cell from a box one by one (which required two integer multiplications to compute the offset in a linear array) and used fast row access via a function like this:
 
 ```cpp
 const Cell* getRow(int y, int z) const;
 ```
 
-We wanted to store voxel data more efficiently but we did not want to compromise on the access performance - we were willing to make voxel writes a bit slower, but voxel reads - which are required by every subsystem that works with voxel data - had to stay fast, and for some inner loops it was important to be able to quickly iterate through a row of voxels. In addition to the amount of effort to extract a voxel from the box memory locality was also crucial - we thought about using some complicated tree structure but ultimately decided against it.
+We wanted to store voxel data more efficiently but we did not want to compromise on the access performance - we were willing to make voxel writes a bit slower, but voxel reads - which are required by every subsystem that works with voxel data - had to stay fast, and for some inner loops it was important to be able to quickly iterate through a row of voxels. In addition to the amount of effort to extract a voxel from the box memory locality was also crucial - we considered using some complicated tree structure but ultimately decided against it.
 
 One obvious solution was to use our RLE scheme - keep chunks compressed in memory (either using pure RLE encoding or using LZ4 in addition to that), decompress on demand and keep a small cache of uncompressed chunks that are accessed frequently. This was a reasonable option but required to compromise on the read performance in case the chunk needed decompression - both LZ4 and our RLE decompressor are pretty fast but they are slower than just reading the memory, even after taking into account bandwidth savings. What we really wanted was a solution that allowed us to reduce chunk memory overhead but retain the read performance.
 
 One of the issues was the chunk size. For some content 32^3 chunks weren't imposing too much overhead, but for simple terrain that had almost no variation in height but was very large in XZ dimension the requirement to store 32 voxels along the Y axis for every non-empty chunk increased the memory overhead substantially. Terrains of such large sizes were previously impractical because of the lack of rendering LOD, but now rendering could handle this just fine if not for the voxel memory overhead. Reducing chunk sizes too much made read operations slower because read requests for large regions had to look up many chunks in the hash, and also increased the overhead of chunk metadata we had to store (for a 8^3 chunk the size of raw voxel data is just 1 KB so even a few pointers can add up to several percent of memory).
 
-This is where I decided to use the ideas from our RLE packing to make a new in-memory compressed box representation. What worked well in RLE is packing each voxel in common cases into just one byte and assuming long contiguous runs of the same voxel data. If we now assume that these runs occupy full rows of data we can store chunks as follows:
+This is where we decided to use the ideas from our RLE packing to make a new in-memory compressed box representation. What worked well in RLE is packing each voxel in common cases into just one byte and assuming long contiguous runs of the same voxel data. If we now assume that these runs occupy full rows of data we can store chunks as follows:
 
 - Each row (in a 32^3 chunks there are 32^2 rows) is either allocated or not.
 - For unallocated rows, we store one byte - which represents the material value - and assume that all cells In this row are filled with this material and have "default" occupancy (1 for solid materials and 0 for air).
@@ -126,7 +125,7 @@ To give you some idea of the resulting sizes, these numbers were captured on a v
 | Memory #1 (unpacked) | 2973 MB | 2.97
 | Memory #2 (row packed) | 488 MB | 0.49
 
-Clearly RLE is very efficient at compressing this data; we do get further improvements using LZ4 but they are not very substantial, and the more valuable option is to employ entropy compression. What also works very well is using RLE and packing data a bit more tightly - this has an advantage that it compresses and decompresses data very quickly and requires no state so it works well for network packets where we only need to send a small chunk, although using byte packed RLE with a fast general compressor on top of it would also work well.
+Clearly RLE is very efficient at compressing this data; we do get further improvements using LZ4 but they are not very substantial, and the more valuable option is to employ entropy coding. What also works very well is using RLE and packing data a bit more tightly - this has an advantage that it compresses and decompresses data very quickly and requires no state so it works well for network packets where we only need to send a small chunk, although using byte packed RLE with a fast general compressor on top of it would also work well.
 
 Also note that, while with a naive chunked storage format we need more than 2 bytes per voxel to store data in memory with fast access (2 bytes per voxel would be optimal, but this is where the chunk size comes into play - the bigger the chunks are, the more memory you waste on empty voxels), our new row packed format reduces it by a factor of 6, which gives us 0.5 bytes per voxel and preserves very fast random access and linear read performance.
 
