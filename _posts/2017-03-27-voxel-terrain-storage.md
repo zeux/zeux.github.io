@@ -1,9 +1,12 @@
 ---
 layout: post
 title: "Voxel terrain: storage"
+excerpt_separator: <!--more-->
 ---
 
 It's been about almost two years since we shipped the first version of [smooth voxel terrain](https://blog.roblox.com/2015/06/create-all-new-worlds-with-smooth-terrain/) at [ROBLOX](https://www.roblox.com/), and with it being live for a while and seeing a lot of incremental improvements I wanted to write about the internals of the technology - this feature required implementing serialization, network replication, collision detection, ray casting, rendering and in-memory storage support and within each area some implementation details ended up being quite interesting. Today we'll talk about voxel definition and storage.
+
+<!--more-->
 
 ![Prototype](/images/voxstorage_0.jpg)
 
