@@ -31,18 +31,27 @@
       <p class="lead"><a href="/"><nobr>Bits, pixels, cycles and more</nobr></a></p>
     </div>
 
-    <h4>Author</h4>
-    <p>
-    Arseny Kapoulkine (<small><a href="mailto:arseny.kapoulkine@gmail.com">email</a>, <a href="https://twitter.com/zeuxcg">Twitter</a></small>)
-    </p>
-    <p>
-    <a href="/about/">Work, projects and publications</a>
-    </p>
+    {% if page.title == 'Home' %}
+    <div>
+    {% else %}
+    <div class="sidebar-mini">
+      Arseny Kapoulkine (<small><a href="mailto:arseny.kapoulkine@gmail.com">email</a>, <a href="https://twitter.com/zeuxcg">Twitter</a></small>)
+    </div>
 
-    <h4>Posts</h4>
-    <p>
-    If you like this blog, you should follow it <a href="/feed/">via RSS</a> and read <a href="/archives/">older posts</a>. Here are the recent posts:
-    </p>
+    <div class="sidebar-content">
+    {% endif %}
+      <h4>Author</h4>
+      <p>
+      Arseny Kapoulkine (<small><a href="mailto:arseny.kapoulkine@gmail.com">email</a>, <a href="https://twitter.com/zeuxcg">Twitter</a></small>)
+      </p>
+      <p>
+      <a href="/about/">Work, projects and publications</a>
+      </p>
+
+      <h4>Posts</h4>
+      <p>
+      If you like this blog, you should follow it <a href="/feed/">via RSS</a> and read <a href="/archives/">older posts</a>. Here are the recent posts:
+      </p>
       <ul>
       {% for post in site.posts limit:10 %}
         <li>
@@ -50,6 +59,7 @@
         </li>
       {% endfor %}
       </ul>
+    </div>
   </div>
 </div>
 <div class="content container">

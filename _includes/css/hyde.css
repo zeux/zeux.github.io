@@ -59,6 +59,12 @@ html {
   color: rgba(255,255,255,.5);
   background-color: #202020;
 }
+.sidebar-mini {
+  display: inline;
+}
+.sidebar-content {
+  display: none;
+}
 @media (min-width: 48em) {
   .sidebar {
     position: fixed;
@@ -67,6 +73,12 @@ html {
     bottom: 0;
     width: 18rem;
     text-align: left;
+  }
+  .sidebar-mini {
+	display: none;
+  }
+  .sidebar-content {
+	display: inline;
   }
 }
 
