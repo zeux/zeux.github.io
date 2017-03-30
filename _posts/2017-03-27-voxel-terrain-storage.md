@@ -43,7 +43,7 @@ this->material = material;
 this->occupancy = occupancy & (-static_cast<int>(material) >> 31);
 ```
 
-When we originally developed the system, we decided to settle on a simple sparse storage format: all voxels would be stored in chunks 32x32x32 with each chunk represented as a linear 3D array (since esch voxel needs two bytes for storage, this adds up to 64 KB per chunk; we also experimented with 16x16x16 chunks but the difference wasn't very noticeable), and the entire voxel grid is simply a hash map, mapping the index of the chunk to the chunk contents itself:
+When we originally developed the system, we decided to settle on a simple sparse storage format: all voxels would be stored in chunks 32x32x32 with each chunk represented as a linear 3D array (since each voxel needs two bytes for storage, this adds up to 64 KB per chunk; we also experimented with 16x16x16 chunks but the difference wasn't very noticeable), and the entire voxel grid is simply a hash map, mapping the index of the chunk to the chunk contents itself:
 
 ```cpp
 HashMap<Vector3int32, Chunk> chunks;
