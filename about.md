@@ -45,9 +45,9 @@ I'm also working on a wide variety of open-source projects, most of which are ho
 Here are some talks and publications I've done over the years:
 
 * The Performance of Open Source Applications (2013), Chapter 4: Parsing XML at the Speed of Light. [Read online](http://aosabook.org/en/posa/parsing-xml-at-the-speed-of-light.html) or [buy the book](http://aosabook.org/en/buy.html#posa) (all royalties are donated to [Amnesty International](http://www.amnesty.org/))
-* Russian Game Developers Conference 2010, "Job scheduler: as simple as possible". [Slides](https://dl.dropboxusercontent.com/u/11731051/talks/kri2010_en.pdf)
-* Russian Game Developers Conference 2009, "SPU Render". [Slides](https://dl.dropboxusercontent.com/u/11731051/talks/kri2009_en.pdf)
-* Russian Game Developers Conference 2008, "Baking graphics resources for next-generation platforms". [Slides in Russian](https://dl.dropboxusercontent.com/u/11731051/talks/kri2008.pdf)
+* Russian Game Developers Conference 2010, "Job scheduler: as simple as possible". [Slides](/data/kri2010_en.pdf)
+* Russian Game Developers Conference 2009, "SPU Render". [Slides](/data/kri2009_en.pdf)
+* Russian Game Developers Conference 2008, "Baking graphics resources for next-generation platforms". [Slides in Russian](/data/kri2008.pdf)
 
 I also have a [blog](http://zeuxcg.org) with technical posts on various subjects.
 
