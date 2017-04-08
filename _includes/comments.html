@@ -1,13 +1,19 @@
-<div id="disqus_thread"></div>
+<div id="disqus_thread" style="text-align: center">
+	<a href="#" onclick="disqus(); return false;">Show Comments</a>
+</div>
+
 <script type="text/javascript">
     var disqus_shortname = 'zeuxcg';
     var disqus_url = "{{ site.url }}{{ page.url | replace:'index.html','' }}";
+	var disqus_loaded = false;
 
-    /* * * DON'T EDIT BELOW THIS LINE * * */
-    (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    })();
+	function disqus() {
+		if (disqus_loaded) return;
+		disqus_loaded = true;
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+		dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+	}
 </script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
