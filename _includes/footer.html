@@ -12,6 +12,7 @@
 			ga('send', 'event', type, name);
 		}
 	</script>
+	{% if page.math %}
 	<script type="text/javascript">
 		renderMathInElement(document.body, {
 			delimiters: [
@@ -19,5 +20,6 @@
 				{left: "$", right: "$", display: false}
 			]});
 	</script>
+	{% endif %}
 </body>
 </html>
