@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Placeholder
+math: true
 ---
 
 I'm sorry for the lack of real post - it was a busy week, and a somewhat busy month lies ahead - I'm attending a local game conference in May and giving a speech about the process of porting our rendering subsystem to SPU (I hope to cover this topic here some day), so some time is spent preparing slides/etc.; my pet projects demand more attention than usual; there's some weird but nevertheless interesting stuff at work... I'll try to keep up, but you should really expect some more weeks without any posts. Don't beat me.  

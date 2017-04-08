@@ -28,7 +28,7 @@ Q onlerp(Q l, Q r, float t)
 
 As you can see, this is similar to `nlerp` - it handles quaternion double-cover and normalizes the quaternion after interpolating - but instead of using `t` it tries to find a better fit by adjusting it using approximation we derived. Note that, similarly to `nlerp` but unlike `slerp` this function does not have a singularity at `t=0`.
 
-This is more expensive to compute than `nlerp`; note though that some of the extra computations only depend on $t$ and thus can be performed once for cases where you have to interpolate a lot of quaternions with the same $t$ (which is the case for some types of animation sampling).
+This is more expensive to compute than `nlerp`; note though that some of the extra computations only depend on `t` and thus can be performed once for cases where you have to interpolate a lot of quaternions with the same `t` (which is the case for some types of animation sampling).
 
 Instead of measuring performance, let's look at the performance modeled by [Intel Architecture Code Analyzer](https://software.intel.com/en-us/articles/intel-architecture-code-analyzer) which is a great tool that allows you to place special markers in your code and look at the approximate scheduling on the target Intel CPU of your choice. These numbers are approximate but they let me skip setting up the benchmark and interpreting the timing results. [^1]
 

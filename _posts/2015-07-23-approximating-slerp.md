@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Approximating slerp
+math: true
 ---
 
 Quaternions should probably be your first choice as far as representing rotations goes. They take less space than matrices (this is important since programs are increasingly more memory bound); they're similar in terms of performance of basic operations (slower for some, faster for others); they are much faster to normalize which is frequently necessary to combat accumulating error; and finally they're way easier to interpolate. In this post we'll focus on interpolation.
