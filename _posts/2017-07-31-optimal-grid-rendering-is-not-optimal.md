@@ -80,7 +80,7 @@ These results are more in line with what we thought might happen - optimal reach
 
 ## Hypothesis: degenerate triangle prefetch doesn't work
 
-So while on Intel the algorithm clearly works, it doesn't work on AMD or NVidia.
+So while on Intel the algorithm clearly works, it doesn't work on AMD or NVidia. The algorithm requires a FIFO cache and expects degenerate triangles to generate vertex shader invocations, so maybe degenerate triangles are skipped very early?
 
 We can test whether degenerate triangles are filtered out by computing the number of invocations in a vertex buffer where some vertices are only referenced by degenerate triangles, such as this one:
 
@@ -90,7 +90,7 @@ For a GPU that feeds vertices in a degenerate triangle through the same vertex p
 
 ## Hypothesis: cache uses LRU replacement policy
 
-If AMD or NVidia do not use strict FIFO, what could they use? There are probably many algorithms one can use with many small tweaks, but one obvious alternative is LRU. It should be possible to learn how the cache works by inspecting the vertex shader invocations for a variety of index buffers, but let's try something simpler - let's model a FIFO cache with a fixed size and an LRU cache with a fixed size and see what results we get.
+If AMD and NVidia do not use strict FIFO, what could they use? There are probably many algorithms one can use with many small tweaks, but one obvious alternative is LRU. It should be possible to learn how the cache works by inspecting the vertex shader invocations for a variety of index buffers, but let's try something simpler - let's model a FIFO cache with a fixed size and an LRU cache with a fixed size and see what results we get.
 
 ![](/images/optimalgrid_4.png)
 
