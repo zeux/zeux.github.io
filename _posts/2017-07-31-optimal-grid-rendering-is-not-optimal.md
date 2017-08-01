@@ -21,8 +21,8 @@ There are several algorithms that optimize meshes for vertex cache. Some of them
 
 Ignacio Castaño wrote a blog post about a technique that allows one to achieve perfect vertex cache hit ratio on a fixed size FIFO cache, called [Optimal Grid Rendering](http://www.ludicon.com/castano/blog/2009/02/optimal-grid-rendering/). This technique is not new; it's hard for me to date it precisely - I personally learned about it circa 2006, but I'm pretty sure it comes from the days of triangle strips and hardware T&L. The crucial parts of the algorithm are as follows:
 
-* Rendering the grid as multiple vertical stripes, with each stripe width being just under the cache size;
-* Prefetching the first row of each stripe using degenerate triangles.
+* Rendering the grid as multiple vertical stripes, with each strip width being just under the cache size;
+* Prefetching the first row of each strip using degenerate triangles.
 
 This algorithm is designed to have each vertex leave the cache at exactly the right moment where the vertex will not be needed again. Picking the right cache size is crucial - if you produce the optimal grid for a cache that's slightly larger than the one target hardware uses, you get an index sequence that transforms each vertex twice (the same thing happens if your stripes are correctly sized but you remove the degenerate triangles from the output).
 
@@ -55,7 +55,7 @@ We have several algorithms we will evaluate:
 * Tipsify - take the regular uniform grid and optimize it for vertex cache using [Tipsify algorithm](http://gfx.cs.princeton.edu/pubs/Sander_2007_%3ETR/tipsy.pdf)
 * TomF - take the regular uniform grid and optimize it for vertex cache using [Tom Forsyth's algorithm](https://tomforsyth1000.github.io/papers/fast_vert_cache_opt.html)
 
-For evaluation we will compare ATVR - average transformed vertex ratio, or the ratio of vertex shader invocations to total number of vertices. The ideal number is 1 - based on the Optimal Grid article, we would expect Optimal algorithm to reach the optimum when the cache size is set to hardware cache size; striped algorithm can only be effective when two rows of a stripe fit into the cache, and should deteriorate to ATVR=2 for larger stripes; Tipsify produces results depending on the cache size and thus should produce results somewhat inferior to the optimal algorithm for the hardware cache size; finally, TomF should give the same results regardless of the cache size.
+For evaluation we will compare ATVR - average transformed vertex ratio, or the ratio of vertex shader invocations to total number of vertices. The ideal number is 1 - based on the Optimal Grid article, we would expect Optimal algorithm to reach the optimum when the cache size is set to hardware cache size; striped algorithm can only be effective when two rows of a strip fit into the cache, and should deteriorate to ATVR=2 for larger stripes; Tipsify produces results depending on the cache size and thus should produce results somewhat inferior to the optimal algorithm for the hardware cache size; finally, TomF should give the same results regardless of the cache size.
 
 For each GPU we test, we will look at a graph of ATVR for all 4 methods based on the cache size, for a 100x100 quad grid. Traditionally the cache size is measured in vertices; while it's possible that the number of attributes vertex shader outputs affects the effective cache size, on all 3 GPUs that are tested there is no observable difference between having the vertex shader output 1 float4 attribute and 10 - as such all tests are done on a vertex shader that outputs 5 float4 attributes.
 
@@ -77,7 +77,7 @@ These results suggest that either the cache replacement policy is completely inc
 
 ![](/images/optimalgrid_3.png)
 
-These results are more in line with what we thought might happen - optimal reaches ATVR=1, striped breaks down for cache size 66 (stripe size 65 vertices), Tipsify is slightly worse than optimal but approaches it at cache size 128 (ATVR 1.007). This suggests that Intel has a FIFO cache for 128 vertices, which actually means that with optimal grid, we don't even need to stripe the 100x100 grid - it just fits into the cache as is.
+These results are more in line with what we thought might happen - optimal reaches ATVR=1, striped breaks down for cache size 66 (strip size 65 vertices), Tipsify is slightly worse than optimal but approaches it at cache size 128 (ATVR 1.007). This suggests that Intel has a FIFO cache for 128 vertices, which actually means that with optimal grid, we don't even need to strip the 100x100 grid - it just fits into the cache as is.
 
 ## Hypothesis: degenerate triangle prefetch doesn't work
 
@@ -99,7 +99,7 @@ With a fixed size FIFO cache of 128 vertices, we are getting the exact same resu
 
 ![](/images/optimalgrid_5.png)
 
-With a fixed size LRU cache of 16 vertices, we are getting results that resemble both NVidia and AMD a lot in shape, although there are some deviations. The Tipsify curve matches NVidia curve for that algorithm, but AMD curve has a smaller minimum with a somewhat larger cache size (note that Tipsify simulates a FIFO cache as well, although it doesn't take as much of a penalty for running the results on LRU cache of a similar size, so it makes sense that the sizes don't quite match), as well as a slightly smaller optimal stripe size.
+With a fixed size LRU cache of 16 vertices, we are getting results that resemble both NVidia and AMD a lot in shape, although there are some deviations. The Tipsify curve matches NVidia curve for that algorithm, but AMD curve has a smaller minimum with a somewhat larger cache size (note that Tipsify simulates a FIFO cache as well, although it doesn't take as much of a penalty for running the results on LRU cache of a similar size, so it makes sense that the sizes don't quite match), as well as a slightly smaller optimal strip size.
 
 ## Hypothesis: vertex reuse and warps
 
