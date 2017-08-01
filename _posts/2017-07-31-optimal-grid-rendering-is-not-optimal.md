@@ -1,7 +1,6 @@
 ---
 layout: post
 title: Optimal grid rendering is not optimal
-published: false
 excerpt_separator: <!--more-->
 ---
 
@@ -11,7 +10,7 @@ I have been working a lot on vertex cache optimization lately, exploring several
 
 ## Vertex cache
 
-First, let's very briefly cover what vertex cache stands for. It has many names - post-T&L cache (from the days of fixed function hardware), post-transform cache, parameter cache and probably a few others I don't know about. What it amounts to is that GPU caches the result of vertex shader invocation - namely, all the output attributes - in a cache that's keyed by the vertex index and usually small (tens of vertices). If the vertex index is not found in the cache, GPU has to run the vertex shader and store the results in this cache for future use.
+First, let's very briefly cover what vertex cache stands for. It has many names - post-T&L cache (from the days of fixed function hardware), post-transform cache, parameter cache and probably a few others I don't know about. What it amounts to is that GPU caches the result of vertex shader invocation - namely, all the output attributes - in a cache that's keyed by the vertex index and is usually small (tens of vertices). If the vertex index is not found in the cache, GPU has to run the vertex shader and store the results in this cache for future use.
 
 The details of cache behavior are not documented by GPU vendors to my knowledge, and can vary in terms of the size (does the cache store a fixed number of vertices? fixed number of vector vertex shader outputs? fixed number of scalar vertex shader outputs?), replacement policy (FIFO? LRU?) and some other aspects (interaction between vertex reuse and warp packing). However ultimately the efficiency of the cache depends on the order of vertex indices in the input index buffer.
 
