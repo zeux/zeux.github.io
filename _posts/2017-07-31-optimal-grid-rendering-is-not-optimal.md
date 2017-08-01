@@ -21,10 +21,10 @@ There are several algorithms that optimize meshes for vertex cache. Some of them
 
 Ignacio Castaño wrote a blog post about a technique that allows one to achieve perfect vertex cache hit ratio on a fixed size FIFO cache, called [Optimal Grid Rendering](http://www.ludicon.com/castano/blog/2009/02/optimal-grid-rendering/). This technique is not new; it's hard for me to date it precisely - I personally learned about it circa 2006, but I'm pretty sure it comes from the days of triangle strips and hardware T&L. The crucial parts of the algorithm are as follows:
 
-* Rendering the grid as multiple vertical stripes, with each strip width being just under the cache size;
+* Rendering the grid as multiple vertical strips, with each strip width being just under the cache size;
 * Prefetching the first row of each strip using degenerate triangles.
 
-This algorithm is designed to have each vertex leave the cache at exactly the right moment where the vertex will not be needed again. Picking the right cache size is crucial - if you produce the optimal grid for a cache that's slightly larger than the one target hardware uses, you get an index sequence that transforms each vertex twice (the same thing happens if your stripes are correctly sized but you remove the degenerate triangles from the output).
+This algorithm is designed to have each vertex leave the cache at exactly the right moment when the vertex will not be needed again. Picking the right cache size is crucial - if you produce the optimal grid for a cache that's slightly larger than the one target hardware uses, you get an index sequence that transforms each vertex twice (the same thing happens if your strips are correctly sized but you remove the degenerate triangles from the output).
 
 Given a cache that is exactly the right size and uses sequential FIFO replacement policy (vertex indices are added to FIFO cache one at a time), the resulting sequence is perfect. The question is, does the actual hardware performance match this model?
 
@@ -55,7 +55,7 @@ We have several algorithms we will evaluate:
 * Tipsify - take the regular uniform grid and optimize it for vertex cache using [Tipsify algorithm](http://gfx.cs.princeton.edu/pubs/Sander_2007_%3ETR/tipsy.pdf)
 * TomF - take the regular uniform grid and optimize it for vertex cache using [Tom Forsyth's algorithm](https://tomforsyth1000.github.io/papers/fast_vert_cache_opt.html)
 
-For evaluation we will compare ATVR - average transformed vertex ratio, or the ratio of vertex shader invocations to total number of vertices. The ideal number is 1 - based on the Optimal Grid article, we would expect Optimal algorithm to reach the optimum when the cache size is set to hardware cache size; striped algorithm can only be effective when two rows of a strip fit into the cache, and should deteriorate to ATVR=2 for larger stripes; Tipsify produces results depending on the cache size and thus should produce results somewhat inferior to the optimal algorithm for the hardware cache size; finally, TomF should give the same results regardless of the cache size.
+For evaluation we will compare ATVR - average transformed vertex ratio, or the ratio of vertex shader invocations to total number of vertices. The ideal number is 1 - based on the Optimal Grid article, we would expect Optimal algorithm to reach the optimum when the cache size is set to hardware cache size; striped algorithm can only be effective when two rows of a strip fit into the cache, and should deteriorate to ATVR=2 for larger strips; Tipsify produces results depending on the cache size and thus should produce results somewhat inferior to the optimal algorithm for the hardware cache size; finally, TomF should give the same results regardless of the cache size.
 
 For each GPU we test, we will look at a graph of ATVR for all 4 methods based on the cache size, for a 100x100 quad grid. Traditionally the cache size is measured in vertices; while it's possible that the number of attributes vertex shader outputs affects the effective cache size, on all 3 GPUs that are tested there is no observable difference between having the vertex shader output 1 float4 attribute and 10 - as such all tests are done on a vertex shader that outputs 5 float4 attributes.
 
@@ -67,7 +67,7 @@ For each GPU we test, we will look at a graph of ATVR for all 4 methods based on
 
 The results here are not what we'd expect.
 
-For NVidia, the best method is Striped with cache size 6 (this results in stripes that are 4 quads wide, or 5 vertices wide), with ATVR 1.53; Tipsify performs best at cache size 14 with ATVR 1.60; additionally, both striped and optimal reach ATVR >2 at cache size 11.
+For NVidia, the best method is Striped with cache size 6 (this results in strips that are 4 quads wide, or 5 vertices wide), with ATVR 1.53; Tipsify performs best at cache size 14 with ATVR 1.60; additionally, both striped and optimal reach ATVR >2 at cache size 11.
 
 AMD has similar results - the optimal method is Striped with cache size 8 (ATVR 1.21), Tipsify peaks at cache size 16 (ATVR 1.25).
 
@@ -111,7 +111,7 @@ It seems that we'd also want to kick off rasterization work in some limited batc
 
 ![](/images/optimalgrid_6.png)
 
-While this model has some improvements over the LRU in terms of how well it matches the observed data (for example, it has the same saw tooth pattern for striped grid at small sizes), overall it's actually worse than LRU - it does not degrade as quickly as real hardware when the grid is rendered using stripes that are too wide. The data we have observed definitely suggests some smaller fixed size limit. Which brings us to the final question - what if comparing indices with the entire warp of data was too expensive, and instead we only compared to the last 16?
+While this model has some improvements over the LRU in terms of how well it matches the observed data (for example, it has the same saw tooth pattern for striped grid at small sizes), overall it's actually worse than LRU - it does not degrade as quickly as real hardware when the grid is rendered using strips that are too wide. The data we have observed definitely suggests some smaller fixed size limit. Which brings us to the final question - what if comparing indices with the entire warp of data was too expensive, and instead we only compared to the last 16?
 
 ![](/images/optimalgrid_7.png)
 
