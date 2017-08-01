@@ -29,7 +29,7 @@ Given a cache that is exactly the right size and uses sequential FIFO replacemen
 
 ## Measuring vertex shader invocations
 
-There are several ways to investigate the vertex reuse behavior on a given hardware for a given index sequence:
+There are several ways to investigate the vertex reuse behavior on a given GPU for a given index sequence:
 
 * Measure time it takes to render a mesh with the index buffer;
 * Measure the number of vertex shader invocations directly using GPU performance counters;
