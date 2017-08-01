@@ -57,7 +57,7 @@ We have several algorithms we will evaluate:
 
 For evaluation we will compare ATVR - average transformed vertex ratio, or the ratio of vertex shader invocations to total number of vertices. The ideal number is 1 - based on the Optimal Grid article, we would expect Optimal algorithm to reach the optimum when the cache size is set to hardware cache size; striped algorithm can only be effective when two rows of a strip fit into the cache, and should deteriorate to ATVR=2 for larger strips; Tipsify produces results depending on the cache size and thus should produce results somewhat inferior to the optimal algorithm for the hardware cache size; finally, TomF should give the same results regardless of the cache size.
 
-For each GPU we test, we will look at a graph of ATVR for all 4 methods based on the cache size, for a 100x100 quad grid. Traditionally the cache size is measured in vertices; while it's possible that the number of attributes vertex shader outputs affects the effective cache size, on all 3 GPUs that are tested there is no observable difference between having the vertex shader output 1 float4 attribute and 10 - as such all tests are done on a vertex shader that outputs 5 float4 attributes.
+For each GPU we test, we will look at a graph of ATVR (lower is better) for all 4 methods based on the cache size, for a 100x100 quad grid. Traditionally the cache size is measured in vertices; while it's possible that the number of attributes vertex shader outputs affects the effective cache size, on all 3 GPUs that are tested there is no observable difference between having the vertex shader output 1 float4 attribute and 10 - as such all tests are done on a vertex shader that outputs 5 float4 attributes.
 
 ## Results: NVidia and AMD
 
