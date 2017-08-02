@@ -18,7 +18,7 @@ There are several algorithms that optimize meshes for vertex cache. Some of them
 
 ## Optimal Grid Rendering
 
-Ignacio Castaño wrote a nice blog post about a technique that allows one to achieve perfect vertex cache hit ratio on a fixed size FIFO cache, called [Optimal Grid Rendering](http://www.ludicon.com/castano/blog/2009/02/optimal-grid-rendering/). This technique is not new; it's hard for me to date it precisely - I personally learned about it circa 2006, but I'm pretty sure it comes from the days of triangle strips and hardware T&L. The crucial parts of the algorithm are as follows:
+Ignacio Castaño wrote a nice blog post about a technique that allows one to achieve perfect vertex cache hit ratio on a fixed size FIFO cache, called [Optimal Grid Rendering](http://www.ludicon.com/castano/blog/2009/02/optimal-grid-rendering/). This technique is not new; it's hard for me to date it precisely - I personally learned about it circa 2006, but I'm pretty sure it comes from the days of triangle strips and hardware T&L. The key parts of the algorithm are as follows:
 
 * Rendering the grid as multiple vertical strips, with each strip width being just under the cache size;
 * Prefetching the first row of each strip using degenerate triangles.
