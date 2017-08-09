@@ -76,7 +76,7 @@ These results suggest that either the cache replacement policy is completely inc
 
 ![](/images/optimalgrid_3.png)
 
-These results are more in line with what we thought might happen - optimal reaches ATVR=1, striped breaks down for cache size 66 (strip size 65 vertices), Tipsify is slightly worse than optimal but approaches it at cache size 128 (ATVR 1.007). This suggests that Intel has a FIFO cache for 128 vertices, which actually means that with optimal grid, we don't even need to stripe the 100x100 grid - it just fits into the cache as is.
+These results are more in line with what we thought might happen - optimal reaches ATVR=1, striped breaks down for cache size 66 (strip size 65 vertices), Tipsify is slightly worse than optimal but approaches it at cache size 128 (ATVR 1.007). This suggests that Intel has a FIFO cache for 128 vertices, which actually means that with optimal grid, we don't even need to stripe the 100x100 grid - one row of the grid fits into the cache as is.
 
 ## Hypothesis: degenerate triangle prefetch doesn't work
 
