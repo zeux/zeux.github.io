@@ -38,7 +38,7 @@ I'm also working on a wide variety of open-source projects, most of which are ho
 
 ### meshoptimizer
 
-[meshoptimizer](http://github.com/zeux/meshpoptimizer) is a library that can optimize geometry to render faster on GPUs by reordering vertex/index data. The library has algorithms that optimize vertex reuse, vertex access locality and overdraw, resulting in fewer vertex/fragment shader invocations and fewer cache misses when loading vertex data.
+[meshoptimizer](http://github.com/zeux/meshoptimizer) is a library that can optimize geometry to render faster on GPUs by reordering vertex/index data. The library has algorithms that optimize vertex reuse, vertex access locality and overdraw, resulting in fewer vertex/fragment shader invocations and fewer cache misses when loading vertex data.
 
 ### codesize
 
