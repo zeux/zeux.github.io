@@ -4,7 +4,7 @@ title: About
 ---
 ## Work
 
-I’m a technical director at [ROBLOX](http://corp.roblox.com/). Previously I worked as a rendering engineer at [Sperasoft, Inc.](http://sperasoft.com/) on FIFA 13 and FIFA Street titles, as a PS3 programmer at [Saber Interactive](http://www.saber3d.com/) and as a lead engine developer at CREAT Studios; during my career I’ve helped ship many games on PS2/PS3/XBox 360/PC.
+I’m a technical director at [Roblox](https://corp.roblox.com/). Previously I worked as a rendering engineer at [Sperasoft, Inc.](https://sperasoft.com/) on FIFA 13 and FIFA Street titles, as a PS3 programmer at [Saber Interactive](http://www.saber3d.com/) and as a lead engine developer at [Creat Studios](http://www.creatstudios.com/); during my career I’ve helped ship many games on PS2/PS3/XBox 360/PC.
 
 > Games in reverse chronological order:
 >
