@@ -2,7 +2,6 @@
 layout: post
 title: "Voxel terrain: physics"
 excerpt_separator: <!--more-->
-draft: true
 ---
 
 In the [last article](/2017/03/27/voxel-terrain-storage/) we've discussed the particulars of voxel data definition and storage for voxel terrain we use at [Roblox](https://www.roblox.com/). From there on a lot of other systems read & write data from the storage and interpret it in different ways - the implementation for each system (rendering, networking, physics) is completely separate and not tied too much to decisions storage or other systems are making, so we can study them independently.
