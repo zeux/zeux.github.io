@@ -165,7 +165,7 @@ if (node.branch.splits[0] >= aabbMin[axis])
 
 This can be inefficient if the queried AABB is outside of the full kD tree bounds so we store an AABB for each kD tree for early rejection.
 
-For ray queries, we choose to instead do a segment-tree traversal, where the segment is defined by the ray origin/direction and two limits for the parameter t, tmin and tmax, that contain all points within the subspace defined by each node. When we encounter a branch, we need to intersect the split planes with the ray (which is simple & fast since planes are axis-aligned - we precompute inverse components of ray direction to accelerate this), and adjust the `t` limits for subsequent traversal:
+For ray queries, we choose to instead do a segment-tree traversal, where the segment is defined by the ray origin/direction and two limits for the parameter `t`, `tmin` and `tmax`, that contain all points within the subspace defined by each node. When we encounter a branch, we need to intersect the split planes with the ray (which is simple & fast since planes are axis-aligned - we precompute inverse components of ray direction to accelerate this), and adjust the `t` limits for subsequent traversal:
 
 ```cpp
 float sa = raySource[axis];
