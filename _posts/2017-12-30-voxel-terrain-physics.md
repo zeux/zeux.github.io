@@ -88,7 +88,7 @@ if (chunk.solid[y] & mask)
     touchesSolid = true;
 ```
 
-This lets us check the entire XZ slice of a chunk - up to 64 voxels! - for overlap with a simple instruction (on 32-bit architectures this test takes ~3 instructions), which makes it very efficient to do precise queries on reasonably large objects. To optimize the overhead for small objects, we make sure to create the mask for the XZ extents as fast as possible - while we could do it by iterating through XZ extents and setting bits, we note that the mask we have is really an intersection of two masks representing one vertical strip and one horizontal strip; for each direction we keep two lookup tables and combine them to get the resulting mask:
+This lets us check the entire XZ slice of a chunk - up to 64 voxels! - for overlap with a simple instruction (on 32-bit architectures this test takes ~3 instructions), which makes it very efficient to do precise queries on reasonably large objects. To optimize the overhead for small objects, we make sure to create the mask for the XZ extents as fast as possible - while we could do it by iterating through XZ extents and setting bits, we note that the mask we have is really an intersection of two masks representing one vertical strip and one horizontal strip; for each direction we keep a lookup table and combine the lookup results to get the resulting mask:
 
 ```cpp
 uint64_t mask = masksVer[cmin.x][cmax.x] & masksHor[cmin.z][cmax.z];
@@ -165,7 +165,7 @@ if (node.branch.splits[0] >= aabbMin[axis])
 
 This can be inefficient if the queried AABB is outside of the full kD tree bounds so we store an AABB for each kD tree for early rejection.
 
-For ray queries, we choose to instead do a segment-tree traversal, where the segment is defined by the ray origin/direction and two limits for the parameter t, tmin and tmax, that contain all points within the subspace defined by each node. When we encounter a branch, we need to intersect the split planes with the ray (which is simple & fast since planes are axis-aligned - we precompute inverse components of ray direction to accelerate this), and adjust the t limits for subsequent traversal:
+For ray queries, we choose to instead do a segment-tree traversal, where the segment is defined by the ray origin/direction and two limits for the parameter t, tmin and tmax, that contain all points within the subspace defined by each node. When we encounter a branch, we need to intersect the split planes with the ray (which is simple & fast since planes are axis-aligned - we precompute inverse components of ray direction to accelerate this), and adjust the `t` limits for subsequent traversal:
 
 ```cpp
 float sa = raySource[axis];
@@ -185,7 +185,7 @@ Similarly to AABB queries, if the ray doesn't intersect the full kD tree bounds 
 
 ![kD tree raycast](/images/voxphysics_6.png)
 
-Additionally, to accelerate ray queries that just need the first point, we arrange the traversal to first visit the branch that defines a subspace that occurs earlier along the ray's direction (this affects `i0`/`i1` indices in the snippet above); if we find an intersection point that is earlier along the ray than the minimum t of a given segment then we can terminate the traversal earlier. Unfortunately, due to floating point precision issues we need to slightly expand the segment on each branch. 
+Additionally, to accelerate ray queries that just need the first point, we arrange the traversal to first visit the branch that defines a subspace that occurs earlier along the ray's direction (this affects `i0`/`i1` indices in the snippet above); if we find an intersection point that is earlier along the ray than the minimum `t` of a given segment then we can terminate the traversal earlier. Unfortunately, due to floating point precision issues we need to slightly expand the segment on each branch. 
 
 With this we get efficient tree queries for both AABB and raycasts; the AABB query performance is on par with Bullet implementation, but the raycast query is faster, both because we do less work for each branch (only intersecting two planes with a ray), and because we can terminate the traversal early if we found a suitable intersection point.
 
