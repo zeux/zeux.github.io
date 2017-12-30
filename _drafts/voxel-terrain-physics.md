@@ -6,7 +6,7 @@ excerpt_separator: <!--more-->
 
 In the [last article](/2017/03/27/voxel-terrain-storage/) we've discussed the particulars of voxel data definition and storage for voxel terrain we use at [Roblox](https://www.roblox.com/). From there on a lot of other systems read & write data from the storage and interpret it in different ways - the implementation for each system (rendering, networking, physics) is completely separate and not tied too much to decisions storage or other systems are making, so we can study them independently.
 
-While logically speaking it would make sense to look at mesher next (which is how we call the component that is capable of taking a box of voxel data and producing triangle data representing the terrain surface with material attributes), since it is used by both physics and rendering systems, its pretty involved and has quite a bit of "magic" in it so it's probably best to leave it for some other time. Instead we will look at physics today.
+While logically speaking it would make sense to look at mesher next (which is how we call the component that is capable of taking a box of voxel data and producing triangle data representing the terrain surface with material attributes), since it is used by both physics and rendering systems, the algorithm is pretty involved and has quite a bit of "magic" so we will leave that for some other time and will instead look at physics today.
 
 <!--more-->
 
