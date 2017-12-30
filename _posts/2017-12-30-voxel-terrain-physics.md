@@ -191,7 +191,7 @@ With this we get efficient tree queries for both AABB and raycasts; the AABB que
 
 # Future work
 
-While the resulting algorithms we've built work pretty well, they can undoubtedly be improved even further. Memory consumption of narrowphase could be improved; additionally we currently store triangles in the kD tree - Christer Ericsson suggested that if you store quads as a first class primitive, the raycasts can be up to 2x more efficient (our terrain is built using quads, and some of them are planar, so this could be viable).
+While the resulting algorithms we've built work pretty well, they can undoubtedly be improved even further. Memory consumption of narrowphase could be improved; additionally we currently store triangles in the kD tree - Christer Ericson suggested that if you store quads as a first class primitive, the raycasts can be up to 2x more efficient (our terrain is built using quads, and some of them are planar, so this could be viable).
 
 One area that we have yet to explore is the parts of narrowphase that we still use from Bullet. It's possible that one can utilize better algorithms for doing triangle-convex collisions or for reducing the contact point manifold, and additionally we currently use a few hacks to deal with interior edge collisions whereas we could generate the data about whether each edge is exterior or interior and use this when generating collision points/normals.
 
