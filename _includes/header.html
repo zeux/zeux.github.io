@@ -73,7 +73,7 @@
       <p>
       If you like this blog, you should follow it <a href="/feed/">via RSS</a> and read <a href="/archives/">older posts</a>. Here are the recent posts:
       </p>
-      <ul>
+      <ul style="padding-left: 20px;">
       {% for post in site.posts limit:10 %}
         <li>
           <small><a href="{{ post.url }}">{{ post.title }}</a></small>

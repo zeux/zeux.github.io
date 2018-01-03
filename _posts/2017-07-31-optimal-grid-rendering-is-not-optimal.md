@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Optimal grid rendering is not optimal
+title: Optimal grid rendering isn't optimal
 excerpt_separator: <!--more-->
 ---
 
