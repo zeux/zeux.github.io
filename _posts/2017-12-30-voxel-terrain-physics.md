@@ -185,7 +185,7 @@ Similarly to AABB queries, if the ray doesn't intersect the full kD tree bounds 
 
 ![kD tree raycast](/images/voxphysics_6.png)
 
-Additionally, to accelerate ray queries that just need the first point, we arrange the traversal to first visit the branch that defines a subspace that occurs earlier along the ray's direction (this affects `i0`/`i1` indices in the snippet above); if we find an intersection point that is earlier along the ray than the minimum `t` of a given segment then we can terminate the traversal earlier. Unfortunately, due to floating point precision issues we need to slightly expand the segment on each branch. 
+Additionally, to accelerate ray queries that just need the first point, we arrange the traversal to first visit the branch that defines a subspace that occurs earlier along the ray's direction (this affects `i0`/`i1` indices in the snippet above); if we find an intersection point that is earlier along the ray than the minimum `t` of a given segment then we can terminate the traversal. Unfortunately, due to floating point precision issues we need to slightly expand the segment on each branch. 
 
 With this we get efficient tree queries for both AABB and raycasts; the AABB query performance is on par with Bullet implementation, but the raycast query is faster, both because we do less work for each branch (only intersecting two planes with a ray), and because we can terminate the traversal early if we found a suitable intersection point.
 
