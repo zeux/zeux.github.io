@@ -57,7 +57,7 @@ I also have a [blog](http://zeuxcg.org) with technical posts on various subjects
 
 ## Biography
 
-Arseny Kapoulkine has worked on game technology for the past decade, helping ship many titles on PS3 including several FIFA games. Having worked on rendering, physics simulation, language runtimes and many other areas, he is still discovering exciting problems in game development that require low-level thinking. After embracing the power of creation en masse, he joined [Roblox](https://corp.roblox.com/) in 2012 and has been working on the in-house engine ever since, helping young game developers achieve their dreams.
+Arseny Kapoulkine has worked on game technology for the past decade. Having worked on rendering, physics simulation, language runtimes, multithreading and many other areas, he is still discovering exciting problems in game development that require low-level thinking. After helping ship many titles on PS3 including several FIFA games, he joined [Roblox](https://corp.roblox.com/) in 2012 and has been working on the in-house engine ever since, helping young game developers achieve their dreams.
 
 ## Contacts
 You can reach me by e-mail at `arseny.kapoulkine@gmail.com` or on Twitter [@zeuxcg](https://twitter.com/zeuxcg).
