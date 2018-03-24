@@ -32,13 +32,17 @@ I'm also working on a wide variety of open-source projects, most of which are ho
 
 [pugixml](http://pugixml.org/) is a light-weight C++ XML processing library with an extremely fast and memory efficient DOM parser and XPath 1.0 support. It is used in a wide range of applications, including various embedded systems, video game engines, offline renderers, web backends and robotics/space software. A lot of effort goes into making sure pugixml has an easy-to-use API, has as few defects as possible and runs on all widespread platforms.
 
-### qgrep
-
-[qgrep](http://github.com/zeux/qgrep) is a fast grep that uses an incrementally updated index to perform fast regular-expression based searches in large code bases. It uses [RE2](http://code.google.com/p/re2/) and [LZ4](http://code.google.com/p/lz4/) along with a lot of custom optimizations to make sure queries are as fast as possible. Additionally it features a Vim plugin for great search experience in the best text editor ;)
-
 ### meshoptimizer
 
 [meshoptimizer](http://github.com/zeux/meshoptimizer) is a library that can optimize geometry to render faster on GPUs by reordering vertex/index data. The library has algorithms that optimize vertex reuse, vertex access locality and overdraw, resulting in fewer vertex/fragment shader invocations and fewer cache misses when loading vertex data.
+
+### volk
+
+[volk](http://github.com/zeux/volk) is a meta-loader for Vulkan. It allows you to write a Vulkan application without adding a dependency to the Vulkan loader, which can be important if you plan to support other rendering APIs in the same applications; additionally it provides a way to load device entrypoints using vkGetDeviceProcAddr which can reduce the draw call dispatch overhead by bypassing the loader dispatch thunks.
+
+### qgrep
+
+[qgrep](http://github.com/zeux/qgrep) is a fast grep that uses an incrementally updated index to perform fast regular-expression based searches in large code bases. It uses [RE2](http://code.google.com/p/re2/) and [LZ4](http://code.google.com/p/lz4/) along with a lot of custom optimizations to make sure queries are as fast as possible. Additionally it features a Vim plugin for great search experience in the best text editor ;)
 
 ### codesize
 
