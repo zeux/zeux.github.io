@@ -48,6 +48,7 @@ I'm also working on a wide variety of open-source projects, most of which are ho
 
 Here are some talks and publications I've done over the years:
 
+* Game Developers Conference 2018, "Vulkan on Android: Gotchas and best practices". [Slides](/data/gdc2018.pdf) [Video](https://www.youtube.com/watch?v=Aeo62YzofGc)
 * The Performance of Open Source Applications (2013), Chapter 4: Parsing XML at the Speed of Light. [Read online](http://aosabook.org/en/posa/parsing-xml-at-the-speed-of-light.html) or [buy the book](http://aosabook.org/en/buy.html#posa) (all royalties are donated to [Amnesty International](http://www.amnesty.org/))
 * Russian Game Developers Conference 2010, "Job scheduler: as simple as possible". [Slides](/data/kri2010_en.pdf)
 * Russian Game Developers Conference 2009, "SPU Render". [Slides](/data/kri2009_en.pdf)
