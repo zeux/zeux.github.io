@@ -9,19 +9,11 @@
   <meta name="twitter:site"    content="@zeuxcg">
   <meta name="twitter:title"   content="{{ page.title }}">
 
-  {% if page.summary %}
-  <meta name="twitter:description" content="{{ page.summary }}">
-  {% else %}
-  <meta name="twitter:description" content="{{ site.description }}">
+  {% if page.excerpt %}
+  <meta name="twitter:description" content="{{ page.excerpt }}">
   {% endif %}
 
-  {% if page.image %}
-  <meta name="twitter:card"  content="summary_large_image">
-  <meta name="twitter:image" content="{{ site.url }}{{ page.image }}">
-  {% else %}
   <meta name="twitter:card"  content="summary">
-  <meta name="twitter:image" content="{{ site.title_image }}">
-  {% endif %}
   <!-- end of Twitter cards -->
 
   <!-- Enable responsiveness on mobile devices-->
