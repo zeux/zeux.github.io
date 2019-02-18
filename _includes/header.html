@@ -9,7 +9,9 @@
   <meta name="twitter:card"  content="summary">
   <meta name="twitter:title" content="{{ page.title }}">
 
-  {% if page.excerpt %}
+  {% if page.twitter %}
+  <meta name="twitter:description" content="{{ page.twitter }}">
+  {% elsif page.excerpt %}
   <meta name="twitter:description" content="{{ page.excerpt }}">
   {% endif %}
   <!-- end of Twitter cards -->
