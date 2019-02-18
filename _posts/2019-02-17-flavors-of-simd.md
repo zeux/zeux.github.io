@@ -139,7 +139,7 @@ Some of the computations here, notably the dot product needed to normalize the n
 
 ```c++
 static void fillCellQuadrics(Quadric* cell_quadrics, const unsigned int* indices, size_t index_count, const Vector3* vertex_positions, const unsigned int* vertex_cells)
-    {
+{
     const int yzx = _MM_SHUFFLE(3, 0, 2, 1);
     const int zxy = _MM_SHUFFLE(3, 1, 0, 2);
     const int dp_xyz = 0x7f;
