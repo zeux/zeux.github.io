@@ -11,7 +11,7 @@ During development of [meshoptimizer](https://github.com/zeux/meshoptimizer) a q
 [![](/images/simplifysimd_1.jpg)](/images/simplifysimd_1.jpg)
 
 For our benchmark, we will be simplifying a 6M triangle "Thai Buddha" model, reducing it to 1% of the triangle count. We'll only use MSVC this time.
-The baseline algorithm can perform this simplification in about 210 ms[^1], using one thread of an Intel Core i7-8700K (running at ~4.4 GHz). Simplification can be parallelized in some cases by splitting a mesh into chunks, however this requires some extra connectivity analysis to be able to preserve chunk boundaries, so for now we'll limit ourselves to pure SIMD optimizations.
+The scalar algorithm can perform this simplification in about 210 ms[^1], using one thread of an Intel Core i7-8700K (running at ~4.4 GHz). Simplification can be parallelized in some cases by splitting a mesh into chunks, however this requires some extra connectivity analysis to be able to preserve chunk boundaries, so for now we'll limit ourselves to pure SIMD optimizations.
 
 # Measure seven times
 
