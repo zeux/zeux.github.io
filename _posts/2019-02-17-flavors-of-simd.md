@@ -123,7 +123,7 @@ static void quadricFromTriangle(Quadric& Q, const Vector3& p0, const Vector3& p1
 }
 ```
 
-This looks like a lot of floating-point operations, and we should be able to implement them using SIMD. Let's start by representing each vector as a 4-wide SIMD vector, and also let's slightly change the `Quadric` structure to have 12 floats instead of 10 so that it fits exactly into 3 SIMD registers[^2]; we'll also slightly reorder the fields to make computations in `quadricFromPlane` more uniform:
+This looks like a lot of floating-point operations, and we should be able to implement them using SIMD. Let's start by representing each vector as a 4-wide SIMD vector, and also let's change the `Quadric` structure to have 12 floats instead of 10 so that it fits exactly into 3 SIMD registers[^2]; we'll also reorder the fields to make computations in `quadricFromPlane` more uniform:
 
 ```c++
 struct Quadric
