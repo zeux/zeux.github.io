@@ -478,7 +478,7 @@ for (size_t i = 0; i < (triangle_count & ~7); i += 8)
 }
 ```
 
-`_MM_TRANSPOSE8_LANE4_PS` macro is an AVX2 equivalent of `_MM_TRANSPOSE4_PS` that's not present in the standard header but easy to derive, and it takes 4 AVX2 vectors and transposes two 4x4 matrices that they represent independently:
+`_MM_TRANSPOSE8_LANE4_PS` macro is an AVX2 equivalent of `_MM_TRANSPOSE4_PS` that's not present in the standard header but is easy to derive; it takes 4 AVX2 vectors and transposes two 4x4 matrices that they represent independently:
 
 ```c++
 #define _MM_TRANSPOSE8_LANE4_PS(row0, row1, row2, row3) \
