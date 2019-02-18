@@ -501,7 +501,7 @@ We have to transpose the vectors using floating-point register operations becaus
 
 `countTriangles` does run ~27% faster now, and note that CPI - cycles per instruction - is now pretty abysmal; we're dispatching ~4x less instructions but gather instructions take a lot of time. It's great that they help us run a bit faster, but of course the performance gains are somewhat underwhelming. We did manage to get under `fillCellQuadrics` in profile, which brings us to our last function in the top we haven't looked at yet.
 
-# Chapter 6, where for once things are as they should be
+# Chapter 6, where things are as they should be
 
 `computeVertexIds` is the last remaining function we'll look at today - it runs 6 times during our algorithm so it's also a great target for optimization. This function is the first one that actually looks like it should map cleanly to SIMD:
 
