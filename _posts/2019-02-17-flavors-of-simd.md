@@ -78,8 +78,9 @@ The function goes over all triangles, computes a quadric for each one, and adds 
 ```c++
 struct Quadric
 {
-    float a00, a11, a22;
-    float a10, a21, a20;
+    float a00;
+    float a10, a11;
+    float a20, a21, a22;
     float b0, b1, b2, c;
 };
 ```
