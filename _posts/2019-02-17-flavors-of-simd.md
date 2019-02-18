@@ -42,14 +42,22 @@ static void fillCellQuadrics(Quadric* cell_quadrics, const unsigned int* indices
 {
     for (size_t i = 0; i < index_count; i += 3)
     {
-        unsigned int i0 = indices[i + 0], i1 = indices[i + 1], i2 = indices[i + 2];
-        unsigned int c0 = vertex_cells[i0], c1 = vertex_cells[i1], c2 = vertex_cells[i2];
+        unsigned int i0 = indices[i + 0];
+        unsigned int i1 = indices[i + 1];
+        unsigned int i2 = indices[i + 2];
+        unsigned int c0 = vertex_cells[i0];
+        unsigned int c1 = vertex_cells[i1];
+        unsigned int c2 = vertex_cells[i2];
 
         bool single_cell = (c0 == c1) & (c0 == c2);
         float weight = single_cell ? 3.f : 1.f;
 
         Quadric Q;
-        quadricFromTriangle(Q, vertex_positions[i0], vertex_positions[i1], vertex_positions[i2], weight);
+        quadricFromTriangle(Q,
+            vertex_positions[i0],
+            vertex_positions[i1],
+            vertex_positions[i2],
+            weight);
 
         if (single_cell)
         {
@@ -98,10 +106,15 @@ static void quadricFromTriangle(Quadric& Q, const Vector3& p0, const Vector3& p1
     Vector3 p10 = {p1.x - p0.x, p1.y - p0.y, p1.z - p0.z};
     Vector3 p20 = {p2.x - p0.x, p2.y - p0.y, p2.z - p0.z};
 
-    Vector3 normal = {p10.y * p20.z - p10.z * p20.y, p10.z * p20.x - p10.x * p20.z, p10.x * p20.y - p10.y * p20.x};
+    Vector3 normal =
+    {
+        p10.y * p20.z - p10.z * p20.y,
+        p10.z * p20.x - p10.x * p20.z,
+        p10.x * p20.y - p10.y * p20.x
+    };
     float area = normalize(normal);
 
-    float distance = normal.x * p0.x + normal.y * p0.y + normal.z * p0.z;
+    float distance = normal.x*p0.x + normal.y*p0.y + normal.z*p0.z;
 
     quadricFromPlane(Q, normal.x, normal.y, normal.z, -distance);
 
@@ -133,8 +146,12 @@ static void fillCellQuadrics(Quadric* cell_quadrics, const unsigned int* indices
 
     for (size_t i = 0; i < index_count; i += 3)
     {
-        unsigned int i0 = indices[i + 0], i1 = indices[i + 1],  i2 = indices[i + 2];
-        unsigned int c0 = vertex_cells[i0], c1 = vertex_cells[i1], c2 = vertex_cells[i2];
+        unsigned int i0 = indices[i + 0];
+        unsigned int i1 = indices[i + 1];
+        unsigned int i2 = indices[i + 2];
+        unsigned int c0 = vertex_cells[i0];
+        unsigned int c1 = vertex_cells[i1];
+        unsigned int c2 = vertex_cells[i2];
 
         bool single_cell = (c0 == c1) & (c0 == c2);
 
@@ -146,18 +163,25 @@ static void fillCellQuadrics(Quadric* cell_quadrics, const unsigned int* indices
         __m128 p20 = _mm_sub_ps(p2, p0);
 
         __m128 normal = _mm_sub_ps(
-            _mm_mul_ps(_mm_shuffle_ps(p10, p10, yzx), _mm_shuffle_ps(p20, p20, zxy)),
-            _mm_mul_ps(_mm_shuffle_ps(p10, p10, zxy), _mm_shuffle_ps(p20, p20, yzx)));
+            _mm_mul_ps(
+                _mm_shuffle_ps(p10, p10, yzx),
+                _mm_shuffle_ps(p20, p20, zxy)),
+            _mm_mul_ps(
+                _mm_shuffle_ps(p10, p10, zxy),
+                _mm_shuffle_ps(p20, p20, yzx)));
 
         __m128 areasq = _mm_dp_ps(normal, normal, dp_xyz); // SSE4.1
         __m128 area = _mm_sqrt_ps(areasq);
 
-        // masks the result of the division when area==0; scalar version does this in normalize()
-        normal = _mm_and_ps(_mm_div_ps(normal, area), _mm_cmpneq_ps(area, _mm_setzero_ps()));
+        // masks the result of the division when area==0
+        // scalar version does this in normalize()
+        normal = _mm_and_ps(
+            _mm_div_ps(normal, area),
+            _mm_cmpneq_ps(area, _mm_setzero_ps()));
 
         __m128 distance = _mm_dp_ps(normal, p0, dp_xyz); // SSE4.1
         __m128 negdistance = _mm_sub_ps(_mm_setzero_ps(), distance);
-        __m128 normalnegdist = _mm_blend_ps(normal, negdistance, 8); // SSE4.1
+        __m128 normalnegdist = _mm_blend_ps(normal, negdistance, 8);
 
         __m128 Qx = _mm_mul_ps(normal, normal);
         __m128 Qy = _mm_mul_ps(
@@ -184,7 +208,8 @@ static void fillCellQuadrics(Quadric* cell_quadrics, const unsigned int* indices
         }
         else
         {
-            // omitted for brevity, repeats the if() body three times for c0/c1/c2
+            // omitted for brevity, repeats the if() body
+            // three times for c0/c1/c2
         }
     }
 }
@@ -205,10 +230,18 @@ We're dealing with a lot of arrays that are indexed dynamically - while normally
 In theory, a pure application of this principle would mean that we need to compute each component of the final 4 quadrics in its own SIMD register (e.g. we'd have `__m128 Q_a00` which will have 4 `a00` members of the final quadrics). In this case, the operations on quadrics lend themselves pretty nicely to 4-wide SIMD, and doing this transformation actually makes the code slower - so we'll only transpose the initial vectors, and then transpose the plane equations back and run the exact same code we used to run to compute the quadrics, but repeated 4 times. Here's how the code that computes the plane equations looks after this, with the remaining sections omitted for brevity:
 
 ```c++
-unsigned int i00 = indices[(i + 0) * 3 + 0], i01 = indices[(i + 0) * 3 + 1], i02 = indices[(i + 0) * 3 + 2];
-unsigned int i10 = indices[(i + 1) * 3 + 0], i11 = indices[(i + 1) * 3 + 1], i12 = indices[(i + 1) * 3 + 2];
-unsigned int i20 = indices[(i + 2) * 3 + 0], i21 = indices[(i + 2) * 3 + 1], i22 = indices[(i + 2) * 3 + 2];
-unsigned int i30 = indices[(i + 3) * 3 + 0], i31 = indices[(i + 3) * 3 + 1], i32 = indices[(i + 3) * 3 + 2];
+unsigned int i00 = indices[(i + 0) * 3 + 0];
+unsigned int i01 = indices[(i + 0) * 3 + 1];
+unsigned int i02 = indices[(i + 0) * 3 + 2];
+unsigned int i10 = indices[(i + 1) * 3 + 0];
+unsigned int i11 = indices[(i + 1) * 3 + 1];
+unsinged int i12 = indices[(i + 1) * 3 + 2];
+unsigned int i20 = indices[(i + 2) * 3 + 0];
+unsigned int i21 = indices[(i + 2) * 3 + 1];
+unsigned int i22 = indices[(i + 2) * 3 + 2];
+unsigned int i30 = indices[(i + 3) * 3 + 0];
+unsigned int i31 = indices[(i + 3) * 3 + 1];
+unsigned int i32 = indices[(i + 3) * 3 + 2];
 
 // load first vertex of each triangle and transpose into vectors with components (pw0 isn't used later)
 __m128 px0 = _mm_loadu_ps(&vertex_positions[i00].x);
@@ -242,23 +275,34 @@ __m128 py20 = _mm_sub_ps(py2, py0);
 __m128 pz20 = _mm_sub_ps(pz2, pz0);
 
 // cross(p10, p20)
-__m128 normalx = _mm_sub_ps(_mm_mul_ps(py10, pz20), _mm_mul_ps(pz10, py20));
-__m128 normaly = _mm_sub_ps(_mm_mul_ps(pz10, px20), _mm_mul_ps(px10, pz20));
-__m128 normalz = _mm_sub_ps(_mm_mul_ps(px10, py20), _mm_mul_ps(py10, px20));
+__m128 normalx = _mm_sub_ps(
+    _mm_mul_ps(py10, pz20),
+    _mm_mul_ps(pz10, py20));
+__m128 normaly = _mm_sub_ps(
+    _mm_mul_ps(pz10, px20),
+    _mm_mul_ps(px10, pz20));
+__m128 normalz = _mm_sub_ps(
+    _mm_mul_ps(px10, py20),
+    _mm_mul_ps(py10, px20));
 
 // normalize; note that areasq/area now contain 4 values, not just one
 __m128 areasq = _mm_add_ps(
     _mm_mul_ps(normalx, normalx),
-    _mm_add_ps(_mm_mul_ps(normaly, normaly), _mm_mul_ps(normalz, normalz)));
+    _mm_add_ps(
+        _mm_mul_ps(normaly, normaly),
+        _mm_mul_ps(normalz, normalz)));
 __m128 area = _mm_sqrt_ps(areasq);
+__m128 areanz = _mm_cmpneq_ps(area, _mm_setzero_ps());
 
-normalx = _mm_and_ps(_mm_div_ps(normalx, area), _mm_cmpneq_ps(area, _mm_setzero_ps()));
-normaly = _mm_and_ps(_mm_div_ps(normaly, area), _mm_cmpneq_ps(area, _mm_setzero_ps()));
-normalz = _mm_and_ps(_mm_div_ps(normalz, area), _mm_cmpneq_ps(area, _mm_setzero_ps()));
+normalx = _mm_and_ps(_mm_div_ps(normalx, area), areanz);
+normaly = _mm_and_ps(_mm_div_ps(normaly, area), areanz);
+normalz = _mm_and_ps(_mm_div_ps(normalz, area), areanz);
 
 __m128 distance = _mm_add_ps(
     _mm_mul_ps(normalx, px0),
-    _mm_add_ps(_mm_mul_ps(normaly, py0), _mm_mul_ps(normalz, pz0)));
+    _mm_add_ps(
+        _mm_mul_ps(normaly, py0),
+        _mm_mul_ps(normalz, pz0)));
 __m128 negdistance = _mm_sub_ps(_mm_setzero_ps(), distance);
 
 // this computes the plane equations (a, b, c, d) for each of the 4 triangles
@@ -279,44 +323,67 @@ The code got quite a bit longer; we're now processing 4 triangles in each loop i
 
 AVX2 is a somewhat peculiar instruction set. It gives you 8-wide floating point registers and allows to compute 8 operations using just one instruction; however, generally speaking instructions have the same behavior as two SSE2 instructions ran on two individual halves of the register[^5]. For example, `_mm_dp_ps` computes a dot product between two SSE2 registers; `_mm256_dp_ps` computes two dot products between two halves of two AVX2 registers, so it's limited to a 4-wide product for each half.
 
-This often makes AVX2 code different from a general-purpose "8-wide SIMD", but it plays in our favor here - instead of trying to improve vectorization by transposing the 4-wide vectors, let's take our first attempt at SIMD and unroll the loop 2x, using AVX2 instructions instead of SSE2/SSE4. We'll still need to load and store 4-wide vectors, but in general the code is just a result of replacing `__m128` with `__m256` and `_mm_` with `_mm256_` with a few tweaks:
+This often makes AVX2 code different from a general-purpose "8-wide SIMD", but it works in our favor here - instead of trying to improve vectorization by transposing the 4-wide vectors, let's go back to our first attempt at SIMD and unroll the loop 2x, using AVX2 instructions instead of SSE2/SSE4. We'll still need to load and store 4-wide vectors, but in general the code is just a result of replacing `__m128` with `__m256` and `_mm_` with `_mm256_` with a few tweaks:
 
 ```c++
-unsigned int i00 = indices[(i + 0) * 3 + 0], i01 = indices[(i + 0) * 3 + 1], i02 = indices[(i + 0) * 3 + 2];
-unsigned int i10 = indices[(i + 1) * 3 + 0], i11 = indices[(i + 1) * 3 + 1], i12 = indices[(i + 1) * 3 + 2];
+unsigned int i00 = indices[(i + 0) * 3 + 0];
+unsigned int i01 = indices[(i + 0) * 3 + 1];
+unsigned int i02 = indices[(i + 0) * 3 + 2];
+unsigned int i10 = indices[(i + 1) * 3 + 0];
+unsigned int i11 = indices[(i + 1) * 3 + 1];
+unsigned int i12 = indices[(i + 1) * 3 + 2];
 
-__m256 p0 = _mm256_loadu2_m128(&vertex_positions[i10].x, &vertex_positions[i00].x);
-__m256 p1 = _mm256_loadu2_m128(&vertex_positions[i11].x, &vertex_positions[i01].x);
-__m256 p2 = _mm256_loadu2_m128(&vertex_positions[i12].x, &vertex_positions[i02].x);
+__m256 p0 = _mm256_loadu2_m128(
+    &vertex_positions[i10].x,
+    &vertex_positions[i00].x);
+__m256 p1 = _mm256_loadu2_m128(
+    &vertex_positions[i11].x,
+    &vertex_positions[i01].x);
+__m256 p2 = _mm256_loadu2_m128(
+    &vertex_positions[i12].x,
+    &vertex_positions[i02].x);
 
 __m256 p10 = _mm256_sub_ps(p1, p0);
 __m256 p20 = _mm256_sub_ps(p2, p0);
 
 __m256 normal = _mm256_sub_ps(
-    _mm256_mul_ps(_mm256_shuffle_ps(p10, p10, yzx), _mm256_shuffle_ps(p20, p20, zxy)),
-    _mm256_mul_ps(_mm256_shuffle_ps(p10, p10, zxy), _mm256_shuffle_ps(p20, p20, yzx)));
+    _mm256_mul_ps(
+        _mm256_shuffle_ps(p10, p10, yzx),
+        _mm256_shuffle_ps(p20, p20, zxy)),
+    _mm256_mul_ps(
+        _mm256_shuffle_ps(p10, p10, zxy),
+        _mm256_shuffle_ps(p20, p20, yzx)));
 
 __m256 areasq = _mm256_dp_ps(normal, normal, dp_xyz);
 __m256 area = _mm256_sqrt_ps(areasq);
+__m256 areanz = _mm256_cmp_ps(area, _mm256_setzero_ps(), _CMP_NEQ_OQ);
 
-normal = _mm256_and_ps(_mm256_div_ps(normal, area), _mm256_cmp_ps(area, _mm256_setzero_ps(), _CMP_NEQ_OQ));
+normal = _mm256_and_ps(_mm256_div_ps(normal, area), areanz);
 
 __m256 distance = _mm256_dp_ps(normal, p0, dp_xyz);
 __m256 negdistance = _mm256_sub_ps(_mm256_setzero_ps(), distance);
 __m256 normalnegdist = _mm256_blend_ps(normal, negdistance, 0x88);
 
 __m256 Qx = _mm256_mul_ps(normal, normal);
-__m256 Qy = _mm256_mul_ps(_mm256_shuffle_ps(normal, normal, _MM_SHUFFLE(3, 2, 2, 1)), _mm256_shuffle_ps(normal, normal, _MM_SHUFFLE(3, 0, 1, 0)));
+__m256 Qy = _mm256_mul_ps(
+    _mm256_shuffle_ps(normal, normal, _MM_SHUFFLE(3, 2, 2, 1)),
+    _mm256_shuffle_ps(normal, normal, _MM_SHUFFLE(3, 0, 1, 0)));
 __m256 Qz = _mm256_mul_ps(negdistance, normalnegdist);
 ```
 
 After this we could take each 128-bit half of the resulting `Qx`/`Qy`/`Qz` vectors and run the same code we used to run to add quadrics; instead, we'll assume that if one triangle has all three vertices in the same cell (`single_cell == true`), then it's likely that the other triangle has all three vertices in one cell, possibly a different one, and perform the final quadric aggregation using AVX2 as well:
 
 ```c++
-unsigned int c00 = vertex_cells[i00], c01 = vertex_cells[i01], c02 = vertex_cells[i02];
-unsigned int c10 = vertex_cells[i10], c11 = vertex_cells[i11], c12 = vertex_cells[i12];
+unsigned int c00 = vertex_cells[i00];
+unsigned int c01 = vertex_cells[i01];
+unsigned int c02 = vertex_cells[i02];
+unsigned int c10 = vertex_cells[i10];
+unsigned int c11 = vertex_cells[i11];
+unsigned int c12 = vertex_cells[i12];
 
-bool single_cell = (c00 == c01) & (c00 == c02) & (c10 == c11) & (c10 == c12);
+bool single_cell =
+    (c00 == c01) & (c00 == c02) &
+    (c10 == c11) & (c10 == c12);
 
 if (single_cell)
 {
@@ -377,10 +444,18 @@ AVX2 is the instruction set that introduced a family of gather/scatter instructi
 ```c++
 for (size_t i = 0; i < (triangle_count & ~7); i += 8)
 {
-    __m256 tri0 = _mm256_loadu2_m128((const float*)&indices[(i + 4) * 3 + 0], (const float*)&indices[(i + 0) * 3 + 0]);
-    __m256 tri1 = _mm256_loadu2_m128((const float*)&indices[(i + 5) * 3 + 0], (const float*)&indices[(i + 1) * 3 + 0]);
-    __m256 tri2 = _mm256_loadu2_m128((const float*)&indices[(i + 6) * 3 + 0], (const float*)&indices[(i + 2) * 3 + 0]);
-    __m256 tri3 = _mm256_loadu2_m128((const float*)&indices[(i + 7) * 3 + 0], (const float*)&indices[(i + 3) * 3 + 0]);
+    __m256 tri0 = _mm256_loadu2_m128(
+        (const float*)&indices[(i + 4) * 3 + 0],
+        (const float*)&indices[(i + 0) * 3 + 0]);
+    __m256 tri1 = _mm256_loadu2_m128(
+        (const float*)&indices[(i + 5) * 3 + 0],
+        (const float*)&indices[(i + 1) * 3 + 0]);
+    __m256 tri2 = _mm256_loadu2_m128(
+        (const float*)&indices[(i + 6) * 3 + 0],
+        (const float*)&indices[(i + 2) * 3 + 0]);
+    __m256 tri3 = _mm256_loadu2_m128(
+        (const float*)&indices[(i + 7) * 3 + 0],
+        (const float*)&indices[(i + 3) * 3 + 0]);
 
     _MM_TRANSPOSE8_LANE4_PS(tri0, tri1, tri2, tri3);
 
@@ -388,13 +463,15 @@ for (size_t i = 0; i < (triangle_count & ~7); i += 8)
     __m256i i1 = _mm256_castps_si256(tri1);
     __m256i i2 = _mm256_castps_si256(tri2);
 
-    __m256i id0 = _mm256_i32gather_epi32((const int*)vertex_ids, i0, 4);
-    __m256i id1 = _mm256_i32gather_epi32((const int*)vertex_ids, i1, 4);
-    __m256i id2 = _mm256_i32gather_epi32((const int*)vertex_ids, i2, 4);
+    __m256i id0 = _mm256_i32gather_epi32((int*)vertex_ids, i0, 4);
+    __m256i id1 = _mm256_i32gather_epi32((int*)vertex_ids, i1, 4);
+    __m256i id2 = _mm256_i32gather_epi32((int*)vertex_ids, i2, 4);
 
     __m256i deg = _mm256_or_si256(
         _mm256_cmpeq_epi32(id1, id2),
-        _mm256_or_si256(_mm256_cmpeq_epi32(id0, id1), _mm256_cmpeq_epi32(id0, id2)));
+        _mm256_or_si256(
+            _mm256_cmpeq_epi32(id0, id1),
+            _mm256_cmpeq_epi32(id0, id2)));
 
     result += 8 - _mm_popcnt_u32(_mm256_movemask_epi8(deg)) / 4;
 }
@@ -404,17 +481,17 @@ for (size_t i = 0; i < (triangle_count & ~7); i += 8)
 
 ```c++
 #define _MM_TRANSPOSE8_LANE4_PS(row0, row1, row2, row3) \
-	do { \
-		__m256 __t0, __t1, __t2, __t3; \
-		__t0 = _mm256_unpacklo_ps(row0, row1); \
-		__t1 = _mm256_unpackhi_ps(row0, row1); \
-		__t2 = _mm256_unpacklo_ps(row2, row3); \
-		__t3 = _mm256_unpackhi_ps(row2, row3); \
-		row0 = _mm256_shuffle_ps(__t0, __t2, _MM_SHUFFLE(1, 0, 1, 0)); \
-		row1 = _mm256_shuffle_ps(__t0, __t2, _MM_SHUFFLE(3, 2, 3, 2)); \
-		row2 = _mm256_shuffle_ps(__t1, __t3, _MM_SHUFFLE(1, 0, 1, 0)); \
-		row3 = _mm256_shuffle_ps(__t1, __t3, _MM_SHUFFLE(3, 2, 3, 2)); \
-	} while (0)
+do { \
+    __m256 __t0, __t1, __t2, __t3; \
+    __t0 = _mm256_unpacklo_ps(row0, row1); \
+    __t1 = _mm256_unpackhi_ps(row0, row1); \
+    __t2 = _mm256_unpacklo_ps(row2, row3); \
+    __t3 = _mm256_unpackhi_ps(row2, row3); \
+    row0 = _mm256_shuffle_ps(__t0, __t2, _MM_SHUFFLE(1, 0, 1, 0)); \
+    row1 = _mm256_shuffle_ps(__t0, __t2, _MM_SHUFFLE(3, 2, 3, 2)); \
+    row2 = _mm256_shuffle_ps(__t1, __t3, _MM_SHUFFLE(1, 0, 1, 0)); \
+    row3 = _mm256_shuffle_ps(__t1, __t3, _MM_SHUFFLE(3, 2, 3, 2)); \
+} while (0)
 ```
 
 We have to transpose the vectors using floating-point register operations because of some idiosyncrasies in SSE2/AVX2 instruction sets. We also load data a bit sloppily; however, it seems like this mostly doesn't matter because we're bound by the performance of gather:
@@ -454,18 +531,33 @@ __m256 half = _mm256_set1_ps(0.5f);
 
 for (size_t i = 0; i < (vertex_count & ~7); i += 8)
 {
-    __m256 vx = _mm256_loadu2_m128(&vertex_positions[i + 4].x, &vertex_positions[i + 0].x);
-    __m256 vy = _mm256_loadu2_m128(&vertex_positions[i + 5].x, &vertex_positions[i + 1].x);
-    __m256 vz = _mm256_loadu2_m128(&vertex_positions[i + 6].x, &vertex_positions[i + 2].x);
-    __m256 vw = _mm256_loadu2_m128(&vertex_positions[i + 7].x, &vertex_positions[i + 3].x);
+    __m256 vx = _mm256_loadu2_m128(
+        &vertex_positions[i + 4].x,
+        &vertex_positions[i + 0].x);
+    __m256 vy = _mm256_loadu2_m128(
+        &vertex_positions[i + 5].x,
+        &vertex_positions[i + 1].x);
+    __m256 vz = _mm256_loadu2_m128(
+        &vertex_positions[i + 6].x,
+        &vertex_positions[i + 2].x);
+    __m256 vw = _mm256_loadu2_m128(
+        &vertex_positions[i + 7].x,
+        &vertex_positions[i + 3].x);
 
     _MM_TRANSPOSE8_LANE4_PS(vx, vy, vz, vw);
 
-    __m256i xi = _mm256_cvttps_epi32(_mm256_add_ps(_mm256_mul_ps(vx, scale), half));
-    __m256i yi = _mm256_cvttps_epi32(_mm256_add_ps(_mm256_mul_ps(vy, scale), half));
-    __m256i zi = _mm256_cvttps_epi32(_mm256_add_ps(_mm256_mul_ps(vz, scale), half));
+    __m256i xi = _mm256_cvttps_epi32(
+        _mm256_add_ps(_mm256_mul_ps(vx, scale), half));
+    __m256i yi = _mm256_cvttps_epi32(
+        _mm256_add_ps(_mm256_mul_ps(vy, scale), half));
+    __m256i zi = _mm256_cvttps_epi32(
+        _mm256_add_ps(_mm256_mul_ps(vz, scale), half));
 
-    __m256i id = _mm256_or_si256(zi, _mm256_or_si256(_mm256_slli_epi32(xi, 20), _mm256_slli_epi32(yi, 10)));
+    __m256i id = _mm256_or_si256(
+        zi,
+        _mm256_or_si256(
+            _mm256_slli_epi32(xi, 20),
+            _mm256_slli_epi32(yi, 10)));
 
     _mm256_storeu_si256((__m256i*)&vertex_ids[i], id);
 }
