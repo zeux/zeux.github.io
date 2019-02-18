@@ -1,7 +1,6 @@
 ---
 layout: post
 title: "Flavors of SIMD"
-twitter: During development of meshoptimizer a question that comes up relatively often is 'should this algorithm use SIMD?'
 excerpt_separator: <!--more-->
 ---
 

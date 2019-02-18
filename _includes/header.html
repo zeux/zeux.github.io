@@ -12,9 +12,9 @@
   {% if page.twitter %}
   <meta name="twitter:description" content="{{ page.twitter }}">
   {% elsif page.excerpt %}
-  <meta name="twitter:description" content="{{ page.excerpt }}">
+  <meta name="twitter:description" content="{{ page.excerpt | strip_html }}">
   {% endif %}
-  <meta name="twitter:image" content="/images/avatar.jpg">
+  <meta name="twitter:image" content="https://zeuxcg.org/images/avatar.jpg">
   <!-- end of Twitter cards -->
 
   <!-- Enable responsiveness on mobile devices-->
