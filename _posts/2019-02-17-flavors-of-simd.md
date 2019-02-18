@@ -574,7 +574,7 @@ It may look like we're not getting the level of performance that we expected to 
 
 `computeVertexIds` is ran 6 times during the course of one simplification run - 5 times during the binary search, and once at the end to compute the final ids that are used for further processing. Each time this function processes 3M vertices, reading 12 bytes for each vertex and writing 4 bytes.
 
-In total, this function processes 1800M vertices over 100 runs of the algorithm, reading 21 GB of data and writing 7 GB back. To process 28 GB of data in 1.46 seconds requires 19 GB/sec bandwidth. Running `memcmp(block1, block2, 512 MB)` on this system finishes in 45 msec, which makes me think that only about 22 GB/sec is achievable on a single core. Essentially we're now running close to memory speed and improving performance further would require packing our vertex data tighter so that positions require less than 12 bytes to store.
+In total, this function processes 1800M vertices over 100 runs of the algorithm, reading 21 GB of data and writing 7 GB back. To process 28 GB of data in 1.46 seconds requires 19 GB/sec bandwidth. Running `memcmp(block1, block2, 512 MB)` on this system finishes in 45 msec, which makes me think that only about 22 GB/sec is achievable on a single core[^6]. Essentially we're now running close to memory speed and improving performance further would require packing our vertex data tighter so that positions require less than 12 bytes to store.
 
 # Conclusion
 
@@ -589,3 +589,4 @@ I'm not sure how many of these optimizations will end up in `meshoptimizer` mast
 [^3]: Or rather what you should normally do is to pack data using small groups of SIMD registers, for example `float x[8], y[8], z[8]` for each 8 vertices in your input data - this is known as AoSoA (arrays-of-structures-of-arrays) and gives a good balance between cache locality and ease of loading into SIMD registers.
 [^4]: Ideally you should be able to use ISPC here for it to generate all this code - however, my naive attempts to get ispc to generate good code here didn't work well. I wasn't able to get it to generate optimal load/store sequences, instead it resorted to using gather/scatter which resulted in code that's substantially slower than speed of light here.
 [^5]: My understanding is that first CPUs that supported AVX2 literally implemented AVX2 by decoding each instruction into two or more micro-ops, so performance gains were limited to the instruction fetch phase.
+[^6]: AIDA64 benchmark gets up to 31 GB/sec read speed on my system, but it uses multiple cores to get there.
