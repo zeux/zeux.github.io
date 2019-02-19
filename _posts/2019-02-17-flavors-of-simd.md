@@ -4,7 +4,7 @@ title: "Flavors of SIMD"
 excerpt_separator: <!--more-->
 ---
 
-During development of [meshoptimizer](https://github.com/zeux/meshoptimizer) a question that comes up relatively often is "should this algorithm use SIMD?". The library is performance-oriented, but SIMD doesn't always provide significant performance benefits - unfortunately, the use of SIMD can make the code less portable and less maintainable, so this tradeoff has to be resolved on a case by case basis. When performance is of utmost importance, such as vertex/index codecs, separate SIMD implementations for SSE and NEON instruction need to be developed and maintained. In other cases it's helpful to understand how much SIMD can help. Today we will go through the exercise of accelerating sloppy mesh simplifier, a new algorithm that was recently added to the library, using SSEn/AVXn instruction sets.
+During development of [meshoptimizer](https://github.com/zeux/meshoptimizer) a question that comes up relatively often is "should this algorithm use SIMD?". The library is performance-oriented, but SIMD doesn't always provide significant performance benefits - unfortunately, the use of SIMD can make the code less portable and less maintainable, so this tradeoff has to be resolved on a case by case basis. When performance is of utmost importance, such as vertex/index codecs, separate SIMD implementations for SSE and NEON instruction sets need to be developed and maintained. In other cases it's helpful to understand how much SIMD can help to make the decision. Today we will go through the exercise of accelerating sloppy mesh simplifier, a new algorithm that was recently added to the library, using SSEn/AVXn instruction sets.
 
 <!--more-->
 
