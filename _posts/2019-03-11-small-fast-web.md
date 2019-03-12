@@ -90,8 +90,8 @@ Now it's time to look at performance. WebAssembly tries to reach near native spe
 
 |             | vertex decode | index decode
 |-------------|---------------|-------------
-| C++, SSSE3  | 0.1 msec | 0.1 msec
-| C++, scalar | 0.3 msec | 0.1 msec
+| C++, SSSE3  | 0.10 msec | 0.10 msec
+| C++, scalar | 0.30 msec | 0.10 msec
 | emcc -Os (Chrome) | 0.55 msec | 0.47 msec
 
 Not quite sure how to profile the code, short of trying to use internal Chrome options to inspect the assembly and guess where the overhead is coming from, I decided to make sure that `-Os` was indeed justified. While in theory optimizing for size may compromise performance, in practice for native compilation `-Os` often generates code that is close to optimal so I wasn't expecting miracles. I was pleasantly surprised.
