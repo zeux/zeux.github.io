@@ -23,7 +23,7 @@ int meshopt_decodeVertexBuffer(void* destination, size_t vertex_count, size_t ve
 int meshopt_decodeIndexBuffer(void* destination, size_t index_count, size_t index_size, const unsigned char* buffer, size_t buffer_size);
 ```
 
-To simplify the port, the assumption is that the data can be encoded for offline use using C++ or [Rust](https://crates.io/crates/meshopt) versions of the library, and only decoders are necessary at runtime[^2]. JavaScript code would download the encoded data - possibly using `fetch()` which would be capable of using `gzip` decompression built into the browser - pass them to the decode functions, and then upload the resulting vertex/index buffers to WebGL directly or using the 3D framework of choice.
+To simplify the port, the assumption is that the data can be encoded offline using C++ or [Rust](https://crates.io/crates/meshopt) versions of the library, and only decoders are necessary at runtime[^2]. JavaScript code would download the encoded data - possibly using `fetch()` which would be capable of using `gzip` decompression built into the browser - pass them to the decode functions, and then upload the resulting vertex/index buffers to WebGL directly or using the 3D framework of choice.
 
 The functions are self-contained, perform no memory allocations and don't use the standard library short of basic functions like `memset`/`memcpy`. This meant that the requirements on the cross-compilation toolchain should be minimal. The obvious choice - and probably the only practical option at the moment? - is [Emscripten](https://emscripten.org/).
 
