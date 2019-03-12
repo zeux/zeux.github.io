@@ -190,7 +190,7 @@ To build the full library, instead of producing a new `.js` file from a source b
 sed -i "s#\(var wasm = \)\".*\";#\\1\"$$(cat decoder.wasm | base64 -w 0)\";#" decoder.js
 ```
 
-The resulting `decoder.js` file with embedded Base64 blog is the smallest yet by far, taking 8346 bytes, 3676 bytes after gzip, at about 1K smaller (pre-gzip) than Emscripten minimal runtime. It only does one job, but it seems to do it pretty well. Note that this doesn't include any minification - the code is so small that a minifier isn't as critical, and it's refreshing to be able to edit or debug the original source directly.
+The resulting `decoder.js` file with embedded Base64 blob is the smallest yet by far, taking 8346 bytes, 3676 bytes after gzip, at about 1K smaller (pre-gzip) than Emscripten minimal runtime. It only does one job, but it seems to do it pretty well. Note that this doesn't include any minification - the code is so small that a minifier isn't as critical, and it's refreshing to be able to edit or debug the original source directly.
 
 ## Future work
 
