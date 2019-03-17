@@ -1,5 +1,5 @@
-name: zeuxcg.org
-url: http://zeuxcg.org
+name: zeux.io
+url: http://zeux.io
 markdown: kramdown
 permalink: /:year/:month/:day/:title/
 gems:
