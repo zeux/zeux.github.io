@@ -6,7 +6,7 @@ excerpt_separator: <!--more-->
 
 When implementing vertex/index decoders in [meshoptimizer](https://github.com/zeux/meshoptimizer), the main focus was on lean implementation and decompression performance.
 
-<a href="https://zeuxcg.org/nyra/"><img align="left" src="/images/fastweb.jpg" style="padding-right: 20px;" /></a>
+<a href="https://zeux.io/nyra/"><img align="left" src="/images/fastweb.jpg" style="padding-right: 20px;" /></a>
 
 When your streaming source is capable of delivering hundreds of megabytes per second, as is the case with SSD drives, and you want to accelerate loading by compressing the data further, you need to be decompressing at multiple hundreds of megabytes per second, ideally a gigabyte, to make sure a small number of CPU cores can keep up with IO. Keeping implementation lean meant it was easy to understand and optimize. To supplant the inevitable loss of compression ratio, the codecs were designed in such a way that their output can be compressed further using lossless general purpose compressors such as [lz4](https://github.com/lz4/lz4) or [zstd](https://github.com/facebook/zstd), thus offering an easy tradeoff between compression ratio and performance.
 

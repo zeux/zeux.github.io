@@ -3,7 +3,7 @@ layout: post
 title: 'Source code: Implementing Direct3D for fun and profit'
 ---
 
-Almost a year and a half ago I blogged [about several useful things that you can do with custom IDirect3DDevice9 implementations](http://zeuxcg.org/2009/06/08/implementing-direct3d-for-fun-and-profit/). I don't know why I did not post the code back then, but anyway - here it is:
+Almost a year and a half ago I blogged [about several useful things that you can do with custom IDirect3DDevice9 implementations](/2009/06/08/implementing-direct3d-for-fun-and-profit/). I don't know why I did not post the code back then, but anyway - here it is:
 
 [dummydevice.h](https://gist.github.com/zeux/66e62f12fa4616711088#file-dummydevice-h) - this is just an example of a dummy device implementation; it implements all device methods with stubs that can't be called without a debugging break. This is useful for other partial implementations.
 

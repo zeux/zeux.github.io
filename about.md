@@ -58,7 +58,7 @@ Here are some talks and publications I've done over the years:
 * Russian Game Developers Conference 2009, "SPU Render". [Slides](/data/kri2009_en.pdf)
 * Russian Game Developers Conference 2008, "Baking graphics resources for next-generation platforms". [Slides in Russian](/data/kri2008.pdf)
 
-I also have a [blog](http://zeuxcg.org) with technical posts on various subjects (you are reading it!).
+I also have a [blog](https://zeux.io) with technical posts on various subjects (you are reading it!).
 
 ## Biography
 
