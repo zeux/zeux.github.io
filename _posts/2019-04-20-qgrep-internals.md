@@ -174,7 +174,7 @@ With all of the optimizations above, when the data set is in filesystem cache an
 
 I wanted qgrep to be faster for cases where an ngram index works well, but I didn't want to compromise the worst case performance. When profiling qgrep bruteforce on the query from this blog post, the main bottleneck is LZ4 decompression, which is \~3x slower than regular expression search (which is mostly dominated by the fast literal matcher described above). Thus if we want to save time, we need to avoid decompressing the chunk entirely - since files are compressed as a single blob, this means that we need to know ahead of time that *no* file in the chunk contains the given string.
 
-What's more, we'd like to know this given minimal extra time and data - while we could store some sort of ngram index, it can take quite a bit of space. Which means that this is a perfect usecase for a Bloom filter.
+What's more, we'd like to determine this using minimal extra time and data - while we could store some sort of ngram index, it can take quite a bit of space. Which means that this is a perfect usecase for a Bloom filter.
 
 [Bloom filters](https://en.wikipedia.org/wiki/Bloom_filter) are a neat construct that allows us to spend a very small amount of memory and time to answer a question: does a given item belong to a given set? The catch is that the result can contain false positives - the answer to "is this item in the set?" is either "definitely not" or "maybe yes".
 
