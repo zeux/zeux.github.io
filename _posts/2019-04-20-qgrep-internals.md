@@ -180,7 +180,7 @@ What's more, we'd like to determine this using minimal extra time and data - whi
 
 ![Bloom](/images/qgrep_3.png)
 
-Surprisingly, this is *exactly* what we need. Each chunk will store an index - a Bloom filter that contains all ngrams (after some experiments I settled on 4-grams) from all files in the chunk. When reading chunks from the file, we read the chunk index first, and check all ngrams from the regular expression - if any ngram is "definitely not" in the index, we can skip the entire chunk - we don't even need to read it from the file, which means we save some I/O time!
+Surprisingly, this is *exactly* what we need. Each chunk stores an index - a Bloom filter that contains all ngrams (after some experiments I settled on 4-grams) from all files in the chunk. When reading chunks from the file, we read the chunk index first, and check all ngrams from the regular expression - if any ngram is "definitely not" in the index, we can skip the entire chunk - we don't even need to read it from the file, which means we save some I/O time!
 
 The index is built when the chunk is constructed & compressed; the index is built such that the size of the index is 10% of the compressed data size to limit the worst case impact of the index; based on this size we estimate the number of Bloom filter hash iterations that is optimal for the false positives rejection rate - the Wikipedia article contains details on this. The index search itself is so fast that it's done as we read the chunks in the main thread.
 
