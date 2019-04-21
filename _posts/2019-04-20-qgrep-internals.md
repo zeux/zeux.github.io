@@ -194,7 +194,7 @@ Searching large volumes of source code using regular expressions is an interesti
 
 Should you use qgrep? I don't know! Compared to ripgrep, the need to maintain an up-to-date database is definitely a usability issue (although `qgrep watch` can make this less painful by adding modified files to the special "changed" file list and occasionally updating the database) and the commandline interface is somewhat arcane. Compared to `codesearch`, qgrep seems like a win but if you have 100 GB of data to search through you probably really need a "real" index. In any event, the goal of this post isn't to advertise qgrep - it's to talk about some interesting optimization techniques used in its implementation.
 
-Of course, if you aren't using [qgrep](https://github.com/zeux/grep), you're missing out on this sweet sweet Vim plugin built entirely in Vimscript:
+Of course, if you aren't using [qgrep](https://github.com/zeux/qgrep), you're missing out on this sweet sweet Vim plugin built entirely in Vimscript:
 
 ![Vim](/images/qgrep_4.png)
 
