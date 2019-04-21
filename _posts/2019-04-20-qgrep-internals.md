@@ -71,7 +71,7 @@ When qgrep was made initially, all focus was on search performance, and the time
 2. A lower compression level was used (which is a relatively recent addition to LZ4HC) to trade off a little bit of compression ratio for a lot of compression time.
 3. The default way to update qgrep data is now incremental - if no files inside a chunk changed and the chunk sizes don't need to be rebalanced to maintain a reasonable average size, no recompression is performed
 
-As a result, it takes 6.5 seconds with hot file cache to rebuild UE4 search data from scratch and 1.2 seconds to update a single file in it; in the latter case most of the time is spend traversing file directory structure.
+As a result, it takes 6.5 seconds with hot file cache to rebuild UE4 search data from scratch and 1.2 seconds to update a single file in it; in the latter case most of the time is spent traversing file directory structure.
 
 ## Multi-threading
 
