@@ -98,6 +98,11 @@ The search is done on a line by line basis, however instead of feeding each line
 One notable weakness of RE2 is case-insensitive searches; it's a general property of other regular expression engines as well - case insensitive matches generate much more complex state machines; additionally one reason why RE2 is fast is it uses `memchr` when trying to scan for a literal submatch of a regular expression (in the test query from this post this happens for 'v' and 'K') instead of putting one character through the automata at a time, and case insensitive searches invalidate this. Since case insensitive searches are *very* common, qgrep takes a shortcut and assumes that case insensitive searches only need to handle ASCII - when that assumption holds, we can transform both the regular expression and file contents to ASCII lower case. For file data, performance of this transform is critical so we use [SSE2 optimized casefold function](https://github.com/zeux/qgrep/blob/master/src/casefold.hpp#L33) with the simple loop that processes 16 bytes at a time:
 
 ```c++
+// Shift 'A'..'Z' range ([65..90]) to [102..127] to use one signed comparison insn
+__m128i shiftAmount = _mm_set1_epi8(127 - 'Z');
+__m128i lowerBound = _mm_set1_epi8(127 - ('Z' - 'A') - 1);
+__m128i upperBit = _mm_set1_epi8(0x20);
+
 __m128i v = _mm_loadu_si128(reinterpret_cast<const __m128i*>(i));
 __m128i upperMask = _mm_cmpgt_epi8(_mm_add_epi8(v, shiftAmount), lowerBound);
 __m128i cfv = _mm_or_si128(v, _mm_and_si128(upperMask, upperBit));
