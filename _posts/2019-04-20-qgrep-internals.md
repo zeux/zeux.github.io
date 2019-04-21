@@ -53,11 +53,11 @@ To get around these issues, qgrep maintains a compressed representation of the e
 
 ![File structure](/images/qgrep_1.png)
 
-Chunks are compressed and decompressed atomically in the sense that you can't update just one file in the chunk - compressor receives a blob that consists of contents of all files concatenated together. Chunks that are too small would decrease the efficiency of compression; chunks that are too large will make incremental updates and parallel decompression less efficient.
+Chunks are compressed and decompressed atomically in the sense that you can't update just one file in the chunk - compressor receives a blob that consists of contents of all files concatenated together. Chunks that are too small decrease the efficiency of compression; chunks that are too large make incremental updates and parallel decompression less efficient.
 
 Having a single file that contains compressed representation of *all* input data means that even if the file is not in the file cache, reading this is as fast as possible since it's often stored contiguously on disk. Compression is important because HDD read speeds are pretty slow compared to fast decompressors, and compressing increases the chance the files will stay in cache.
 
-One other big advantage is that files can be pre-filtered during indexing to eliminate files that are not interesting to search; qgrep by default includes most text files that are filtered by extension. This means that large folders with, say, build artifacts, only affect the time it takes to update the data, and don't impact search performance. On UE4 example above, ripgrep looks through 1.2GB of file data, and qgrep only looks through 1.0GB (compressed to 212MB).
+One other big advantage is that files can be pre-filtered during indexing to eliminate files that are not interesting to search; qgrep by default includes most text files using file extension as a filter. This means that large folders with, say, build artifacts, only affect the time it takes to update the data, and don't impact search performance. On UE4 example above, ripgrep looks through 1.2GB of file data, and qgrep only looks through 1.0GB (compressed to 212MB).
 
 ## Why LZ4?
 
