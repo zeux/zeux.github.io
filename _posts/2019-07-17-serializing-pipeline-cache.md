@@ -31,7 +31,7 @@ The header is followed by driver-specific information that typically contains bi
 
 Now, in theory, the application just needs to use `vkGetPipelineCacheData` to retrieve a data blob after the application reaches a steady state (for example before the application exits...), save the blob to a file, and then pass this blob using `VkPipelineCacheCreateInfo::pInitialData` when creating the pipeline cache on the next run. If the contents of the blob doesn't work for the current version of the driver - maybe the driver was updated, or maybe the user switched to a different GPU - the driver is supposed to ignore the initial data and create an empty pipeline cache.
 
-In practice, theory and practice are a bit different. The rule of thumb in practice is that a driver will only be able to correctly handle the *exact* blob that the exact same driver gave your application previously. Which is where the problems begin[^1].
+In practice, theory and practice are a bit different. The rule of thumb in practice is that a driver will only be able to correctly handle the *exact* blob that the *exact* same driver gave your application previously. Which is where the problems begin[^1].
 
 # Is the driver the same?
 
@@ -41,7 +41,7 @@ However, drivers in the wild tend to exhibit two types of problems.
 
 Some, older, drivers neglect to verify the UUID correctly. As a result, during a driver update application may try to give the blob with a stale UUID to the driver, the driver will try to interpret this as recent data and as a result, `vkCreatePipelineCache` may crash. Note that in general `vkCreatePipelineCache` doesn't provide a guarantee that it accepts *arbitrary* data and can handle it cleanly.
 
-Some drivers, including pretty recent ones, may neglect to update UUID in a driver update that actually breaks compatibility of the shader pipeline binary. This can happen during a driver version update (although this is very rare), or - something that happens trivially on current drivers of at least one major vendor - between driver binaries that are built from the same version for different ABI. If a 32-bit driver and a 64-bit driver that ship on the same system have the same pipeline UUID, then *saving* the cache from a 32-bit version of the application and *loading* it from a 64-bit version may cause the driver to crash - which is *exactly* what happens when you ship a 32-bit version of your application and then update it to 64-bit following Google's guidelines.
+Some drivers, including pretty recent ones, may neglect to update UUID in a driver update that actually breaks compatibility of the shader pipeline binary. This can happen during a driver version update (although this is rare), or - something that happens trivially on current drivers of at least one major vendor - between driver binaries that are built from the same version for different ABI. If a 32-bit driver and a 64-bit driver that ship on the same system have the same pipeline UUID, then *saving* the cache from a 32-bit version of the application and *loading* it from a 64-bit version may cause the driver to crash - which is *exactly* what happens when you ship a 32-bit version of your application and then update it to 64-bit following Google's guidelines.
 
 # Is the data the same?
 
