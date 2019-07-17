@@ -14,7 +14,7 @@ Pretty hard, as it turns out.
 
 Pipeline cache data is a (mostly) opaque blob; you create a `VkPipelineCache` object, possibly giving it the initial blob to start with, and then at some point you can retrieve the data blob from this object.
 
-While we don't know much about the contents of the blob short of reading graphics driver source code (which you can absolutely do these days; for example, [here's an implementation of vkGetPipelineCacheData for radv](https://github.com/mesa3d/mesa/blob/1d5ee315536d4563714b35004d9efc1bd6621f53/src/amd/vulkan/radv_pipeline_cache.c#L525)), the pipeline cache data is guaranteed to start with a structure that identifies the device and looks something like this:
+While we don't know much about the contents of the blob short of reading graphics driver source code[^1], the pipeline cache data is guaranteed to start with a structure that identifies the device and looks something like this:
 
 ```c++
 struct VkPipelineCacheHeaderOne
@@ -31,7 +31,7 @@ The header is followed by driver-specific information that typically contains bi
 
 Now, in theory, the application just needs to use `vkGetPipelineCacheData` to retrieve a data blob after the application reaches a steady state (for example before the application exits...), save the blob to a file, and then pass this blob using `VkPipelineCacheCreateInfo::pInitialData` when creating the pipeline cache on the next run. If the contents of the blob doesn't work for the current version of the driver - maybe the driver was updated, or maybe the user switched to a different GPU - the driver is supposed to ignore the initial data and create an empty pipeline cache.
 
-In practice, theory and practice are a bit different. The rule of thumb in practice is that a driver will only be able to correctly handle the *exact* blob that the *exact* same driver gave your application previously. Which is where the problems begin[^1].
+In practice, theory and practice are a bit different. The rule of thumb in practice is that a driver will only be able to correctly handle the *exact* blob that the *exact* same driver gave your application previously. Which is where the problems begin[^2].
 
 # Is the driver the same?
 
@@ -79,9 +79,9 @@ struct PipelineCachePrefixHeader
 };
 ```
 
-The hash of the pipeline cache data will allow us to validate the integrity of the data; to reduce the chance of an I/O error *actually* causing an integrity issue, we create a temporary file, write this header to the file followed by the pipeline cache data, and then move the file to the target location using `rename`.[^2]
+The hash of the pipeline cache data will allow us to validate the integrity of the data; to reduce the chance of an I/O error *actually* causing an integrity issue, we create a temporary file, write this header to the file followed by the pipeline cache data, and then move the file to the target location using `rename`.[^3]
 
-When loading the pipeline cache, we read the header, read the data, validate the data read using `dataSize` and `dataHash`, then validate that the data can be safely passed to the driver by comparing the remaining fields with the properties of the device[^3].
+When loading the pipeline cache, we read the header, read the data, validate the data read using `dataSize` and `dataHash`, then validate that the data can be safely passed to the driver by comparing the remaining fields with the properties of the device[^4].
 
 If the data is valid, `vkCreatePipelineCache` is called with the correct initial data. Crucially, if this call fails, this suggests that the driver implements additional checks that our logic didn't detect on its own - instead of proceeding without the pipeline cache, we create an empty pipeline cache in this case by calling `vkCreatePipelineCache` again, with no initial data.
 
@@ -95,6 +95,7 @@ We also create the empty pipeline cache if the pipeline cache file was not found
 
 Good luck. ~~You're going to need it.~~
 
-[^1]: The remainder of this article is based on the experience of continuously shipping [Roblox](https://corp.roblox.com/) client on Android with Vulkan support and surviving through various Android OS updates, driver updates and in general dealing with both early and current Vulkan drivers from all major vendors.
-[^2]: In theory `rename` is supposed to be atomic, but in practice the exact semantics and guarantees vary with the file system; hash is useful as a way to perform a robust comparison.
-[^3]: Depending on the application you may want to also use different file names based on, for example, `vendorID` or `driverABI`; this is more interesting on desktop and less interesting on mobile.
+[^1]: Which you can absolutely do these days! For example, [here's an implementation of vkGetPipelineCacheData for radv](https://github.com/mesa3d/mesa/blob/1d5ee315536d4563714b35004d9efc1bd6621f53/src/amd/vulkan/radv_pipeline_cache.c#L525).
+[^2]: The remainder of this article is based on the experience of continuously shipping [Roblox](https://corp.roblox.com/) client on Android with Vulkan support and surviving through various Android OS updates, driver updates and in general dealing with both early and current Vulkan drivers from all major vendors.
+[^3]: In theory `rename` is supposed to be atomic, but in practice the exact semantics and guarantees vary with the file system; hash is useful as a way to perform a robust comparison.
+[^4]: Depending on the application you may want to also use different file names based on, for example, `vendorID` or `driverABI`; this is more interesting on desktop and less interesting on mobile.
