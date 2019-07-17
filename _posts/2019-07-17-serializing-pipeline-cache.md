@@ -4,7 +4,7 @@ title: Robust pipeline cache serialization
 excerpt_separator: <!--more-->
 ---
 
-When writing a Vulkan renderer, one has to learn a lot of new concepts. Some of them are easier to deal with than others, and one of the pretty straightforward additions is the pipeline cache. To make sure pipeline cache creation is as efficient as possible, you need to create a pipeline cache and use it whenever you need to create a new pipeline. To make sure subsequent runs of your application don't have to spend the time repeatedly compiling the shader microcode, you need to save the pipeline cache data to a file, and load it next time your application starts. How hard can this possibly be?
+When writing a Vulkan renderer, one has to learn a lot of new concepts. Some of them are easier to deal with than others, and one of the pretty straightforward additions is the pipeline cache. To make sure pipeline creation is as efficient as possible, you need to create a pipeline cache and use it whenever you need to create a new pipeline. To make sure subsequent runs of your application don't have to spend the time repeatedly compiling the shader microcode, you need to save the pipeline cache data to a file, and load it next time your application starts. How hard can this possibly be?
 
 <!--more-->
 
