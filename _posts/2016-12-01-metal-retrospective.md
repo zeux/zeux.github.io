@@ -75,8 +75,6 @@ Metal is a great API to both write code for, and ship applications with. It's ea
 
 If you are using a third-party engine like Unity or UE4, Metal is already supported there; if you aren't and you enjoy graphics programming or care deeply about performance and take iOS or Mac seriously, I strongly urge you to give Metal a try. You will not be disappointed.
 
-It is not to say that Metal is without faults - in fact, my next blog post will be precisely about that.
-
 ---
 [^1]: The numbers are for 128 KB worth of data updated per frame (two 32x16x32 RGBA8 regions) on A10
 [^2]: Yeah, okay, and maybe a week to fix a few bugs discovered during testing
