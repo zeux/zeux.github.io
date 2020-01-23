@@ -123,7 +123,7 @@ One day I was staring at the tables and it suddenly hit me: if I am already eval
 
 After the tables became smaller, the cache table had 16 floats between 0 and 1, and the valence table had 8 floats - they were originally outside of the `[0..1]` range but since the entire formula is scale-independent, we can normalize everything to `[0..1]`. This gives us 24 floats that we need to find.
 
-For each set of 24 values we can take a data set with many representative meshes (the test sets I use vary a bit, my most recent set contains a uniform grid - this was important to improve! - and a collection of various meshes including scans, sculpts, high poly and low poly game-ready models, for a total of ~1M triangles), optimize them using the table-driven algorithm and then measure the results.
+For each set of 24 values we can take a data set with many representative meshes (the test sets I use vary a bit, my most recent set contains a uniform grid - this was important to improve! - and a collection of various meshes including scans, sculpts, high poly and low poly game-ready models, for a total of ~1M triangles), optimize them using the table-driven algorithm and then measure the results. The same process can then be applied to a larger control set to make sure we aren't overfitting the parameters to the test data set.
 
 To compare the results, I measured the data using models for multiple vendors (initially using Intel, NVidia and AMD) and computing the fitness function as a sum of relative improvements between the baseline and the optimized result for all meshes. This metric is independent of the triangle count in each mesh, which is good because it means that one high-poly mesh doesn't get weighted more than meshes with fewer triangles.
 
