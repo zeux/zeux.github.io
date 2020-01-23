@@ -67,7 +67,7 @@ In this case, given a degenerate sequence of 12 `1-10` index groups, we get 20 i
 I won't go too much into the results of the analysis - while it's an interesting topic on its own, I'm not sure what hardware vendors would think of this, and I later learned of a fantastic paper that did this analysis using similar methods, [Revisiting The Vertex Cache: Understanding and Optimizing
 Vertex Processing on the modern GPU](https://arbook.icg.tugraz.at/schmalstieg/Schmalstieg_351.pdf).
 
-As a result, I had to enhance the simulation algorithms used in meshoptimizer to measure the efficiency of the resulting index sequences to support more configurable parameters so that I could quickly measure the efficiency of the resulting sequence on models that resemble NVidia, AMD and Intel. All three vendors use different parameters and replacement policies for their caches - if any of them are reading this (especially AMD), it would be nice if these details were publicly documented.
+As a result, I had to enhance the simulation algorithms used in meshoptimizer to measure the efficiency of the resulting index sequences to support more configurable parameters so that I could quickly measure the efficiency of the resulting sequence on models that resemble NVidia, AMD and Intel. All three vendors use different parameters and replacement policies for their caches - if any of them are reading this, it would be nice if these details were publicly documented.
 
 With that out of the way... how do we actually improve the results?
 
