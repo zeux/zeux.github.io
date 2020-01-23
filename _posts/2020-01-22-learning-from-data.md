@@ -25,7 +25,7 @@ There are a few well known algorithms for optimizing meshes for vertex reuse. Tw
 
 Both algorithms are greedy and work a bit similarly - given a set of recently seen vertices, they look at the adjacent triangles (TomF) or vertices (Tipsy), pick the next one, and emit the triangle or adjacent triangles. The selection of the next triangle is optimized to try to improve the overall cache efficiency.
 
-Coming up with a heuristic that doesn't compromise the global order in favor of the local order is challenging, since the heuristic only looks at the next possible choice[^2]. This is especially challenging since the details of the cache behavior aren't known.
+Coming up with a heuristic that doesn't compromise the global order in favor of the local order is challenging, since the heuristic only looks at the next possible choice[^2]. This is especially hard since the details of the cache behavior aren't known.
 
 Initially after implementing both algorithms, I was tempted to abandon TomF's algorithm. Using a fixed-size FIFO cache, Tipsy was generally producing slightly more efficient results on most meshes, substantially more efficient results on some meshes, notably large uniform grids, and was several times faster to boot - which isn't that big of a deal until you are dealing with meshes that have millions of triangles. However, what if the hardware isn't using a fixed-size FIFO[^3]?
 
