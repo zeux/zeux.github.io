@@ -64,7 +64,7 @@ As a result, for a given index sequence we can produce the result that looks lik
 
 In this case, given a degenerate sequence of 12 `1-10` index groups, we get 20 invocations - each vertex was processed twice - and we know which specific indices were processed (marked with \*) and which weren't. Now what we need to do is to analyze a number of index sequences to study the patterns and come up with a theory that explains them best.
 
-I won't go too much into the results of the analysis - while it's an interesting topic on its own, I'm not sure what hardware vendors would think of this, and I later learned of a fantastic paper that did this analysis for NVidia GPUs, [Revisiting The Vertex Cache: Understanding and Optimizing
+I won't go too much into the results of the analysis - while it's an interesting topic on its own, I'm not sure what hardware vendors would think of this, and I later learned of a fantastic paper that did this analysis using similar methods, [Revisiting The Vertex Cache: Understanding and Optimizing
 Vertex Processing on the modern GPU](https://arbook.icg.tugraz.at/schmalstieg/Schmalstieg_351.pdf).
 
 As a result, I had to enhance the simulation algorithms used in meshoptimizer to measure the efficiency of the resulting index sequences to support more configurable parameters so that I could quickly measure the efficiency of the resulting sequence on models that resemble NVidia, AMD and Intel. All three vendors use different parameters and replacement policies for their caches - if any of them are reading this (especially AMD), it would be nice if these details were publicly documented.
