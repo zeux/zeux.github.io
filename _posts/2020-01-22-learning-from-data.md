@@ -98,20 +98,20 @@ One other problem of the original algorithm was performance. In order to make it
 // last_triangle_score = 0.8, cache_decay_power = 1.5
 static const float vertex_score_table_cache[1 + max_cache_size] =
 {
-	0.000000f,
-	0.800000f, 0.800000f, 0.800000f, 1.000000f, 0.948724f, 0.898356f, 0.848913f, 0.800411f,
-	0.752870f, 0.706309f, 0.660750f, 0.616215f, 0.572727f, 0.530314f, 0.489003f, 0.448824f,
-	0.409810f, 0.371997f, 0.335425f, 0.300136f, 0.266180f, 0.233610f, 0.202490f, 0.172889f,
-	0.144890f, 0.118591f, 0.094109f, 0.071591f, 0.051226f, 0.033272f, 0.018111f, 0.006403f,
+    0.000000f,
+    0.800000f, 0.800000f, 0.800000f, 1.000000f, 0.948724f, 0.898356f, 0.848913f, 0.800411f,
+    0.752870f, 0.706309f, 0.660750f, 0.616215f, 0.572727f, 0.530314f, 0.489003f, 0.448824f,
+    0.409810f, 0.371997f, 0.335425f, 0.300136f, 0.266180f, 0.233610f, 0.202490f, 0.172889f,
+    0.144890f, 0.118591f, 0.094109f, 0.071591f, 0.051226f, 0.033272f, 0.018111f, 0.006403f,
 };
 
 // valence_boost_scale = 3.2, valence_boost_power = 0.9
 static const float vertex_score_table_live[1 + max_valence] =
 {
-	0.000000f, 3.200000f, 1.714838f, 1.190531f, 0.918959f, 0.751756f, 0.637990f, 0.555344f,
-	0.492458f, 0.442927f, 0.402856f, 0.369740f, 0.341890f, 0.318127f, 0.297601f, 0.279684f,
-	0.263902f, 0.249888f, 0.237358f, 0.226085f, 0.215885f, 0.206611f, 0.198139f, 0.190368f,
-	0.183215f, 0.176605f, 0.170480f, 0.164787f, 0.159481f, 0.154523f, 0.149879f, 0.145521f,
+    0.000000f, 3.200000f, 1.714838f, 1.190531f, 0.918959f, 0.751756f, 0.637990f, 0.555344f,
+    0.492458f, 0.442927f, 0.402856f, 0.369740f, 0.341890f, 0.318127f, 0.297601f, 0.279684f,
+    0.263902f, 0.249888f, 0.237358f, 0.226085f, 0.215885f, 0.206611f, 0.198139f, 0.190368f,
+    0.183215f, 0.176605f, 0.170480f, 0.164787f, 0.159481f, 0.154523f, 0.149879f, 0.145521f,
 };
 ```
 
@@ -194,7 +194,7 @@ This table is notably different from the vertex reuse table in that the first th
 
 As we discussed briefly earlier, this tends to result in a strip-like order. And indeed, this order happens to result in substantially smaller triangle strips as well - so it's a great set of parameters to use when trying to reduce index count! However, the optimization was trying to minimize the size of compressed index data when ran through index encoder and deflate compression. The index encoder was designed to compress cache-optimized index sequences, not triangle-strip-like sequences - why is it doing better?
 
-It turned out that the strip-like order has much more predictable triangle structure than a cache-optimized order. There's a long sequence of triangles adjacent to one another that goes back and forth across the planar areas of the mesh. This results in the index encoder generating *more* predictable encoded sequences[^9] which, in turn, results in deflate compressing the results better. The tuning algorithm picks up on that and finds the sequence that resembles strips without knowing anything about triangle strips - in fact, no part of the optimization pipeline knows about strips, they just happen to compress really well after the index codec!
+It turned out that the strip-like order has much more predictable triangle structure than a cache-optimized order. There's a long sequence of triangles adjacent to one another that goes back and forth across the (topologically) planar areas of the mesh. This results in the index encoder generating *more* predictable encoded sequences[^9] which, in turn, results in deflate compressing the results better. The tuning algorithm picks up on that and finds the sequence that resembles strips without knowing anything about triangle strips - in fact, no part of the optimization pipeline knows about strips, they just happen to compress really well after the index codec!
 
 But see, it gets even better. Once we know that triangle strips are an interesting target, it's not too hard to slightly tweak the index codec to anticipate triangle strip-like input and produce even more efficient byte sequences on these. After which you can re-train the tables to minimize the size even further! Which is what I am doing as we speak[^10].
 
@@ -204,15 +204,15 @@ When this journey started, I viewed the vertex cache optimization algorithm as s
 
 However, studying the data is very powerful, and sometimes the machine can look for patterns on our behalf. This can be used to validate theories we have - it's really fascinating to have the optimization process discover that something you thought to be true about the problem is, indeed, as far as we know, true! - and to discover theories we don't yet have.
 
-Optimization algorithms in particular are an incredibly effective tool to have in the toolbox. A lot of attention is on deep learning and study of differentiable programs these days, but even if you don't know too much about how the target function behaves, and you can't run the learning algorithm on a large cluster of GPUs, it's still possible to leverage the data to come up with satisfying answers.
+Optimization algorithms in particular are an incredibly effective tool to have in the toolbox. A lot of attention is on deep learning and study of differentiable programs these days, but even if you don't know too much about how the target function behaves, and you can't run the learning algorithm on a large cluster of GPUs, it's still possible to leverage the data to come up with enlightening answers.
 
 [^1]: A necessary disclaimer: I'm not a machine learning expert. It's entirely possible that this article misuses some terms and that some analysis and conclusions here are wrong. You have been warned.
 [^2]: For example, it's tempting to always pick the triangle that shares two vertices with the last emitted triangle; this can result in strip-like order which tends to be inefficient in the long run since it produces long strips of triangles and each vertex ends up being transformed twice on average for regular meshes.
 [^3]: Of course if you optimize the mesh for a FIFO cache of a size that's too large, the results are going to be substantially worse than expected - however, the variation between cache sizes isn't that high in practice.
 [^4]: Sorry, Tom, it's your fault for not coming up with a short algorithm name.
-[^5] Thanks to theagentd from [Java-Gaming.org](http://www.java-gaming.org/index.php?topic=37837.msg361895#msg361895) for the idea
-[^6] I used to scoff at OpenMP because of the lack of control and the focus on parallel for loops that tends to be insufficient when doing complex parallelization at scale, but it turns out that I just didn't have the right problem. For this task a few OpenMP pragmas turned a serial program into a scalable parallel program with minimal effort.
-[^7] Hopefully this doesn't violate the terms of service for using preemptible instances? Hey, it was all for science and I paid for this out of my pocket.
-[^8] If I am being honest, I mostly did this to gather data for this blog post.
-[^9] I am sorry if this isn't making too much sense but this post is getting long, and the details of index codec are best left for another day.
-[^10] Also the resulting triangle sequence results in more compressible vertex data as well! But this discussion is also best left for another day.
+[^5]: Thanks to theagentd from [Java-Gaming.org](http://www.java-gaming.org/index.php?topic=37837.msg361895#msg361895) for the idea
+[^6]: I used to scoff at OpenMP because of the lack of control and the focus on parallel for loops that tends to be insufficient when doing complex parallelization at scale, but it turns out that I just didn't have the right problem. For this task a few OpenMP pragmas turned a serial program into a scalable parallel program with minimal effort.
+[^7]: Hopefully this doesn't violate the terms of service for using preemptible instances? Hey, it was all for science and I paid for this out of my pocket.
+[^8]: If I am being honest, I mostly did this to gather data for this blog post.
+[^9]: I am sorry if this isn't making too much sense but this post is getting long, and the details of index codec are best left for another day.
+[^10]: Also the resulting triangle sequence results in more compressible vertex data as well! But this discussion is also best left for another day.
