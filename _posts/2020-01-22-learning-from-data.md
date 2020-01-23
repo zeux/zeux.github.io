@@ -14,7 +14,7 @@ One little known fact is that the performance of rendering a mesh depends signif
 
 For example, if the triangle [2 1 3] immediately follows a triangle [0 1 2] in the index buffer, it's very likely that the vertices 1 and 2 will not be transformed redundantly. However, if there are a lot of other triangles between these two in the index buffer, the GPU might need to transform these vertices again. Minimizing these redundant vertex shader invocations (cache misses) is beneficial for performance.
 
-There are many ways such a cache could function; a few obvious models are a fixed-size FIFO cache and a fixed-size LRU cache. Existing hardware mostly doesn't follow any of these; specifically for fixed-size FIFO, relying on the replacement policy can be dangerous as illustrated by [Optimal grid rendering isn't optimal](2017/07/31/optimal-grid-rendering-is-not-optimal/).
+There are many ways such a cache could function; a few obvious models are a fixed-size FIFO cache and a fixed-size LRU cache. Existing hardware mostly doesn't follow any of these; specifically for fixed-size FIFO, relying on the replacement policy can be dangerous as illustrated by [Optimal grid rendering isn't optimal](/2017/07/31/optimal-grid-rendering-is-not-optimal/).
 
 However, even if we knew the replacement policy for our target hardware, what would we do with this information? Problems of this nature tend to be NP-complete and require some sort of heuristics to get a reasonable result in finite amount of time.
 
