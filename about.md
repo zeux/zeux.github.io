@@ -53,7 +53,7 @@ I'm also working on a wide variety of open-source projects, most of which are ho
 Here are some talks and publications I've done over the years:
 
 * Reboot Develop Red 2019, "Getting Faster and Leaner on Mobile: Optimizing Roblox with Vulkan". [Slides](/data/reboot2019.pdf) [Video](https://www.youtube.com/watch?v=hPW5ckkqiqA)
-* GPU Zen 2: Advanced Rendering Techniques (2019), Chapter "Writing an efficient Vulkan renderer" [Amazon](https://www.amazon.com/GPU-Zen-Advanced-Rendering-Techniques/dp/179758314X)
+* GPU Zen 2: Advanced Rendering Techniques (2019), Chapter "Writing an efficient Vulkan renderer" [Read online](/2020/02/27/writing-an-efficient-vulkan-renderer/) or [buy the book](https://www.amazon.com/GPU-Zen-Advanced-Rendering-Techniques/dp/179758314X)
 * Game Developers Conference 2018, "Vulkan on Android: Gotchas and best practices". [Slides](/data/gdc2018.pdf) [Video](https://www.youtube.com/watch?v=Aeo62YzofGc)
 * The Performance of Open Source Applications (2013), Chapter 4: Parsing XML at the Speed of Light. [Read online](http://aosabook.org/en/posa/parsing-xml-at-the-speed-of-light.html) or [buy the book](http://aosabook.org/en/buy.html#posa) (all royalties are donated to [Amnesty International](http://www.amnesty.org/))
 * Russian Game Developers Conference 2010, "Job scheduler: as simple as possible". [Slides](/data/kri2010_en.pdf)
