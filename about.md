@@ -52,7 +52,7 @@ I'm also working on a wide variety of open-source projects, most of which are ho
 
 Here are some talks and publications I've done over the years:
 
-* Game Developers Conference 2020, "Optimizing Roblox: Vulkan Best Practices for Mobile Developers". [Slides](/data/gdc2020_arm.pdf) [Video](https://www.gdcvault.com/play/1026767/Optimizing-Roblox-Vulkan-Best-Practices)
+* Game Developers Conference 2020, "Optimizing Roblox: Vulkan Best Practices for Mobile Developers". [Slides](/data/gdc2020_arm.pdf) [Video](https://www.youtube.com/watch?v=BXlo09Kbp2k)
 * Reboot Develop Red 2019, "Getting Faster and Leaner on Mobile: Optimizing Roblox with Vulkan". [Slides](/data/reboot2019.pdf) [Video](https://www.youtube.com/watch?v=hPW5ckkqiqA)
 * GPU Zen 2: Advanced Rendering Techniques (2019), Chapter "Writing an efficient Vulkan renderer" [Read online](/2020/02/27/writing-an-efficient-vulkan-renderer/) or [buy the book](https://www.amazon.com/GPU-Zen-Advanced-Rendering-Techniques/dp/179758314X)
 * Game Developers Conference 2018, "Vulkan on Android: Gotchas and best practices". [Slides](/data/gdc2018.pdf) [Video](https://www.youtube.com/watch?v=Aeo62YzofGc)
