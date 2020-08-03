@@ -28,21 +28,29 @@ Notably including half-pixel offset fixes for Direct3D9 which I guess is a rite 
 
 Initially added for "100 player" project, in October it evolved to render all parts and continued to be used as part renderer until the introducion of instancing in 2018. Otherwise known as "featherweight parts". This was further optimized and deployed around November 2012. Most of this code survived to this day but evolved over time, and is still used when instancing doesn't apply.
 
+The core idea in this system was to dynamically batch meshes together, for characters this would be based on the character model hierarchy, and for everything else the grouping is spatial. This allowed us to reduce the number of draw calls, which was a big concern due to both driver overhead and inefficiencies in OGRE.
+
 # August 2012: OGRE upgrade from 1.6 to 1.8
 
 One of a few OGRE upgrades we've needed to do, this one was to get better GLES support. It was pretty painful to do those, just like any other big middleware update is. Read further to learn what happened to OGRE eventually...
+
+One thing I remember from doing these is that documentation in source code makes the upgrade process that much more painful. I had scripts that changed the copyright years in headers back to whatever they were in our tree just to make merging less painful, but there was some OGRE upgrade where 70% of the changes were documentation, and this was very hard to get through.
 
 # September 2012: First iteration of HLSL to GLSL shader compiler
 
 Before this we had hand-translated shaders, which started to be painful to maintain. The first version of the pipeline used hlsl2glsl and glsl-optimizer (same as Unity back in the day). We are using version 3 today, see below!
 
+Since this was done at the point where we used OGRE, the compiler would take HLSL files, preprocess and translate them to optimized GLSL, and save the resulting GLSL back to disk - which would then be loaded by OGRE directly through the material definition file. Eventually we replaced this with a binary shader pack that could store GLSL code for OpenGL and shader bytecode for other APIs, but back then we shipped HLSL and GLSL source and compiled HLSL code on device!
+
 # September 2012: F# scripts to parse and aggregate HW statistics
 
 Our equivalent of "Steam Hardware Survey" that went through SQL databases and coalesced various system information bits to help us understand the hardware at the time. This was during my era of obsession with F#, so it was written in F# instead of something like Python. We don't use this anymore and don't even have the SQL database in question!
 
-# September 2012: First exploit fix [involving deparenting objects]
+We never published the resulting data, and I'm not sure how often we used it to make decisions, but it was fun to look at the number of graphics cards from various vendors or amount of RAM or resolution a typical Roblox user has.
 
-Although I was hired as a rendering engineer, I had a lot of really deep low-level systems experience and as a consequence ended up engaging in both optimization work and security related work from the very beginning. I don't do this anymore these days but I was often involved in the security work for the first 3 or 4 years.
+# September 2012: First exploit fix
+
+Although I was hired as a rendering engineer, I had a lot of really deep low-level systems experience and as a consequence ended up engaging in both optimization work and security related work from the very beginning. I don't do this anymore these days but I was often involved in the security work for the first 3 or 4 years. Now we fortunately have people who can do this full time and better than I could :)
 
 # September 2012: New texture compositor for humanoids
 
@@ -51,6 +59,8 @@ A second part of "100 player project", necessary to render every character in on
 # October 2012: Assorted memory and performance optimizations
 
 At the end of 2012 we were actively working on the mobile port. Since then we've had to do a lot of work in a lot of different parts of the engine to make data structures smaller and algorithms - faster. Of course you're never done with optimizations so we do this to this day. Curiously, our minimum spec on iOS stayed the same since the initial launch in 2012!
+
+A fun fact is that even though we started with iPad 2 as the min. spec we discussed adding support to iPad 1 after launch. At the time there were a lot of people who couldn't play Roblox on iOS on older hardware. However the performance characteristics of those devices were just... not good enough. You could touch the screen with the finger and pan the camera, and during panning you lost 30% of a single available core to the OS processing the touch. We decided to not add support for this, and 8 years later it seems like a great decision for sure :D
 
 # October 2012: Event-based profiler in F#
 
@@ -123,17 +133,9 @@ I love writing commit messages that straddle the border between "professional" a
 
 Since all of the easy problems, such as part rendering and lighting, were solved, it was time to face the final rendering challenge: text. Back then we used a prebaked bitmap (actually two) at two different sizes, and a very poorly written layout code that didn't support kerning and didn't handle spacing well. Instead I wrote an F# script (of course!) that baked lots of different sizes of a single font into a large atlas; to conserve texture space, I used a rectangle packer. At runtime the layout algorithm used kerning data to place glyphs at correct locations. This substantially improved text quality at most frequently used sizes, and would last for a few years up until internationalization became a priority and we had to start rendering the font atlas dynamically from TTF source. The layout algorithm would survive for a few more years up until we integrated Harfbuzz to do complex Unicode aware shaping - both of these were done by other people years later.
 
-# August 2013: VS2012 upgrade
-
-I don't really remember why I was working on this at all but this shows you the range of possible tasks we had to do back then - the team was very small and a lot of people could multi-task pretty aggressively.
-
 # September 2013: Remote events
 
 Continuing the trend of increasing the scope of work beyond just rendering, I've worked on the design and implementation of new remote events API, including fire-and-forget events and remote function calls (which are super nifty in Lua - because of coroutine support, you can just call a function in Lua, that call will be routed to the server, server will run the code and return the result, and your coroutine will continue running, almost oblivious to the time spent!). It was very hard to find good names for the APIs involved; we haven't changed any of this since and I still struggle with what the correct function/event name is sometimes.
-
-# October 2013: Actually ship new materials
-
-... okay I guess this took longer than we thought? Mostly art iterations here as far as I can tell from the commit logs.
 
 # October 2013: Infinite terrain
 
