@@ -498,6 +498,14 @@ As a result, we have a system now that can aggregate large sets of similar objec
 
 The result is performant almost regardless of the scene composition which is neat!
 
+# November 2018: Help optimize FIB phase 1
+
+Other folks were actively working on FIB phase 1 (which consisted of a new voxel lighting implementation with HDR support, a tone mapper and an HDR-ish postfx pipeline), but in November we realized that we aren't sure we can make it by the end of the year - the code was done, it worked properly, but we wanted to ship with minimal performance regressions and our metrics showed us that were we to ship now, we would have dropped performance by 10-15% on mobile.
+
+So I helped by implementing a few optimizations in various places of the stack to get us back on track, which contributed to helping release FIB phase 1 on time.
+
+I was somewhat involved in the phase 2, not so much by contributing code (although some of the code that ended up shipping is from my original hack week) but by convincing the engineer who did a lot of the work to try to figure out how to combine a few crazy ideas we were discussing together, notably tile-based incremental cascade updates (inspired by Insomniac's CSM Scrolling) with EVSM (exponential variance shadow maps) - look ma, no PCF! This ended up working wonderfully even though it was daunting at first. The FIB3 work is done without my involvement although again some of the code is from my original Hack Week.
+
 The rest of 2018 doesn't seem super eventful - similar to 2017, I've worked on a few small bits here and there and focused a lot on helping others, writing specs, that sort of thing. Until at the end of 2018 I wrote a technical spec for the next Lua VM which would consume much of the next year for me.
 
 # 2019: Luau
