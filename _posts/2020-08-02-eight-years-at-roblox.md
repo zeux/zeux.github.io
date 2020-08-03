@@ -135,7 +135,7 @@ A big portion of work here though was a new UV layout for our terrain materials 
 I remember thinking about voxel lighting more and at some point realizing, well, we can do directional shadows from the sun, we can do point lights - why can't we do both at the same time, so that every single light source can cast shadow? It turned out that the approach we used for the directional shadows could be adapted to work for point lights, and with some optimizations and tweaks the first version of the voxel lighting engine was finally complete. This would survive up until Future Is Bright Phase 1 which would ship at the end of 2018. This was finalized in September 2013 and optimized with SIMD:
 
     Change 37700: SIMD shadow update now works, but I have no idea why.
-    Change 37701: SIMD shadow update works, and now I know why :) Still need more optimizations.
+    Change 37701: SIMD shadow update works, and now I know why :) Still need more optimization
 
 I love writing commit messages that straddle the border between "professional" and "fun".
 
