@@ -426,7 +426,7 @@ I just needed to combine all of that. In addition I think this was right after r
 
 I *think* I didn't cheat this time around, I probably started the hack week on Saturday but that seems fair (?), and I managed to implement the entire thing in a week. It helped that I already had decent HDR code from last hack week so I could copy that, I had compute scaffolding so I could copy that for the light culling; the rest had to be mostly done from scratch, except for the light culling shader that I stole from my F# engine.
 
-The results, well, the results shaped the Roblox lighting work for the next 3 years. We ended up sharing a build with the community and developers made levels that blew our minds.
+The results, well, the results shaped the Roblox lighting work for the next 3 years. We ended up sharing a build with the community and developers made levels that [blew our minds](https://roblox.github.io/future-is-bright/results).
 
 # 2017: Future Is Bright and Vulkan
 
@@ -443,6 +443,8 @@ Two, a lot of my attention was spent on the Future Is Bright prototypes. I now h
 We also needed to answer content compatibility questions (what do we do on low end?), among others.
 
 So I ended up doing a lot of research/prototype work on both implementations, trying to find the limits of both approaches. This resulted in more explorations into GPU-friendly ways to do voxel lighting, adding extra features, ultimately porting both prototypes to Metal and running them on an iPhone, etc.
+
+The summary of this work is available [here](https://roblox.github.io/future-is-bright/compare). We eventually decided to pursue the shadow map/forward+ route for direct lighting, and are likely going to use a voxel-based solution for the indirect components in the future.
 
 Three, Vulkan was the next API to tackle. The final boss, so to speak. Another engineer did the initial port but eventually I took over.
 
