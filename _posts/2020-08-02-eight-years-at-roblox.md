@@ -151,7 +151,9 @@ Continuing the trend of increasing the scope of work beyond just rendering, I've
 
 # October 2013: Infinite terrain
 
-Voxel terrain wasn't very popular among our game developers. For a feature that took a lot of effort to develop and maintain this was unsatisfying, and I was trying to figure out "why". One hypothesis was that the limited size (512x64x512 voxels I want to say?) made it too limiting; to remedy that I've worked on a new sparse voxel storage format and different replication mechanisms to allow arbitrarily large terrains. This took around a month to implement fully. This code no longer exists because I ended up throwing the old terrain out completely later - this is probably my largest body of work that just doesn't exist in Roblox today, although if I hadn't worked on that, smooth terrain would have likely taken longer and would be worse, because many ideas from that translated well. During this work I also added new APIs for TerrainRegion for copy&paste that have survived to this day unchanged.
+Voxel terrain wasn't very popular among our game developers. For a feature that took a lot of effort to develop and maintain this was unsatisfying, and I was trying to figure out "why". One hypothesis was that the limited size (512x64x512 voxels I want to say?) made it too limiting; to remedy that I've worked on a new sparse voxel storage format and different replication mechanisms to allow arbitrarily large terrains. This took around a month to implement fully. This code no longer exists because I ended up throwing the old terrain out completely later - this is probably my largest body of work that just doesn't exist in Roblox today, although if I hadn't worked on that, smooth terrain would have likely taken longer and would be worse, because many ideas from that translated well.
+
+During this work I also added TerrainRegion (a standalone object that could store voxel data) together with APIs for copy & paste - this part hasn't changed since and is still available and useful.
 
 ![](/images/roblox_5.jpg)
 
@@ -258,6 +260,8 @@ With the hack week being over it was time to continue working on smooth terrain,
 
 So we decided to try to implement a fast Lua API for voxel reads and writes (bypassing our reflection layer for performance), and build tools in Lua on top of this. This ended up being a great decision, as we were able to quickly iterate on tools and have community be empowered to create their own (performance, of course, suffered as a result - something we're trying to fully recover from to this day).
 
+[![](http://img.youtube.com/vi/FqU6HbFrV-Y/0.jpg)](http://www.youtube.com/watch?v=FqU6HbFrV-Y)
+
 # February-June 2015: Smooth terrain productizaton
 
 At this point all the pieces were there - I had rendering, physics and replication working, and an API to build tools with. The tools weren't ready yet, but neither were any of the pieces production quality - a lot of cleanup optimization work remained.
@@ -289,6 +293,8 @@ Somehow at this point Roblox has existed for a decade with support for cylinder 
 This ended up causing a fair amount of trouble for our physics engineers, as they were later forced to fix several issues in Bullet integration (which is good, I guess) that became more prominent for quickly rotating cylinders, fix a few numerical instabilities in Bullet GJK that were important to make it possible to build cars with quickly rotating wheels, as well as reimplement ray casts that were very imprecise in Bullet as well.
 
 Sorry about that, folks. But hey, at least we have cylinders now!
+
+[![](http://img.youtube.com/vi/scRc7fXMTKU/0.jpg)](http://www.youtube.com/watch?v=scRc7fXMTKU)
 
 # September 2015: Character shadows
 
@@ -371,6 +377,8 @@ We always knew we needed a geometric LOD system for terrain. I even prototyped i
 Well, now was the time. There's a lot of careful work here in getting LOD updates to be responsive, managing the cost of geometry updates (which previously was limited to load time), hiding seams between chunks of different detail levels, etc., etc.
 
 To test this I've used a level with ~500M voxels that was a Mars terrain import; levels of that size were only practical with LOD, but also stressed all other parts of the system, forcing me to implement a new in-memory storage format for voxel data, optimize various parts of the system, including deserialization, undo history and physics, and do more performance work everywhere.
+
+[![](http://img.youtube.com/vi/VSdk4MfVGEk/0.jpg)](http://www.youtube.com/watch?v=VSdk4MfVGEk)
 
 Even that proved to not ultimately be enough, and we had a few more people take a stab at improving various components of the system since.
 
