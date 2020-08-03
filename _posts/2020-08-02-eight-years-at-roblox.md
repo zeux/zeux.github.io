@@ -30,11 +30,15 @@ Initially added for "100 player" project, in October it evolved to render all pa
 
 The core idea in this system was to dynamically batch meshes together, for characters this would be based on the character model hierarchy, and for everything else the grouping is spatial. This allowed us to reduce the number of draw calls, which was a big concern due to both driver overhead and inefficiencies in OGRE.
 
+This would pave the way for what eventually turned out to be a complete, but gradual, rewrite of the rendering stack. The main motivation for this was always performance - what we ended up let us port to mobile (the old rendering code was nowhere near fast enough even for relatively simple scenes), and break new grounds on the number of objects we could render in a frame.
+
 # August 2012: OGRE upgrade from 1.6 to 1.8
 
 One of a few OGRE upgrades we've needed to do, this one was to get better GLES support. It was pretty painful to do those, just like any other big middleware update is. Read further to learn what happened to OGRE eventually...
 
 One thing I remember from doing these is that documentation in source code makes the upgrade process that much more painful. I had scripts that changed the copyright years in headers back to whatever they were in our tree just to make merging less painful, but there was some OGRE upgrade where 70% of the changes were documentation, and this was very hard to get through.
+
+The reason why these were challenging in general is that whenever we did an upgrade we had to a) merge our plentiful changes with the new code, b) gate dangerous parts of the upgrade with flags. We've used the same system of feature flags (we call them fast flags) since I joined Roblox which allows us to dynamically disable parts of the release based on metrics, but this requires actually isolating changes behind if statements selectively - which for OGRE was sometimes necessary as we didn't know what the impact of some low level change in OpenGL code would be.
 
 # September 2012: First iteration of HLSL to GLSL shader compiler
 
@@ -55,6 +59,8 @@ Although I was hired as a rendering engineer, I had a lot of really deep low-lev
 # September 2012: New texture compositor for humanoids
 
 A second part of "100 player project", necessary to render every character in one draw call (these were really expensive for us back in the day!). A side effect included some resolution sacrifices on character items that shirt creators aren't fond of. The new system managed the atlas texture memory, rebaking humanoids far away to smaller textures to conserve texture memory. The compositor survived with minor changes to this day, although we're now working on a new one.
+
+The compositor was built in a very configurable fashion, allowing the high level code to specify the layout to bake, and managing all the complex asynchronous processing and budgeting by itself. This allowed us to switch the composit layout completely years later for R15.
 
 # October 2012: Assorted memory and performance optimizations
 
