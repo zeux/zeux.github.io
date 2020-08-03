@@ -24,7 +24,7 @@ Before we begin, I just want to conclude this by saying that I'm very grateful t
 
 Notably including half-pixel offset fixes for Direct3D9 which I guess is a rite of passage for rendering engineers. The rendering code back then was based on OGRE rendering engine, so I had to learn that, and this was also my first time using OpenGL professionally - prior to that I've used Direct3D 9 and proprietary console APIs, and Direct3D 10/11 as a hobby.
 
-# August 2012: Prototype new cluster implementation for part rendering
+# August 2012: Prototype new part rendering
 
 Initially added for "100 player" project, in October it evolved to render all parts and continued to be used as part renderer until the introducion of instancing in 2018. Otherwise known as "featherweight parts". This was further optimized and deployed around November 2012. Most of this code survived to this day but evolved over time, and is still used when instancing doesn't apply.
 
@@ -40,13 +40,13 @@ One thing I remember from doing these is that documentation in source code makes
 
 The reason why these were challenging in general is that whenever we did an upgrade we had to a) merge our plentiful changes with the new code, b) gate dangerous parts of the upgrade with flags. We've used the same system of feature flags (we call them fast flags) since I joined Roblox which allows us to dynamically disable parts of the release based on metrics, but this requires actually isolating changes behind if statements selectively - which for OGRE was sometimes necessary as we didn't know what the impact of some low level change in OpenGL code would be.
 
-# September 2012: First iteration of HLSL to GLSL shader compiler
+# September 2012: First HLSL->GLSL shader compiler
 
 Before this we had hand-translated shaders, which started to be painful to maintain. The first version of the pipeline used hlsl2glsl and glsl-optimizer (same as Unity back in the day). We are using version 3 today, see below!
 
 Since this was done at the point where we used OGRE, the compiler would take HLSL files, preprocess and translate them to optimized GLSL, and save the resulting GLSL back to disk - which would then be loaded by OGRE directly through the material definition file. Eventually we replaced this with a binary shader pack that could store GLSL code for OpenGL and shader bytecode for other APIs, but back then we shipped HLSL and GLSL source and compiled HLSL code on device!
 
-# September 2012: F# scripts to parse and aggregate HW statistics
+# September 2012: F# scripts for HW statistics
 
 Our equivalent of "Steam Hardware Survey" that went through SQL databases and coalesced various system information bits to help us understand the hardware at the time. This was during my era of obsession with F#, so it was written in F# instead of something like Python. We don't use this anymore and don't even have the SQL database in question!
 
@@ -56,13 +56,13 @@ We never published the resulting data, and I'm not sure how often we used it to 
 
 Although I was hired as a rendering engineer, I had a lot of really deep low-level systems experience and as a consequence ended up engaging in both optimization work and security related work from the very beginning. I don't do this anymore these days but I was often involved in the security work for the first 3 or 4 years. Now we fortunately have people who can do this full time and better than I could :)
 
-# September 2012: New texture compositor for humanoids
+# September 2012: Character texture compositor
 
 A second part of "100 player project", necessary to render every character in one draw call (these were really expensive for us back in the day!). A side effect included some resolution sacrifices on character items that shirt creators aren't fond of. The new system managed the atlas texture memory, rebaking humanoids far away to smaller textures to conserve texture memory. The compositor survived with minor changes to this day, although we're now working on a new one.
 
 The compositor was built in a very configurable fashion, allowing the high level code to specify the layout to bake, and managing all the complex asynchronous processing and budgeting by itself. This allowed us to switch the composit layout completely years later for R15.
 
-# October 2012: Assorted memory and performance optimizations
+# October 2012: Assorted memory/performance optimizations
 
 At the end of 2012 we were actively working on the mobile port. Since then we've had to do a lot of work in a lot of different parts of the engine to make data structures smaller and algorithms - faster. Of course you're never done with optimizations so we do this to this day. Curiously, our minimum spec on iOS stayed the same since the initial launch in 2012!
 
@@ -74,7 +74,7 @@ It was very hard to use Xcode Instruments to profile frame spikes on an iPad; to
 
 ![](/images/roblox_1.png)
 
-# November-December 2012: Finalize new part rendering code
+# November-December 2012: Finalize part rendering
 
 What started in August as a character-only renderer that supported meshes, evolved into something that could render any part in Roblox the same way as old rendering code did. This was not easy, both because performance was really important in every part of the code, and because there's a *lot* of corner cases that had to function pretty much as they did before. Except for perhaps the legacy cylinder rendering:
 
@@ -312,7 +312,7 @@ This required some shader compiler tweaks and some code tweaks but ultimately wa
 
 Of course the hard part of this change came later. In December I had to work around a host of compatibility issues on Android and macOS, where older drivers didn't necessarily implement GL/GLES3 correctly, requiring us to detect these and fall back to GL2/GLES2.
 
-# November 2015: Smooth terrain graphics memory optimization
+# November 2015: Smooth terrain memory optimization
 
 This was always known to become necessary at some point, but we shipped the first version without it. During some memory analysis it turned out that smooth terrain was much more memory hungry than old blocky terrain. The ultimate solution to this was going to be level of detail, but it never hurts to make things more efficient - I switched to a carefully packed vertex format to reduce memory use, getting the vertex down to ~20 bytes. In addition a bug in the old code generated ~10% vertices on the border of chunks that just weren't used, so that was one more easy win.
 
@@ -482,7 +482,7 @@ We haven't used any of this code directly but this paved the way to a lot of the
 
 As I was working more on networking code, I started to understand the limitations and flexibility there very well. At the time Studio had a Play Solo testing mode that wasn't using replication; it was a constant struggle to keep your game functioning correctly because of the semantics differences.
 
-This would come up in discussions occasionally and everybody always said that we really need the play solo mode because anything else just can't be fast enough. At some point I couldn't take it anymore and I just went ahead and built a prototype that started a full replicated session very quickly.
+This would come up in discussions occasionally and everybody either said that we really need the play solo mode because anything else just can't be fast enough, or that we really need a full, if slow, replicated cloud-based testing solution as that's the only way to get parity with production. At some point I couldn't take it anymore and I just went ahead and built a prototype that started a full replicated session locally very quickly.
 
 For this to work I had to tweak a bunch of parameters in the networking code and, crucially, spawn the server and client in the same process, so that it could happen as quickly as possible. There was still more overhead in this mode, and you did need two full datamodels, but it was much better than anything else we had and so we decided to ship this. I only worked on the initial prototype here, but the important lesson here is that existence proof is so often so important - the best way to get people to believe something is possible is to show the fait of accompli to them and watch them marvel.
 
