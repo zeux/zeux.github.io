@@ -62,7 +62,7 @@ A second part of "100 player project", necessary to render every character in on
 
 The compositor was built in a very configurable fashion, allowing the high level code to specify the layout to bake, and managing all the complex asynchronous processing and budgeting by itself. This allowed us to switch the composit layout completely years later for R15.
 
-# October 2012: Assorted memory/performance optimizations
+# October 2012: Assorted memory/performance work
 
 At the end of 2012 we were actively working on the mobile port. Since then we've had to do a lot of work in a lot of different parts of the engine to make data structures smaller and algorithms - faster. Of course you're never done with optimizations so we do this to this day. Curiously, our minimum spec on iOS stayed the same since the initial launch in 2012!
 
@@ -312,7 +312,7 @@ This required some shader compiler tweaks and some code tweaks but ultimately wa
 
 Of course the hard part of this change came later. In December I had to work around a host of compatibility issues on Android and macOS, where older drivers didn't necessarily implement GL/GLES3 correctly, requiring us to detect these and fall back to GL2/GLES2.
 
-# November 2015: Smooth terrain memory optimization
+# November 2015: Terrain memory optimization
 
 This was always known to become necessary at some point, but we shipped the first version without it. During some memory analysis it turned out that smooth terrain was much more memory hungry than old blocky terrain. The ultimate solution to this was going to be level of detail, but it never hurts to make things more efficient - I switched to a carefully packed vertex format to reduce memory use, getting the vertex down to ~20 bytes. In addition a bug in the old code generated ~10% vertices on the border of chunks that just weren't used, so that was one more easy win.
 
