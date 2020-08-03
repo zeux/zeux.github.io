@@ -546,7 +546,7 @@ With the entire year dedicated to Luau, it felt fitting to end the year with a l
 
 One reason why I started working on Luau is because on technical grounds the widely deployed solutions in programming language space never seemed sufficient.
 
-For example, intepreters in all existing languages are slow; the only fast interpreter on the planet I'm aware of is LuaJIT, but it is hand-coded in assembly. I didn't believe this is the only answer, so now we have an interpreter that beats any other interpreter out there except for LuaJIT (including every JS interpreter we've tested).
+For example, intepreters in all existing languages are slow; the only fast widely used production interpreter on the planet I'm aware of is LuaJIT, but it is hand-coded in assembly. I didn't believe this is the only answer, so now we have an interpreter that beats any other interpreter out there except for LuaJIT (including every JS interpreter we've tested).
 
 There are JIT compilers that are amazingly fast; however, if you look at dynamically typed languages, then JIT story is often unsatisfactory, and always complicated. A modern JavaScript VM has a two-three tier JIT with tiers having to support type recording, dynamic deoptimization with on-the-stack replacement, many different hidden representations of the same language types, etc. This is despite the fact that type information can be present in a JS program when TypeScript or Flow is used as a source language (this type information can be unsound, but that's a separate problem).
 
