@@ -332,7 +332,7 @@ I wanted to combine all of that and have a version of our voxel lighting that su
 
 At this point I've never written a compute shader, so doing all of this in a week was daunting. So - I confess! - I cheated by starting to work on the hack week 3 days earlier. Hey, don't judge me - we didn't even have support for compute shaders at the time!
 
-What followed was 10 days of what probably was one of the most intense and fun rendering projects I've done. It wasn't just working on lighting - it was working on a non-traditional lighting system using GPUs (given that I haven't used compute shaders before...). And I had to get to a point where something worked in slightly more than a week.
+What followed was 10 days of what probably was one of the most intense and fun rendering projects I've done. It wasn't just working on lighting - it was working on a non-traditional lighting system using GPUs as a general purpose compute unit (given that I haven't used compute shaders before...). And I had to get to a point where something worked in slightly more than a week.
 
 I knew what I wanted to accomplish, but I didn't know all the algorithms involved - I couldn't simply port the CPU voxel lighting engine since a lot of that code can't be parallelized to the point where GPUs can run that performantly.
 
