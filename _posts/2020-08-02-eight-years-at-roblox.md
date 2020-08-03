@@ -26,7 +26,7 @@ Notably including half-pixel offset fixes for Direct3D9 which I guess is a rite 
 
 # August 2012: Prototype new part rendering
 
-Initially added for "100 player" project, in October it evolved to render all parts and continued to be used as part renderer until the introducion of instancing in 2018. Otherwise known as "featherweight parts". This was further optimized and deployed around November 2012. Most of this code survived to this day but evolved over time, and is still used when instancing doesn't apply.
+Initially added for "100 player" project, in October it evolved to render all parts and continued to be used as part renderer until the introduction of instancing in 2018. Otherwise known as "featherweight parts". This was further optimized and deployed around November 2012. Most of this code survived to this day but evolved over time, and is still used when instancing doesn't apply.
 
 The core idea in this system was to dynamically batch meshes together, for characters this would be based on the character model hierarchy, and for everything else the grouping is spatial. This allowed us to reduce the number of draw calls, which was a big concern due to both driver overhead and inefficiencies in OGRE.
 
@@ -171,9 +171,9 @@ This was my first hack week - the 2012 hack week was held in July right before I
 
 # January 2014: Mobile performance
 
-A continuing drive to get our rendering code faster and faster invited more optimization. I remember us having two internal games that our games team that existed at the time made (or rather one was made by the games team and one, I think, was made by John Shedletsky, a name all Roblox readers would recognize), and we were trying to get them to run at stable 30 FPS on iOS. A lot of small performance tweaks went in here but I was starting to become really frustrated with the amount of time we lost in OGRE and OpenGL driver. I was pretty sure a lot of OpenGL work wasn't just because the driver wasn't very fast (that problem would have to wait until the introduction of Metal), but also because OGRE's GLES backend was very inefficient. We could have tried to optimize OGRE, but that codebase was so large and unwiedly to work with that a question had to be asked: do we need it?
+A continuing drive to get our rendering code faster and faster invited more optimization. I remember us having two internal games that our games team that existed at the time made (or rather one was made by the games team and one, I think, was made by John Shedletsky, a name all Roblox readers would recognize), and we were trying to get them to run at stable 30 FPS on iOS. A lot of small performance tweaks went in here but I was starting to become really frustrated with the amount of time we lost in OGRE and OpenGL driver. I was pretty sure a lot of OpenGL work wasn't just because the driver wasn't very fast (that problem would have to wait until the introduction of Metal), but also because OGRE's GLES backend was very inefficient. We could have tried to optimize OGRE, but that codebase was so large and unwieldy to work with that a question had to be asked: do we need it?
 
-So I spent one day to do an experiment: I set up an alternative GL-focused rendering path alongside OGRE. This took just a day because I focused on just getting part rendering to work, and only converting the actual render loop away from OGRE - using OGRE scaffolding to manage resources, and then getting OpenGL resource ids out into our own code. There were no special optimizaitons after that, I just wrote code that I thought was very simple and minimal - just do the state setup that needs to be done in the simplest way. The results were that by rewriting a portion of the rendering frame that took 13 ms in OGRE, we could replicate it in just 3 ms in our renderer.
+So I spent one day to do an experiment: I set up an alternative GL-focused rendering path alongside OGRE. This took just a day because I focused on just getting part rendering to work, and only converting the actual render loop away from OGRE - using OGRE scaffolding to manage resources, and then getting OpenGL resource ids out into our own code. There were no special optimizations after that, I just wrote code that I thought was very simple and minimal - just do the state setup that needs to be done in the simplest way. The results were that by rewriting a portion of the rendering frame that took 13 ms in OGRE, we could replicate it in just 3 ms in our renderer.
 
 This made the decision of what to do next obvious.
 
@@ -185,7 +185,7 @@ The fact that we already used OGRE in the most minimal way possible made things 
 
 This had to be done side by side with the old engine, so we copied the high level code that used OGRE and started reworking that. A big painpoint when working with OGRE was getting access to any hardware functionality (I don't remember details too well but one thing I remember is render targets not being structured very well), so I spent a bit of time thinking about the graphics abstraction - but not too much, as we could iterate on that in the future (and we did!). A big focus was on usability (it had to be reasonably easy to use it from our high level rendering code) and leanness (for performance and sanity reasons we wanted the concepts in the abstraction to map mostly 1 to 1 to the underlying implementations).
 
-Because mobile was a focus, we ended up inheriting some concepts from OpenGL (like Framebuffer, ShaderProgram, Geometry, uniform handles, etc.). Some of these survived to this day and continue being useful for other APIs; some parts of the abstaction saw major changes, for example we fully transitioned to uniform buffer style interface after a Direct3D 11 port, and render pass based interface during a Metal port. The abstraction continues to slowly evolve over time, and one part I'm super excited about is that since the initial release, the abstraction actually became leaner and more straightforward to implement (for example, we used to have a disctintion between Renderbuffers and Textures, and now we just have Textures).
+Because mobile was a focus, we ended up inheriting some concepts from OpenGL (like Framebuffer, ShaderProgram, Geometry, uniform handles, etc.). Some of these survived to this day and continue being useful for other APIs; some parts of the abstraction saw major changes, for example we fully transitioned to uniform buffer style interface after a Direct3D 11 port, and render pass based interface during a Metal port. The abstraction continues to slowly evolve over time, and one part I'm super excited about is that since the initial release, the abstraction actually became leaner and more straightforward to implement (for example, we used to have a distinction between Renderbuffers and Textures, and now we just have Textures).
 
 This was the right time to do this change. We already implemented all critical high level rendering components by that time, so we knew exactly what to focus on - but this was back when we only had two rendering engineers, myself included, and so we didn't have to stall major projects by rebuilding the foundation of the engine.
 
@@ -228,7 +228,7 @@ I remember reading the exploiter forums the night of the release, and seeing a t
 
 # September-November 2014: Smooth terrain
 
-With Lua work out of the way, I went back to the hack week project from 2013. We had conversations earlier in the year and all agreed that we need a new terrain system - the old blocky one continued to not be very popular and we just didn't believe that the features it provides are that interesting. With an existance proof from hack week, it was now time to figure out what to do.
+With Lua work out of the way, I went back to the hack week project from 2013. We had conversations earlier in the year and all agreed that we need a new terrain system - the old blocky one continued to not be very popular and we just didn't believe that the features it provides are that interesting. With an existence proof from hack week, it was now time to figure out what to do.
 
 I think this work started a bit earlier in the year in a separate prototyping framework where I was able to quickly experiment with voxel representation etc, but it was time to figure out how to ship this.
 
@@ -244,7 +244,7 @@ In November I've worked on some more rendering pieces and the undo stack, and st
 
 I don't remember my exact train of thought here, but I think I just accumulated a bunch of rendering ideas that I wanted to try; unlike my last hack week this one didn't really have a specific focus, and I decided to just implement as many small ideas as I could possibly fit in a week.
 
-A great side effect of this is that you're always ready to present. This is a big challenge in hack week - how do you time things so that after a very intensive week of work you have code that works enough for you to show a demo? This being hack week, this code doesn't have to work perfectly - in fact you want to minimize the amount of "polish" work you do so that you can maximize the "oomph" and deliver more ambitious projects - but what if you don't make it? The way I solved this problem in 2014 is by cramminng a bunch of small projects into one; every day I'd start with a goal of finishing one aspect, and if I got there earlier - great! Just start the next one early.
+A great side effect of this is that you're always ready to present. This is a big challenge in hack week - how do you time things so that after a very intensive week of work you have code that works enough for you to show a demo? This being hack week, this code doesn't have to work perfectly - in fact you want to minimize the amount of "polish" work you do so that you can maximize the "oomph" and deliver more ambitious projects - but what if you don't make it? The way I solved this problem in 2014 is by cramming a bunch of small projects into one; every day I'd start with a goal of finishing one aspect, and if I got there earlier - great! Just start the next one early.
 
 [![](https://img.youtube.com/vi/Y9-KDzMasjg/0.jpg)](https://www.youtube.com/watch?v=Y9-KDzMasjg)
 
@@ -302,7 +302,7 @@ I later learned that the same technique is presented in GPU Pro 3 "Depth Rejecte
 
 Incidentally the doge meme was popular in Roblox at the time, so the ticket is appropriately named "US30615: Character Shadows Much Improved Such Wow".
 
-This shadowing technique remains in Roblox to this day, although it's been largerly superseeded by the new exponential variance shadow map implementation that I contributed to by convincing the fantastic engineer who worked on this to try to make it work :D
+This shadowing technique remains in Roblox to this day, although it's been largely superseded by the new exponential variance shadow map implementation that I contributed to by convincing the fantastic engineer who worked on this to try to make it work :D
 
 # October 2015: Various optimizations
 
@@ -466,7 +466,7 @@ This ended up challenging to do well because of various issues with allocator mi
 
 In the beginning of the year we basically had rock-solid Vulkan code, but production deployments required working around lots of driver issues and there wasn't enough time for that, so that work had to happen in 2018. In the first couple of months we ironed out all of the issues and finally activated Vulkan on a large subset of production devices.
 
-More fixes were required throughout the rest of the year. Vulkan proved extremely challenging to fully release - I'm happy that we did do this now, with 60% of our user base using that and enjoying the resulting performance benefits, and it providing a path to us not relying on OpenGL as much; but it was a struggle, and honestly to a large extent it's stubborness and sunken cost fallacy that got us over the milestone.
+More fixes were required throughout the rest of the year. Vulkan proved extremely challenging to fully release - I'm happy that we did do this now, with 60% of our user base using that and enjoying the resulting performance benefits, and it providing a path to us not relying on OpenGL as much; but it was a struggle, and honestly to a large extent it's stubbornness and sunken cost fallacy that got us over the milestone.
 
 I've written enough about Vulkan elsewhere, between multiple talks at different conferences and a few blog posts here so I'll just leave it at that. I take equal amounts of pride and solace in me, among other early adopters, paving the way for others to have an easier time.
 
@@ -492,7 +492,7 @@ As I was working more on networking code, I started to understand the limitation
 
 This would come up in discussions occasionally and everybody either said that we really need the play solo mode because anything else just can't be fast enough, or that we really need a full, if slow, replicated cloud-based testing solution as that's the only way to get parity with production. At some point I couldn't take it anymore and I just went ahead and built a prototype that started a full replicated session locally very quickly.
 
-For this to work I had to tweak a bunch of parameters in the networking code and, crucially, spawn the server and client in the same process, so that it could happen as quickly as possible. There was still more overhead in this mode, and you did need two full datamodels, but it was much better than anything else we had and so we decided to ship this. I only worked on the initial prototype here, but the important lesson here is that existence proof is so often so important - the best way to get people to believe something is possible is to show the fait of accompli to them and watch them marvel.
+For this to work I had to tweak a bunch of parameters in the networking code and, crucially, spawn the server and client in the same process, so that it could happen as quickly as possible. There was still more overhead in this mode, and you did need two full datamodels, but it was much better than anything else we had and so we decided to ship this. I only worked on the initial prototype here, but the important lesson here is that existence proof is so often so important - the best way to get people to believe something is possible is to show the fait accompli to them and watch them marvel.
 
 Since then we've removed the old play solo from the product, although there are some parts of the play solo flow that aren't as fast as my old prototype was - which we will fix one day.
 
