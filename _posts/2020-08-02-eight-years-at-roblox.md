@@ -143,7 +143,9 @@ I love writing commit messages that straddle the border between "professional" a
 
 # August 2013: New text renderer
 
-Since all of the easy problems, such as part rendering and lighting, were solved, it was time to face the final rendering challenge: text. Back then we used a prebaked bitmap (actually two) at two different sizes, and a very poorly written layout code that didn't support kerning and didn't handle spacing well. Instead I wrote an F# script (of course!) that baked lots of different sizes of a single font into a large atlas; to conserve texture space, I used a rectangle packer. At runtime the layout algorithm used kerning data to place glyphs at correct locations. This substantially improved text quality at most frequently used sizes, and would last for a few years up until internationalization became a priority and we had to start rendering the font atlas dynamically from TTF source. The layout algorithm would survive for a few more years up until we integrated Harfbuzz to do complex Unicode aware shaping - both of these were done by other people years later.
+Since all of the easy problems, such as part rendering and lighting, were solved, it was time to face the final rendering challenge: text.
+
+Back then we used a prebaked bitmap (actually two) at two different sizes, and a very poorly written layout code that didn't support kerning and didn't handle spacing well. Instead I wrote an F# script (of course!) that baked lots of different sizes of a single font into a large atlas; to conserve texture space, I used a rectangle packer. At runtime the layout algorithm used kerning data to place glyphs at correct locations. This substantially improved text quality at most frequently used sizes, and would last for a few years up until internationalization became a priority and we had to start rendering the font atlas dynamically from TTF source. The layout algorithm would survive for a few more years up until we integrated Harfbuzz to do complex Unicode aware shaping - both of these were done by other people years later.
 
 # September 2013: Remote events
 
