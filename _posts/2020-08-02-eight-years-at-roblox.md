@@ -114,6 +114,8 @@ Ironically we did end up replacing our XML parser with a library of mine, [pugix
 
 When we shipped our iOS port it was done with ES1 (FFP); this meant a lot of features didn't work, including lighting which was becoming pretty important. OGRE support for ES2 was immature at the time, so this included a lot of fixes in OGRE code, and a fair amount of shader tweaks, plus the aforementioned NEON optimization for voxel lighting code to make it practical to run on a mobile device.
 
+This change helped in the future work - after this landed we never used FFP on mobile, always using shaders to render content, which meant that we wouldn't need to support ES1 for any technology upgrades, that as it turned out were waiting around the corner.
+
 # May 2013: Remove legacy part rendering code
 
 The development of Roblox engine usually follows a tic-toc-tac pattern (okay we don't actually have a name for this, but whatever). First we make a new awesome implementation of a subsystem that was in the need of being replaced. Then we work on that new implementation becoming better. Then we remove the legacy system to simplify maintenance. By this point we've switched all parts to render in the new cluster rendering path and the old code was ready to be removed. The commit says "removes 500 kb of C++ code, 400 kb of shader/material code, and 3 Mb of content/ textures. Also removes 17 rendering fast flags and 5 rendering log groups." which felt pretty good at the time!
