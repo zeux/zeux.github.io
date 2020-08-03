@@ -6,6 +6,8 @@ excerpt_separator: <!--more-->
 
 I joined Roblox at the end of 2012 as a rendering engineer; I had just spent more than a year working on various titles from FIFA franchise after years of console game development and was becoming a bit tired of the "big game development". My work on FIFA was as a contractor and I got an offer for a full-time position, but I also had a friend who worked at Roblox reach out and offer me to move to California and work on Roblox. I knew absolutely nothing about Roblox, but California was nice and my friend told me it would be awesome. The platform was so different (and so strange!) that I decided to take a chance - here I am, 8 years later, still working at Roblox and enjoying it. I started on my first full time job in April 2007 so at this point I've worked for 13 years in game development and 8 of them were at Roblox.
 
+<!--more-->
+
 My memory works in interesting ways. I remember my interview pretty well, I remember having lunch at some place in San Mateo downtown near the Roblox HQ - a few people were at lunch including Roblox CEO David Baszucki and I remember him asking many questions about my thoughts about the engines and rendering, and distinctly remember not finishing most of my lunch because I talked most of the time. However I don't really remember what was going through my head in regards to my perception of Roblox - why did I join besides just thinking I want to do something else for a change? Who knows, but I am glad I did.
 
 I don't really understand why Roblox is so successful - you can invent all sorts of reasons in retrospect but it's hard to validate them, and if you came to anybody back in 2012 and invested money to build a platform where all games are user generated and run on a custom engine with a custom toolset and all users participate in a giant virtual economy and ..., I think you'd have gotten a blank stare.
@@ -115,7 +117,7 @@ I remember thinking about voxel lighting more and at some point realizing, well,
 
 I love writing commit messages that straddle the border between "professional" and "fun".
 
-[![](http://img.youtube.com/vi/e2QpoVnx-y8/0.jpg)](http://www.youtube.com/watch?v=e2QpoVnx-y8 "")
+[![](http://img.youtube.com/vi/e2QpoVnx-y8/0.jpg)](http://www.youtube.com/watch?v=e2QpoVnx-y8)
 
 # August 2013: New text renderer
 
@@ -151,7 +153,7 @@ Somehow all games or engines I have ever worked with end up with UI consuming di
 
 This was my first hack week - the 2012 hack week was held in July right before I joined, although I doubt I would have achieved much as I was very unfamiliar with the codebase. By this point I knew everything there was to know about our rendering system, OGRE, and terrain; I combined this knowledge to implement a prototype for new terrain that used Marching Cubes meshing of voxel distance field instead of blocky terrain we had, with support for geometric LOD (with gaps between LODs because hack week) and also added water with refraction and realtime reflections and geometric grass. Over the next few years I ended up shipping most of this, although the implementation was dramatically different (e.g. we don't use marching cubes), and finally in 2020 somebody else shipped geometric grass (again with a very different implementation), marking my 2013 hack week fully live :D
 
-[![](http://img.youtube.com/vi/0jahn82XNAI/0.jpg)](http://www.youtube.com/watch?v=0jahn82XNAI "")
+[![](http://img.youtube.com/vi/0jahn82XNAI/0.jpg)](http://www.youtube.com/watch?v=0jahn82XNAI)
 
 # January 2014: Mobile performance
 
@@ -230,7 +232,7 @@ I don't remember my exact train of thought here, but I think I just accumulated 
 
 A great side effect of this is that you're always ready to present. This is a big challenge in hack week - how do you time things so that after a very intensive week of work you have code that works enough for you to show a demo? This being hack week, this code doesn't have to work perfectly - in fact you want to minimize the amount of "polish" work you do so that you can maximize the "oomph" and deliver more ambitious projects - but what if you don't make it? The way I solved this problem in 2014 is by cramminng a bunch of small projects into one; every day I'd start with a goal of finishing one aspect, and if I got there earlier - great! Just start the next one early.
 
-[![](http://img.youtube.com/vi/Y9-KDzMasjg/0.jpg)](http://www.youtube.com/watch?v=Y9-KDzMasjg "")
+[![](http://img.youtube.com/vi/Y9-KDzMasjg/0.jpg)](http://www.youtube.com/watch?v=Y9-KDzMasjg)
 
 What ended up in the hack week presentation is area light support for the voxel engine (later shipped as SurfaceLights), encoding light direction into voxel grid for per-pixel lighting (never shipped, but incorporated into the next hack week), soft particles (shipped later), particle lighting (this was done in a very brute-force way in this demo; I implemented it in a better way in Future Is Bright hack week, and we shipped that implementation later), HDR rendering with a very poorly tuned tone mapper (we didn't use any of this code but we did end up implementing HDR rendering as part of Future Is Bright), shadow mapping with support for translucency and colored objects based on exponential shadow maps (we didn't ship this exact code but this will show up later in the timeline), and volumetric lighting support using the shadow maps (never shipped this either).
 
@@ -326,7 +328,7 @@ My biggest worry was that I would have nothing to show at the end. I didn't have
 
 In the end, I did get to a demo, and it was a blast.
 
-[![](http://img.youtube.com/vi/z5TmqDtpwSM/0.jpg)](http://www.youtube.com/watch?v=z5TmqDtpwSM "")
+[![](http://img.youtube.com/vi/z5TmqDtpwSM/0.jpg)](http://www.youtube.com/watch?v=z5TmqDtpwSM)
 
 # January-April 2016: We Are VR
 
@@ -402,7 +404,7 @@ I felt like the demo from the last week, while very awesome technically, didn't 
 
 This may come as a surprise because the result of the hack week was what probably is regarded by the community as the best thing I've ever worked on:
 
-[![](http://img.youtube.com/vi/lrvOGqC9ZjQ/0.jpg)](http://www.youtube.com/watch?v=lrvOGqC9ZjQ "")
+[![](http://img.youtube.com/vi/lrvOGqC9ZjQ/0.jpg)](http://www.youtube.com/watch?v=lrvOGqC9ZjQ)
 
 However something to realize is that in the previous year, I was stepping on untrodden ground; this year I decided to see if I could implement a production grade lighting engine - while pretty much knowing exactly what I need to do and how. I've implemented shadow maps many times before in my life; I've even implemented a Forward+ renderer in my F# engine (as you probably realized from the lack of F# in the few years of updates, I stopped using the language for a while) a few years ago.
 
@@ -422,7 +424,7 @@ One, I've started doing way more technical direction. Helping teams with the roa
 
 Two, a lot of my attention was spent on the Future Is Bright prototypes. I now had two hack weeks from two prior years, both had very interesting ideas but we needed to figure out which one of them, or which combination of ideas rather, we need to pursue. This was more tricky than you'd think - some people in the company favored the voxel approach for reasons I won't go too much into, and the voxel approach resulted in very unique soft look, and provided an answer to the entire rendering equation; shadow map approach resulted in superior quality for direct lighting, and was faster, but wasn't sufficient by itself.
 
-[![](http://img.youtube.com/vi/gJbhTBubWxw/0.jpg)](http://www.youtube.com/watch?v=gJbhTBubWxw "")
+[![](http://img.youtube.com/vi/gJbhTBubWxw/0.jpg)](http://www.youtube.com/watch?v=gJbhTBubWxw)
 
 We also needed to answer content compatibility questions (what do we do on low end?), among others.
 
@@ -464,7 +466,7 @@ I forget why, but the hack week didn't happen in 2017 and happened in March. Acc
 
 To that end I've decided to explore a set of static typing extensions over Lua, using my script analysis work from 2014 (which we've used since it shipped) as a starting point. I extended the syntax with optional type annotation, and wrote a hybrid between a data flow analyzer and a unification-based inference engine, which you can see in action here:
 
-[![](http://img.youtube.com/vi/_GNPwPwrEbI/0.jpg)](http://www.youtube.com/watch?v=_GNPwPwrEbI "")
+[![](http://img.youtube.com/vi/_GNPwPwrEbI/0.jpg)](http://www.youtube.com/watch?v=_GNPwPwrEbI)
 
 We haven't used any of this code directly but this paved the way to a lot of the subsequent programming languages work we've started doing, although I personally haven't worked on the type checking bits too much - see below!
 
@@ -516,7 +518,7 @@ As a result at the end of 2019 we had a modern and performant interpreted langua
 
 With the entire year dedicated to Luau, it felt fitting to end the year with a language-related hack week. As a result of the prior work our implementation was pretty competitive with LuaJIT interpreter (losing on some benchmarks still, but winning on a couple, with the code base written in portable and maintainable C). The next frontier was, of course, compiled performance.
 
-[![](http://img.youtube.com/vi/vScM-nk5Avk/0.jpg)](http://www.youtube.com/watch?v=vScM-nk5Avk "")
+[![](http://img.youtube.com/vi/vScM-nk5Avk/0.jpg)](http://www.youtube.com/watch?v=vScM-nk5Avk)
 
 One reason why I started working on Luau is because on technical grounds the widely deployed solutions in programming language space never seemed sufficient.
 
