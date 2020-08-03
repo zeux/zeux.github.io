@@ -106,6 +106,10 @@ In an effort to redefine the way Roblox games look (back then we thought Roblox 
 
 Annoyed with the time it took our custom XML parser/serializer to work with large places, I designed and implemented a custom binary file format. It was chunk-based with per-chunk LZ4 compression and custom binary filters to preprocess the data to help LZ4; the format was structured to make reflection interop cheaper, and maximize loading performance. We use this as the main file format to this day, although the format got a few small tweaks (mainly extensions to handle cryptographic signatures and more efficient shared binary blobs). I'm still happy with the design but I'd slightly change the layout in a couple of places to make loading for very big places more cache-coherent, something that wasn't as big of a concern back then. This can still be done today but requires small revisions to how some chunks represent data.
 
+The initial rollout of this change was just for Play Solo, which saved the entire world to a file and loaded the result back into the new datamodel; this meant it was safe to release because no permanent data loss would occur. After this we gradually switched to using this format for publishing places, and eventually started using it for models (packages) as well. Today almost all semantically rich content on Roblox uses this format.
+
+Ironically we did end up replacing our XML parser with a library of mine, [pugixml](https://github.com/zeux/pugixml), in 2019 - although the binary storage is still more performant and space efficient.
+
 # May 2013: OpenGL ES2 support
 
 When we shipped our iOS port it was done with ES1 (FFP); this meant a lot of features didn't work, including lighting which was becoming pretty important. OGRE support for ES2 was immature at the time, so this included a lot of fixes in OGRE code, and a fair amount of shader tweaks, plus the aforementioned NEON optimization for voxel lighting code to make it practical to run on a mobile device.
