@@ -56,13 +56,13 @@ At the end of 2012 we were actively working on the mobile port. Since then we've
 
 It was very hard to use Xcode Instruments to profile frame spikes on an iPad; to try to figure out how to get our performance to a better place on mobile, I wrote some ad-hoc code to dump all internal log events to a binary stream, and a desktop UI tool in F# and WPF to visualize it. This included a Lua profiler as well that could display profiles of Lua code in a traditional hierarchical aggregated view based on event data. This did not survive but curiously we ended up using a similar approach with microprofile years later.
 
-![](../images/roblox_1.png)
+![](/images/roblox_1.png)
 
 # November-December 2012: Finalize new part rendering code
 
 What started in August as a character-only renderer that supported meshes, evolved into something that could render any part in Roblox the same way as old rendering code did. This was not easy, both because performance was really important in every part of the code, and because there's a *lot* of corner cases that had to function pretty much as they did before. Except for perhaps the legacy cylinder rendering:
 
-![](../images/roblox_2.jpg)
+![](/images/roblox_2.jpg)
 
 This code supported FFP as well, using matrix palette blending to efficiently render characters with rigid joints, and on desktop also came with vertex shaders that were carefully optimized to run faster on Intel GPUs without hardware vertex shading (through software vertex shading path). Also this implemented stencil shadows using GPU-based extrusion and CPU-based detection of silhouettes with dynamic index buffers. Fun times!
 
@@ -70,13 +70,13 @@ This code supported FFP as well, using matrix palette blending to efficiently re
 
 My memory is a bit fuzzy on this one but I think we were brainstorming possible ways to implement full scene shadows in a way that would work on mobile, and I've recently watched the presentation from Little Big Planet on how they did lighting on PS3 with voxel based computations; our CEO was part of the discussions and mentioned "what if all lighting was voxel based", and the rest is history. The approach we ended up taking was very unique and distinct from many other voxel based implementations to my knowledge.
 
-![](../images/roblox_3.jpg)
+![](/images/roblox_3.jpg)
 
 # February 2013: Skylight and optimizations
 
 In January voxel lighting engine got support for sun shadows and point/spot lights but it felt like on good GPU hardware we could get better results with other techniques, so we were looking for other things we can use voxels for. I don't remember who came up with the idea but this is when skylight was implemented, which is a form of ambient occlusion with sky as a light source, and is very hard to do correctly without voxels.
 
-![](../images/roblox_4.jpg)
+![](/images/roblox_4.jpg)
 
 To make voxel lighting practical I also rewrote all functions using hand coded SIMD (SSE2), including the voxelizer - lighting on CPU isn't practical without this (this code was later translated to NEON for the iOS port).
 
@@ -139,7 +139,7 @@ Continuing the trend of increasing the scope of work beyond just rendering, I've
 
 Voxel terrain wasn't very popular among our game developers. For a feature that took a lot of effort to develop and maintain this was unsatisfying, and I was trying to figure out "why". One hypothesis was that the limited size (512x64x512 voxels I want to say?) made it too limiting; to remedy that I've worked on a new sparse voxel storage format and different replication mechanisms to allow arbitrarily large terrains. This took around a month to implement fully. This code no longer exists because I ended up throwing the old terrain out completely later - this is probably my largest body of work that just doesn't exist in Roblox today, although if I hadn't worked on that, smooth terrain would have likely taken longer and would be worse, because many ideas from that translated well. During this work I also added new APIs for TerrainRegion for copy&paste that have survived to this day unchanged.
 
-![](../images/roblox_5.jpg)
+![](/images/roblox_5.jpg)
 
 # November 2013: Implement RenderStepped callback
 
@@ -177,7 +177,7 @@ This was the right time to do this change. We already implemented all critical h
 
 The new code took around 2.5 months to complete and ship; the results were fantastic - much lower CPU overhead, much simpler code base, much faster builds and smaller distribution size - it was a massive win along every single possible axis. Most of that code still exists and is in active use today, some parts had to be expanded or improved as we gained more graphics API - we went from supporting just two APIs to supporting five.
 
-![](../images/roblox_6.png)
+![](/images/roblox_6.png)
 
 The epic for the change was named
 > US22804: Do you know how to K.I.L.L. an OGRE?
@@ -218,7 +218,7 @@ With Lua work out of the way, I went back to the hack week project from 2013. We
 
 I think this work started a bit earlier in the year in a separate prototyping framework where I was able to quickly experiment with voxel representation etc, but it was time to figure out how to ship this.
 
-![](../images/roblox_7.jpg)
+![](/images/roblox_7.jpg)
 
 In September I've done most of the basic rendering work, and then started to focus on other aspects. This was the first large cross-functional project that I've done at Roblox - except for the terrain tools that were written by stickmasterluke, I've done all of the implementation work here.
 
