@@ -504,9 +504,17 @@ Other folks were actively working on FIB phase 1 (which consisted of a new voxel
 
 So I helped by implementing a few optimizations in various places of the stack to get us back on track, which contributed to helping release FIB phase 1 on time.
 
-I was somewhat involved in the phase 2, not so much by contributing code (although some of the code that ended up shipping is from my original hack week) but by convincing the engineer who did a lot of the work to try to figure out how to combine a few crazy ideas we were discussing together, notably tile-based incremental cascade updates (inspired by Insomniac's CSM Scrolling) with EVSM (exponential variance shadow maps) - look ma, no PCF! This ended up working wonderfully even though it was daunting at first. The FIB3 work is done without my involvement although again some of the code is from my original Hack Week.
-
 The rest of 2018 doesn't seem super eventful - similar to 2017, I've worked on a few small bits here and there and focused a lot on helping others, writing specs, that sort of thing. Until at the end of 2018 I wrote a technical spec for the next Lua VM which would consume much of the next year for me.
+
+# Aside: Future of FIB
+
+In some sense of course Future Is Bright is my child. I made the original hack week demo, and was very involved in the initial stages of the production work, including some fixes for phase 1 above.
+
+However, the other phases see progressively less of my involvement, and all phases would not have shipped without other people's work. In fact despite my original code still being present in all three phases, most of the code in all three phases is not mine.
+
+I was somewhat involved in the phase 2, not so much by contributing code, but by convincing the engineer who did a lot of the work to try to figure out how to combine a few crazy ideas we were discussing together, notably tile-based incremental cascade updates (inspired by Insomniac's CSM Scrolling) with EVSM (exponential variance shadow maps) - look ma, no PCF! This ended up working wonderfully even though it was daunting at first.
+
+As far as phase 3 is concerned, although some of that code is still the same as it was in my hack week, again most of the effort at this point is not mine. As Roblox grows and I take more of an advisory role in rendering, more and more the work we ship is that of the entire team and a lot of different engineers Roblox developers may or may not know, as opposed to a few people who started all of this.
 
 # 2019: Luau
 
