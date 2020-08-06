@@ -466,11 +466,13 @@ Of course throughout the year I shipped a few small optimizations here and there
 
 # May 2017: Memory tracking
 
-... oh, except for this. We were working on some memory diagnostic tools and I decided to see if I could implement a very low-overhead always-on tracking system for memory.
+... oh, and there's this. We were working on some memory diagnostic tools and I decided to see if I could implement a very low-overhead always-on tracking system for memory.
 
 To make this practical, it had to be able to categorize memory allocations but do nothing else - by overriding global operators new & delete and embedding a little bit of metadata in addition to the user data, it was possible to do this at minimum cost and keep it enabled in all builds.
 
 This ended up challenging to do well because of various issues with allocator mismatch, and required some further work in 2018, but the system does exist to this day and remains a vital source of memory-related information in production builds.
+
+We had a few people look at memory occasionally, but it always involved using somewhat clunky platform-specific tools and made it a bit hard to tell at a glance whether there's a problem. Now that we had a way to validate memory usage and identify biggest consumers to trigger a subsequent investigation, a few memory-related issues became obvious. So I also worked on fixing some of them, including some mesh memory optimizations (using my independently developed library, [meshoptimizer](https://github.com/zeux/meshoptimizer)), reducing script bytecode size by compressing it better, coming up with a new encoding scheme for part outline data which helped us save 20% of part memory - two years later I removed outlines from our code outright as they weren't useful any more, but back then we still had games relying on them - and fix a few assorted memory problems with animations.
 
 # January-February 2018: Vulkan
 
@@ -584,6 +586,12 @@ Some work also went into compilation throughput, but also cleanliness and correc
 
 I'm now starting to turn my attention to garbage collection, with some optimization work already shipping but the ultimate destination being generational incremental collection with good pacing (Lua 5.4 has a generational non-incremental collector, so that's not a good source of inspiration) as well as resuming the JIT experiments and hopefully eventually shipping something.
 
-Just like in prior years I'm also spending a fair amount of time helping the rest of the team with whatever projects they happen to be working on.
+Just like in prior years I'm also spending a fair amount of time helping the rest of the team with whatever projects they happen to be working on. And looks like I did work on one thing that wasn't Luau specific:
+
+# March 2020: Faster multi-core narrowphase
+
+A big focus for the entire engine team since 2019 has been to make the engine scale to larger worlds, and use available cores more effectively. Up until March I was mostly involved in this initative in advisory capacity, but I decided to get my hands dirty and fix a few issues that were apparent from the scaling.
+
+We already had a few components parallelized at that time; after doing some multi-core profiling on our server hardware I didn't like the scaling property of our parallel narrowphase and decided to write a new version. This involved writing a more carefully tuned implementation for the narrowphase itself - the old code had two long serial phases (prologue & epilogue) and I restructured a lot of computations to make sure that prologue is almost empty, and epilogue only involves serial processing on transitions of contact states (e.g. a body waking up or going to sleep) which happens more rarely. We also had some issues with balancing the workload across cores, so I added a more general facility to our task scheduler that could be used to run data-parallel workloads more easily without having to tune the work split too much. Finally, narrowphase ended up hitting a part of our physics pipeline that I was never truly happy with - where to read the full transform matrix of a body, some lazy hierarchical update is required to perform the full computation. When you have many cores, doing these updates in parallel serializes computation which can result in significant performance problems. The optimal path here is to redesign the system to eliminate lazy update - this is on our radar but it's very difficult, so I did the next best thing and wrote carefully tuned lock-free code that allowed us to reduce the synchronization time during the updates to a minimum.
 
 ... and it's 11:59 PM on a Sunday and I'm done so hopefully somebody made it to the end. Thank you.
