@@ -274,7 +274,7 @@ With the hack week being over it was time to continue working on smooth terrain,
 
 So we decided to try to implement a fast Lua API for voxel reads and writes (bypassing our reflection layer for performance), and build tools in Lua on top of this. This ended up being a great decision, as we were able to quickly iterate on tools and have community be empowered to create their own (performance, of course, suffered as a result - something we're trying to fully recover from to this day).
 
-[![](http://img.youtube.com/vi/FqU6HbFrV-Y/0.jpg)](http://www.youtube.com/watch?v=FqU6HbFrV-Y)
+[![](https://img.youtube.com/vi/FqU6HbFrV-Y/0.jpg)](https://www.youtube.com/watch?v=FqU6HbFrV-Y)
 
 # February-June 2015: Smooth terrain productizaton
 
@@ -308,7 +308,7 @@ This ended up causing a fair amount of trouble for our physics engineers, as the
 
 Sorry about that, folks. But hey, at least we have cylinders now!
 
-[![](http://img.youtube.com/vi/scRc7fXMTKU/0.jpg)](http://www.youtube.com/watch?v=scRc7fXMTKU)
+[![](https://img.youtube.com/vi/scRc7fXMTKU/0.jpg)](https://www.youtube.com/watch?v=scRc7fXMTKU)
 
 # September 2015: Character shadows
 
@@ -392,7 +392,7 @@ Well, now was the time. There's a lot of careful work here in getting LOD update
 
 To test this I've used a level with ~500M voxels that was a Mars terrain import; levels of that size were only practical with LOD, but also stressed all other parts of the system, forcing me to implement a new in-memory storage format for voxel data, optimize various parts of the system, including deserialization, undo history and physics, and do more performance work everywhere.
 
-[![](http://img.youtube.com/vi/VSdk4MfVGEk/0.jpg)](http://www.youtube.com/watch?v=VSdk4MfVGEk)
+[![](https://img.youtube.com/vi/VSdk4MfVGEk/0.jpg)](https://www.youtube.com/watch?v=VSdk4MfVGEk)
 
 Even that proved to not ultimately be enough, and we had a few more people take a stab at improving various components of the system since.
 
