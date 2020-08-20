@@ -208,6 +208,18 @@ During this period I've submitted an unusual number of various security mitigati
 
 In addition to that in May and June I've started helping with our Android port - something that was made *much* easier due to our new rendering engine, as OGRE support for EGL was incomplete at the time.
 
+# May 2014: Data persistence data loss
+
+Something that I completely forgot about since but was reminded by [https://roblox.fandom.com/wiki/Data_persistence](a page on Roblox trivia wiki) is that I was responsible for a [https://blog.roblox.com/2014/05/yesterdays-data-persistence-error-an-explanation/](data loss in our data persistence system). The core issue was caused by an innocuous code change that refactored some XML serialization logic in an effort to make sure that at all callsites we correctly use binary file format for saving when requested. We had code that could serialize Roblox instances as part of a larger XML container, used for web API serialization - I mistakenly assumed this was part of web API support code that we didn't need anymore.
+
+Unfortunately, this was actually important for games that used our data persistence system that was in the process of being replaced by newer data stores. This only affected games that stored instance data (thankfully, most games used exclusively primitive types); unfortunately, we didn't have unit tests for the system and our manual regression test only used primitive types. Additionally manual tests on our pre-production test environments that relied on backend data were often flaky due to environment stability issues (something that we've largely solved in 2020 by switching to testing using production infrastructure and pre-release client/server builds instead of relying on separate environments).
+
+What made the issue damaging is that the legacy system in question treated all errors during data loading as "data is absent, start from scratch". This was due to the fact that the web endpoint returned a status code 404, which resulted in an exception propagated through the client-side code; instead of special casing that error code, and disabling data saving for any subsequent save, the code assumed any error is a 404 error and joyfully proceeded to start with an empty data blob, saving it when the player quit the game.
+
+This was further aggravated by the release timing - we used to release the client & server at 9 PM at night; any issue that was discovered immediately after the release would lead to the release rollback, but this issue was only discovered a few hours after the release by a developer who reported it to us - at which point everybody was sound asleep and all players who played affected games that night would lose their game data irrecoverably (as the system in question also had no backups). This also isn't a problem in 2020 as we switched the release process to one that's safe to do at any time of day and we now release in the morning so we can react to any issue that's discovered hours after the release immediately.
+
+Needless to say I've learned a few things about refactoring legacy code, testing and deployment processes, etc. I *think* this is the only destructive or negative thing I've done during my time at Roblox, and it felt *terrible* at the time. Time heals all wounds though!
+
 # June 2014: Lua linter
 
 I'm not sure how this came about, but I think I was just thinking how we can make it easier for people to write correct Lua code, and an obvious problem was lack of any sort of static analysis / linting. luacheck was something that existed at the time, but it wasn't very fast and I thought we needed a tool that's written in C++ for this.
