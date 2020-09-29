@@ -14,6 +14,8 @@ Enjoy!
 
 <!--more-->
 
+> This article has been translated to [Korean](http://ec2-13-125-42-126.ap-northeast-2.compute.amazonaws.com/writing-an-efficient-vulkan-renderer_kr.php) by 이정섭 and to [French](https://www.fevrierdorian.com/carnet/pages/ecrire-un-moteur-de-rendu-vulkan-performant.html) by Dorian Fevrier.
+
 # Abstract
 
 Vulkan is a new explicit cross-platform graphics API. It introduces many new concepts that may be unfamiliar to even seasoned graphics programmers. The key goal of Vulkan is performance – however, attaining good performance requires in-depth knowledge about these concepts and how to apply them efficiently, as well as how particular driver implementations implement these. This article will explore topics such as memory allocation, descriptor set management, command buffer recording, pipeline barriers, render passes and discuss ways to optimize CPU and GPU performance of production desktop/mobile Vulkan renderers today as well as look at what a future looking Vulkan renderer could do differently.
