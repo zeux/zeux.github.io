@@ -528,11 +528,13 @@ Generally I think I was still in the mode of helping others much more than doing
 
 In June or thereabouts one of our engineers was finishing the rewrite of the navigation system, from the old voxel-based system to the new system based on Recast+Detours. Part of the system involved voxelization into spans and using the result to generate navmesh.
 
-The rasterizer used in that system is conservative, and not that efficient; on large maps with a lot of terrain this was proving to be inefficient. I realized that due to the somewhat unique construction of the terrain mesh it was possible to do a very good approximation using a fast non-conservative half-space rasterizer, and use a few tricks to match positive triangles to negative triangles to fill spans very efficiently. 
+The rasterizer used in that system is conservative, and not that efficient; on large maps with a lot of terrain this was proving to be a bottleneck. I realized that due to the somewhat unique construction of the terrain mesh it was possible to do a very good approximation using a fast non-conservative half-space rasterizer, and use a few tricks to match positive triangles to negative triangles to fill spans very efficiently.
+
+Curiously, even though I've never worked on any commercial products that targeted systems without a GPU, this is the second software rasterizer I ended up shipping - the first being one for a software occlusion system running on the SPUs back in my PS3 days.
 
 # July 2018: Cross-cluster instancing
 
-Another engineer was finishing the instancing system; despite this being the rendering project I couldn't resist and looked into improving performance of that code, and ended up adding dynamic instancing in addition to clustered batched instancing.
+Another engineer was finishing the instancing system; despite this being a rendering project I couldn't resist and looked into improving performance of that code, and ended up adding dynamic instancing in addition to clustered batched instancing.
 
 As a result, we have a system now that can aggregate large sets of similar objects statically so that we don't waste the time to regenerate and reupload constant data for heavy scenes, but if some sets are smaller, we reaggregate them dynamically on the fly to merge the resulting draw calls for free.
 
