@@ -52,7 +52,7 @@ I'm also working on a wide variety of open-source projects, most of which are ho
 
 Here are some talks and publications I've done over the years:
 
-* SIGGRAPH 2020, "Large Voxel Landscapes on Mobile". [Slides](/data/siggraph2020.pdf)
+* SIGGRAPH 2020, "Large Voxel Landscapes on Mobile". [Slides](/data/siggraph2020.pdf) [Video](https://www.youtube.com/watch?v=LktNeVkofKU)
 * Game Developers Conference 2020, "Rendering Roblox: Vulkan Optimisations on Imagination PowerVR GPUs". [Slides](/data/gdc2020_pvr.pdf) [Video](https://www.gdcvault.com/play/1026753/Rendering-Roblox-Vulkan-Optimisations-on)
 * Game Developers Conference 2020, "Optimizing Roblox: Vulkan Best Practices for Mobile Developers". [Slides](/data/gdc2020_arm.pdf) [Video](https://www.youtube.com/watch?v=BXlo09Kbp2k)
 * Reboot Develop Red 2019, "Getting Faster and Leaner on Mobile: Optimizing Roblox with Vulkan". [Slides](/data/reboot2019.pdf) [Video](https://www.youtube.com/watch?v=hPW5ckkqiqA)
