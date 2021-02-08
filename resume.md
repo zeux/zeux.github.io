@@ -43,7 +43,7 @@ If you reach out to me with an IC role then you need to re-read the paragraph ab
 
 ### Sperasoft Inc. - Senior Software Engineer (February 2011 - June 2012)
 
-Note: Sperasoft was/is an outsourcing company; all of my work in this period was for EA Sports for FIFA franchise.
+> Note: Sperasoft was/is an outsourcing company; all of my work in this period was for EA Sports for FIFA franchise.
 
 - Helped ship FIFA Street, UEFA 2012 and FIFA 13
 - Implemented a load-time light baking system (various types of lights, including area lights; soft shadows with translucency support; DXT compression; platform-specific optimizations and scheduling tweaks to maintain game framerate while baking)
