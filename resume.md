@@ -82,7 +82,7 @@ If you reach out to me with an IC role then you need to re-read the paragraph ab
 - Implemented many rendering algorithms and effects (water rendering, several post-processing effects, various lighting solutions)
 - Optimized a lot of engine and game code (PPU, SPU, RSX)
 - Optimized memory consumption
-- Developed a pipeline for graphics data export (geometry, textures, animations — export from intermediate format, custom platform-specific layout and optimizations).
+- Developed a pipeline for graphics data export (geometry, textures, animations - export from intermediate format, custom platform-specific layout and optimizations).
 - Supported game projects throughout the release cycles, resolved many TRC issues.
 - Shipped the following titles: Cuboid (PS3), Magic Ball (PS3), Smash Cars (PS3), Digger HD (PS3), Mushroom Wars (PS3)
 
