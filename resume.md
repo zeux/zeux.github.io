@@ -18,6 +18,7 @@ If you reach out to me with an IC role then you need to re-read the paragraph ab
 - Improve internal engine technology and satellite projects through review and mentorship
 - Technical guidance for all internal projects that involve or interface with "native" (C++) stack
 - Influence the state of graphics hardware/APIs through advisory panels/boards
+- Contribute to open standards such as WebAssembly and glTF
 
 ### Roblox - Technical Director (April 2014 - March 2019)
 
