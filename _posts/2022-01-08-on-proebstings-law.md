@@ -32,7 +32,7 @@ To make this experiment a bit more interesting, I was going to test LLVM 1.0 - u
 - LLVM 2.7. This is the first release of LLVM that contains a version of Clang that can compile C++ code.
 - LLVM 11. This is the latest stable release of LLVM that I happen to have available.
 
-LLVM 2.7 was released in April 2010, which was 11 years ago. So we wouldn't quite expect a 2x speedup according to Proebsting's law - only a 1.5x one.
+LLVM 2.7 was released in April 2010, which was 11 years ago (10.5 years before the release of LLVM 11 in August 2020). So we wouldn't quite expect a 2x speedup according to Proebsting's law - only a 1.5x one.
 
 We're going to compare these compilers on compile time and run time axis as follows:
 
