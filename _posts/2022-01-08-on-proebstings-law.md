@@ -36,7 +36,7 @@ LLVM 2.7 was released in April 2010, which was 11 years ago. So we wouldn't quit
 
 We're going to compare these compilers on compile time and run time axis as follows:
 
-- Using an amalgamated version of https://github.com/zeux/meshoptimizer library, we're going to build `libmeshoptimizer.o` several times for each compiler, with and without optimizations (-O0 through -O3), and note the build time.
+- Using an amalgamated version of [meshoptimizer](https://github.com/zeux/meshoptimizer) library, we're going to build `libmeshoptimizer.o` several times for each compiler, with and without optimizations (-O0 through -O3), and note the build time.
 - Using the resulting optimized .o file we're going to compile the meshoptimized demo program using modern clang, run it on a Stanford dragon mesh and compare timings for various algorithms.
 
 The reason why we're going to compile the demo program separately is that demo program uses STL and I don't want to find versions of STL that are compatible with these older compilers.
@@ -47,7 +47,7 @@ Let's go!
 
 # Building library code
 
-I've downloaded a binary release of LLVM 2.7 from https://releases.llvm.org/; LLVM 11 comes with Ubuntu 20. I'm running everything using WSL2 on a Linux partition to make sure the performance numbers are representative of real hardware.
+I've downloaded a binary release of LLVM 2.7 from [releases.llvm.org](https://releases.llvm.org/); LLVM 11 comes with Ubuntu 20. I'm running everything using WSL2 on a Linux partition to make sure the performance numbers are representative of real hardware.
 
 Each compiler is used to build all meshoptimizer source (8.5 KLOC) as a single translation unit to simplify the build process, in four configurations: `-O0`, `-Os -DNDEBUG`, `-O2 -DNDEBUG` and `-O3 -DNDEBUG`.
 
