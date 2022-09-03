@@ -167,7 +167,7 @@ Z3 is probably not the best tool for every problem like this - you need to know 
 
 The solution we've came up with so far requires two 64-bit multiplies and a shift. Is that the best we can do, or can we try to remove the shift?
 
-Well, we can't remove the shift as it is - Z3 will happily tell us that it's impossible to find a magic constant that will move bits from the end of a number into the beginning (although it's also obvious without Z3). However, by using a 128-bit multiplication instruction, we can adjust the magic constant such that the 8 bit result lands into the top 64-bit half of the result. This can be accessed conveniently on GCC/clang with the `__int128` extension, resulting in the following code:
+Well, we can't remove the shift as it is - Z3 will happily tell us that it's impossible to find a magic constant that will move bits from the end of a number into the beginning (although it's also obvious without Z3). However, by using a 128-bit multiplication instruction, we can adjust the magic constant such that the 8 bit result lands into the top 64-bit half of the product. This can be accessed conveniently on GCC/clang with the `__int128` extension, resulting in the following code:
 
 ```c++
 const unsigned __int128 magic = 0x0103070f1f3f8000ull;
