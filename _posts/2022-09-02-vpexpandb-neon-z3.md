@@ -76,7 +76,7 @@ uint8_t mask1 = vaddv_u8(vget_high_u8(masked));
 
 However, it still requires two horizontal adds and horizontal adds aren't particularly cheap: 4 cycles of latency per Cortex-X2 optimization guide. [A recent blog post from Google Cloud team](https://community.arm.com/arm-community-blogs/b/infrastructure-solutions-blog/posts/porting-x86-vector-bitmask-optimizations-to-arm-neon) presents a more efficient replacement for many uses of `PMOVMSKB` by using a narrowing shift, which allows to create a 64-bit mask from a 128-bit vector, and then change the rest of the algorithm to adjust the operations to expect the bits in the right places. This results in significant speedups on a number of algorithms - unfortunately, it's less useful for our case, because we ultimately need two 8-bit masks instead of a single 64-bit one.
 
-A further complication here is that the efficient lowering requires horizontal adds. On ARMv7, these are not available and a longer instruction sequence using paired adds must be used instead; additionally, [Microsoft does not implement horizontal adds](https://developercommunity.visualstudio.com/comments/446737/view.html) in their NEON headers, so when targeting Windows on ARM we again can't use the most efficient sequence.
+A further complication here is that horizontal adds aren't universally supported. On ARMv7, these are not available and a longer instruction sequence using paired adds must be used instead; additionally, [Microsoft does not implement horizontal adds](https://developercommunity.visualstudio.com/comments/446737/view.html) in their NEON headers, so when targeting Windows on ARM we again can't use the most efficient sequence.
 
 # Sometimes all it takes is a MUL
 
