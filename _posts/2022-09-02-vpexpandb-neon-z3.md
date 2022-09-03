@@ -126,8 +126,8 @@ There are a few ways to derive this in reverse; I'm not sure what exact method `
 
 A full introduction to Z3 is neither inside the scope of this article nor [is it mine to give](https://theory.stanford.edu/~nikolaj/programmingz3.html) - however, what Z3 allows us to do in this case is to give the solver our problem statement:
 
-- Given a 64-bit integer `x`, such that every byte of `x` is either `11111111` or `00000000`
-- Given a 64-bit integer `y` that is computed as `y = x * magic`
+- Given any 64-bit integer `x`, such that every byte of `x` is either `11111111` or `00000000`
+- Compute a 64-bit integer `y = x * magic`
 - Ensure that each of the top 8 bits of `y` is set iff the corresponding byte of `x` is `11111111`
 
 We can then give Z3 a fixed `magic` value and verify that this holds for every `x` - something that we could check by bruteforcing all 256 permutations of `x` in this case, but that can be impractical in some other cases - or, instead, ask Z3 to find a `magic` value that satisfies the conditions for any `x`, or report to us that it does not exist.
@@ -165,7 +165,7 @@ Z3 is probably not the best tool for every problem like this - you need to know 
 
 # Removing the shift
 
-The solution we've came up with so far requires two 64-bit multiplies and a shift. Is that the best we can do, or can we try to remove the shift?
+The solution we've come up with so far requires two 64-bit multiplies and a shift. Is that the best we can do, or can we try to remove the shift?
 
 Well, we can't remove the shift as it is - Z3 will happily tell us that it's impossible to find a magic constant that will move bits from the end of a number into the beginning (although it's also obvious without Z3). However, by using a 128-bit multiplication instruction, we can adjust the magic constant such that the 8 bit result lands into the top 64-bit half of the product. This can be accessed conveniently on GCC/clang with the `__int128` extension, resulting in the following code:
 
@@ -182,7 +182,7 @@ The shift instruction gets optimized away, resulting in just two `UMULH` instruc
 
 # Conclusion
 
-These few lines of meshoptimizer code had an interesting journey - starting with an SSSE3 implementation, which was the mental model I had at the time, discovering that the core idea, byte expansion, is so common that of course AVX-512 has a dedicated instruction, wrestling with NEON emulation of movemask, enhancing WebAssembly SIMD proposal (this snippet was one of the use cases for addition of swizzle and bitmask) and finally discovering that in some cases, a plain old 64-bit multiply is as powerful as a SIMD instruction or two.
+These few lines of meshoptimizer code had an interesting journey - starting with an SSSE3 implementation, which was the mental model I had at the time, discovering that the core idea, byte expansion, is so common that of course AVX-512 has a dedicated instruction for it, wrestling with NEON emulation of movemask, enhancing WebAssembly SIMD proposal (this snippet was one of the use cases for addition of swizzle and bitmask) and finally discovering that in some cases, a plain old 64-bit multiply is as powerful as a SIMD instruction or two.
 
 The performance gains quoted here may seem small - but as often happens with performance tuning, to get solid wins for the entire algorithm you need to optimize all individual parts to get cumulative gains! Getting a few % of throughput gains on the entire algorithm merely from tuning something as small as movemask emulation is pretty exciting from that perspective.
 
