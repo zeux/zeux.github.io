@@ -45,7 +45,7 @@ __m128i result = _mm_shuffle_epi8(data16, smfull);
 data += kTableCount[mask0] + kTableCount[mask1];
 ```
 
-This approach works well on Intel/AMD hardware, however it does take a bunch of setup - to compute the shuffle mask from the two halves of the 16-bit mask, we need to load two halves of it from memory and reconstruct the full mask with ~4 additional instructions. I didn't know about this initially, but byte expansion is very useful in contexts like this and so AVX-512 includes a dedicated instruction that matches our desired semantics perfectly, VPEXPANDB, which allows us to eliminate all the setup and replace all of the above with:
+This approach works well on Intel/AMD hardware, however it does take a bunch of setup - to compute the shuffle mask from the two halves of the 16-bit mask, we need to load two halves of it from memory and reconstruct the full mask with ~4 additional instructions. I didn't know about this initially, but byte expansion is very useful in contexts like this and so AVX-512 includes a dedicated instruction that matches our desired semantics perfectly, `VPEXPANDB`, which allows us to eliminate all the setup and replace all of the above with:
 
 ```c++
 // mask is __mmask16
@@ -56,7 +56,7 @@ __m128i result = _mm_mask_expand_epi8(_mm_setzero_si128(), mask, data16);
 data += _mm_popcnt_u32(mask);
 ```
 
-> Note: AVX-512 has other fantastic instructions that help in other areas of the decoder, such as VPMULTISHIFTQB; overall, using AVX-512 allows us to make the decoder >10% faster on an Intel CPU - all this while still using 128 bit SIMD vectors, and as such without the risk for associated frequency adjustments. Unfortunately, AVX-512 is not widely supported but I'm looking forward to benchmarking this on Zen4 in the future.
+> Note: AVX-512 has other fantastic instructions that help in other areas of the decoder, such as `VPMULTISHIFTQB`; overall, using AVX-512 allows us to make the decoder >10% faster on an Intel CPU - all this while still using 128 bit SIMD vectors, and as such without the risk for associated frequency adjustments. Unfortunately, AVX-512 is not widely supported but I'm looking forward to benchmarking this on Zen4 in the future.
 
 # NEON emulation
 
