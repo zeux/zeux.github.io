@@ -45,7 +45,7 @@ __m128i result = _mm_shuffle_epi8(data16, smfull);
 data += kTableCount[mask0] + kTableCount[mask1];
 ```
 
-This approach works well on Intel/AMD hardware, however it does take a bunch of setup - to compute the shuffle mask from the two halves of the 16-bit mask, we need to load two halves of it from memory and reconstruct the full mask with ~4 additional instructions. I didn't know about this initially, but byte expansion is very useful in contexts like this and so AVX-512 includes a dedicated instruction that matches our desired semantics perfectly, `VPEXPANDB`, which allows us to eliminate all the setup and replace all of the above with:
+This approach works well on Intel/AMD hardware, however it does take a bunch of setup - to compute the shuffle mask from the two halves of the 16-bit mask, we need to load two halves of it from memory and reconstruct the full mask with \~4 additional instructions. I didn't know about this initially, but byte expansion is very useful in contexts like this and so AVX-512 includes a dedicated instruction that matches our desired semantics perfectly, `VPEXPANDB`, which allows us to eliminate all the setup and replace all of the above with:
 
 ```c++
 // mask is __mmask16
@@ -108,7 +108,7 @@ mask0 = uint8_t((vgetq_lane_u64(mask2, 0) * magic) >> 56);
 mask1 = uint8_t((vgetq_lane_u64(mask2, 1) * magic) >> 56);
 ```
 
-It does assume that 64-bit multiplication is efficient, however on ARMv7 this ends up being about the same speed as the less efficient NEON implementation with paired adds, and it's consistently faster compared to horizontal adds on AArch64 (on the entire algorithm, of which all of the above is only a part of, it results in ~2% faster decoding on Apple M2 and ~3% faster decoding on Amazon Graviton 2; it also compiles into the same efficient code on MSVC where the lack of horizontal adds is not an issue anymore).
+It does assume that 64-bit multiplication is efficient, however on ARMv7 this ends up being about the same speed as the less efficient NEON implementation with paired adds, and it's consistently faster compared to horizontal adds on AArch64 (on the entire algorithm, of which all of the above is only a part of, it results in ~2% faster decoding on Apple M2 and ~3% faster decoding on AWS Graviton2; it also compiles into the same efficient code on MSVC where the lack of horizontal adds is not an issue anymore).
 
 Ok, but... why does this code even work? Where do we get the magic constant from? And how did `0b0000000000000` arrive at this idea?
 
@@ -178,7 +178,7 @@ mask0 = uint8_t((vgetq_lane_u64(mask2, 0) * magic) >> 64);
 mask1 = uint8_t((vgetq_lane_u64(mask2, 1) * magic) >> 64);
 ```
 
-The shift instruction gets optimized away, resulting in just two `UMULH` instructions in addition to vector->scalar moves, and an extra ~1% throughput improvement on Apple M2. However, UMULH may not be as fast as the regular multiplication; Cortex-X2 optimization guide lists it as having 1 extra cycle of latency, and using this on Amazon Graviton 2 actually results in ~2% throughput reduction. On MSVC, the same optimization requires using `_umul128` intrinsic so overall this solution is unfortunately not as portable as the original optimization.
+The shift instruction gets optimized away, resulting in just two `UMULH` instructions in addition to vector->scalar moves, and an extra ~1% throughput improvement on Apple M2. However, UMULH may not be as fast as the regular multiplication; Cortex-X2 optimization guide lists it as having 1 extra cycle of latency, and using this on AWS Graviton2 actually results in ~2% throughput reduction. On MSVC, the same optimization requires using `_umul128` intrinsic so overall this solution is unfortunately not as portable as the original optimization.
 
 # Conclusion
 
