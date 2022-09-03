@@ -6,7 +6,7 @@ excerpt_separator: <!--more-->
 
 When working on vertex compressor for [meshoptimizer](https://github.com/zeux/meshoptimizer) in 2018, one of the goals was to make a bitstream that can be decompressed using (short) SIMD vector operations. This led to a host of design decisions in terms of how the data is structured, and some challenges when mapping the decoder flow onto various SIMD architectures. The most significant issue has to do with implementing an operation that often doesn't have a straightforward implementation: byte expansion.
 
-<!--mode-->
+<!--more-->
 
 Without going into the [details of the bitstream format](https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Vendor/EXT_meshopt_compression/README.md#mode-0-attributes), we get a byte mask (with 16 bit elements, one per each vector byte) from an earlier stage of decoding process, and for every 1 in the mask we need to read a byte from the input stream and place that into the corresponding byte in the SIMD register. For example, a mask with three bits, `0000_0100_0011_0000`, leads to reading three bytes from the current position in the stream, creating a vector `xxxxxxxx_xxAAxxxx_xxxxBBCC_xxxx`, and advancing the stream position by 3.
 
