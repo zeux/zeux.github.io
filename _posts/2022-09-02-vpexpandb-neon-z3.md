@@ -81,7 +81,7 @@ A further complication here is that horizontal adds aren't universally supported
 # Sometimes all it takes is a MUL
 
 For a while, the above is the version that was used in native NEON builds. The same issue had to be solved in the WebAssembly version of the decoder - while WebAssembly SIMD proposal now implements [i8x16.bitmask instruction](https://github.com/WebAssembly/simd/pull/201), the earlier versions of the proposal didn't have it (the shuffle instruction was also initially absent, which would have put the SIMD decoder at risk, but [v8x16.swizzle
-instruction](https://github.com/WebAssembly/simd/pull/71) was added relatively early - as an aside, WebAssembly SIMD proposal process was very enjoyable).
+instruction](https://github.com/WebAssembly/simd/pull/71) was added relatively early[^1]).
 
 Because of this, the WebAssembly version used a rather slow scalar fallback that used many 64-bit ors and shifts to move the bits to the right places. Before I got around to replacing it with `i8x16.bitmask`, someone named `0b0000000000000` [shared a much more efficient, if cryptic, solution with me](https://twitter.com/0b0000000000000/status/1376568414634840065):
 
@@ -120,7 +120,7 @@ The fact that the multiplication gets us what we want is possible to see if we l
 0x000103070f1f3f80 * 255 = 0x0102040810204080
 ```
 
-We can see that the result has one bit set in each resulting byte; this means that this value can be shifted by any multiple of 8 and the resulting values can be OR'd together (which is the same as adding them because there's no carry involved); doing so results in the top 8 bits of the value corresponding to the values of `k` where the byte was non-zero - exactly what we need to get our bitmask!
+We can see that the result has one bit set in each resulting byte; this means that this value can be shifted by any multiple of 8 and the resulting values can be OR'd together (which is the same as adding them because there's no carry involved); doing so results in the top 8 bits of the value corresponding to the values of `k` where the byte was non-zero - exactly what we need to get our bitmask![^2]
 
 There are a few ways to derive this in reverse; I'm not sure what exact method `0b0000000000000` used, however we can simultaneously devise the magic constant, and validate that the multiplication gives us what we want, by using [Z3 theorem prover](https://github.com/Z3Prover/z3).
 
@@ -189,3 +189,6 @@ The performance gains quoted here may seem small - but as often happens with per
 To reproduce the performance measurements, you can clone meshoptimizer from GitHub and run `make config=release codecbench && ./codecbench`; the relevant throughput measurement is the first one (vtx), and the source code is in `src/vertexcodec.cpp`, most notably `decodeBytesGroupSimd` function.
 
 While the specific code snippets presented here are probably not as generally useful unless you're writing a SIMD-friendly compressor, I hope that the introduction to Z3 motivates other people to use theorem provers more, both to discover numeric properties that might not be obvious at first glance, and to validate code transformations. The single program shared here likely represents a tiny fraction of Z3 power and utility - feel free to share other fun things you've used Z3 for in the comments!
+
+[^1]: As an aside, the process of WebAssembly contribution, at least as far as SIMD proposal is concerned, was very enjoyable!
+[^2]: In our case, the natural bit order works best; when a different bit order is desired, it's a matter of simply changing the magic constant. E.g. to get the reverse order, you need to multiply `0x8040201008040201` by the multiplicative inverse of 255 mod 2<sup>64</sup> to get `0x0080c0e0f0f8fcff`
