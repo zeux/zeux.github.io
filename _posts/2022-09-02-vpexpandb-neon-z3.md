@@ -42,7 +42,7 @@ __m128i smfull = _mm_unpacklo_epi64(sm0, sm1r);
 __m128i data16 = _mm_loadu_si128(data);
 __m128i result = _mm_shuffle_epi8(data16, smfull);
 
-data += kDecodeBytesGroupCount[mask0] + kDecodeBytesGroupCount[mask1];
+data += kTableCount[mask0] + kTableCount[mask1];
 ```
 
 This approach works well on Intel/AMD hardware, however it does take a bunch of setup - to compute the shuffle mask from the two halves of the 16-bit mask, we need to load two halves of it from memory and reconstruct the full mask with ~4 additional instructions. I didn't know about this initially, but byte expansion is very useful in contexts like this and so AVX-512 includes a dedicated instruction that matches our desired semantics perfectly, VPEXPANDB, which allows us to eliminate all the setup and replace all of the above with:
