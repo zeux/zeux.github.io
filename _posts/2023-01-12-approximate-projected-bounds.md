@@ -4,7 +4,7 @@ title: Approximate projected bounds
 excerpt_separator: <!--more-->
 ---
 
-When working with various forms of culling, it can be useful to project the object bounds to screen space. This is necessary to implement various forms of occlusion culling when using a depth pyramid, or to be able to reject objects or clusters that don't contribute to any pixels. The same operation can also be used for level of detail selection, although it's typically faster to approximate the projected area on screen - here we're interested in efficient conservative projected bounds. "Conservative" means that the resulting bounds must contain the original object. "Efficient" means that we'll need to restrict ourselves to projecting 3D bounds that are known to contain the object to screen space - naturally, two common choices are a sphere and a box.
+When working with various forms of culling, it can be useful to project the object bounds to screen space. This is necessary to implement various forms of occlusion culling when using a depth pyramid, or to be able to reject objects or clusters that don't contribute to any pixels. The same operation can also be used for level of detail selection, although it's typically faster to approximate the projected area on screen - here we're interested in efficient conservative projected bounds. "Conservative" means that the resulting bounds must contain the original object. "Efficient" means that we'll need to restrict ourselves to projecting 3D bounds that are known to contain the object in screen space - naturally, two common choices are a sphere and a box.
 
 <!--more-->
 
