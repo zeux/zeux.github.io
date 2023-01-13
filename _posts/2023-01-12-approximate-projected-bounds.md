@@ -41,7 +41,7 @@ bool projectSphere(vec3 c, float r, float znear, float P00, float P11, out vec4 
 }
 ```
 
-Note that in this implementation we assume that the projection is symmetrical for simplicity, and as such only two elements of the projection matrix (P00 and P11) are necessary. Symmetrical projections are the most common ones, but it's easy to incorporate asymmetrical projections that may occur in VR rendering at a small added cost of four extra additions at the end. The function also converts the output from clip space (where coordinates range from [-1..1] and Y goes up) to normalized screen space or UV space, where coordinates range from [0..1] and Y goes down.
+Note that in this implementation we assume that the projection is symmetrical for simplicity, and as such only two elements of the projection matrix (P00 and P11) are necessary. Symmetrical projections are the most common ones, but it's easy to incorporate asymmetrical projections that may occur in VR rendering at a small added cost of four extra additions at the end. The function also converts the output from clip space (where coordinates range from [-1..1] and Y goes up) to normalized screen space or UV space, where coordinates range from [0..1] and Y goes down; if desired this transform can be folded into the projection transform for a small profit.
 
 All in all this requires ~30 FLOPs for the transform plus 12 FLOPs for the final conversions.[^1] Note that `c` is a view-space center of the sphere above - when the sphere is in world space instead, we'll need to transform it to view space first, which takes ~18 FLOPs, for a grand total of 60 FLOPs.
 
