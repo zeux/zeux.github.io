@@ -116,6 +116,8 @@ While this model has some improvements over the LRU in terms of how well it matc
 
 At this point we are in the land of guesswork - it could be LRU-within-warp or it could be some other limiting factor that I'm not accounting for instead; however this graph does look quite similar to the graph we get on NVidia hardware. If NVidia engineers ever publish the details of their vertex cache I will be glad to learn how wrong I was throughout the entire post ;)
 
+> Update: NVidia engineers didn't, but in 2018 a paper [Revisiting The Vertex Cache: Understanding and Optimizing Vertex Processing on the modern GPU](https://markussteinberger.net/papers/ShadingRate.pdf) was released which builds a more precise model of vertex cache behavior using somewhat similar techniques, along with a special purpose optimization algorithm.
+
 ## Conclusion
 
 We have gone through an interesting exercise of measuring the actual behavior of given index sequences on real hardware, and trying to model several possible approaches hardware could take to understand the behavior better. It's pretty clear that Intel uses a 128-entry FIFO cache; as for AMD and NVidia, 16-entry LRU seems to approximate their behavior pretty well, although it's doubtful that this is how the actual hardware works.
