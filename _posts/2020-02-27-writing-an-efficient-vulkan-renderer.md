@@ -14,7 +14,7 @@ Enjoy!
 
 <!--more-->
 
-> This article has been translated to [Korean](http://ec2-13-125-42-126.ap-northeast-2.compute.amazonaws.com/writing-an-efficient-vulkan-renderer_kr.php) by 이정섭 and to [French](https://www.fevrierdorian.com/carnet/pages/ecrire-un-moteur-de-rendu-vulkan-performant.html) by Dorian Fevrier.
+> This article has been translated to [Korean](/data/effvulkan_kr.html) by 이정섭 and to [French](https://www.fevrierdorian.com/carnet/pages/ecrire-un-moteur-de-rendu-vulkan-performant.html) by Dorian Fevrier.
 
 # Abstract
 
