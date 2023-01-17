@@ -203,6 +203,7 @@ Of course, if you aren't using [qgrep](https://github.com/zeux/qgrep), you're mi
 
 ![Vim](/images/qgrep_4.png)
 
+---
 [^1]: You would think that another option is Visual Assist or equivalent tools; however, this only works for the currently selected platform/configuration which, in a cross-platform codebase, isn't always sufficient; it also is restricted to C++ symbols and has its own scaling challenges in a codebase with way too much source code.
 [^2]: This was back when codesearch was written in C++ I think; the Go version looks impressively fast these days, but I haven't spent a lot of time using it to know how it fares on a wide range of use cases.
 [^3]: Some people who worked on EA codebase at the time used *another* tool called qgrep; it was closed source/proprietary and wasn't as fast as I thought it should be - it was basically a regular expression engine that ran on the .tar.gz archive of the code. I decided to start with the same name in hopes that I can find a better name later, but never got around to it. I also inherited the command line structure from this tool because I wanted something that people on the team who wanted faster search could immediately use.

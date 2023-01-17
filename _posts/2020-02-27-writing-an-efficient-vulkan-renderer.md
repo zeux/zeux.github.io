@@ -516,6 +516,7 @@ Finally, some vendors develop open-source Vulkan drivers for Linux; studying the
 
 > Author wishes to thank Alex Smith (Feral Interactive), Daniel Rákos (AMD), Hans-Kristian Arntzen (ex. ARM), Matthäus Chajdas (AMD), Wessam Bahnassi (INFramez Technology Corp) and Wolfgang Engel (CONFETTI) for reviewing the drafts of this article and helping make it better.
 
+---
 [^1]: We only cover memory allocation types that are writable from host and readable or writable from GPU; for CPU readback of data that has been written by GPU,  memory with `VK_MEMORY_PROPERTY_HOST_CACHED_BIT` flag is more appropriate.
 [^2]: Note that `VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` generally implies that the memory will be write-combined; on some devices it’s possible to allocate non-coherent memory and flush it manually with `vkFlushMappedMemoryRanges`.
 [^3]: Note that with the 4 descriptors per pipeline, this approach can’t handle full pipeline setup for VS, GS, FS, TCS and TES – which is only a problem if you use tessellation on drivers that only expose 4 descriptor sets.

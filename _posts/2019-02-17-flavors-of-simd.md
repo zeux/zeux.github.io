@@ -584,6 +584,7 @@ SIMD often isn't a good starting point for optimization - the sloppy simplifier 
 
 I'm not sure how many of these optimizations will end up in `meshoptimizer` master - after all, this was mostly an experiment to see how much it's possible to push the hardware without drastically changing any algorithms involved. Hopefully this was informative and can give you ideas to optimize your code. The final source code for this article is [available here](https://gist.github.com/zeux/1171b770c105b11c3bde128e1d3a16ec); this work is based off [meshoptimizer 99ab49](https://github.com/zeux/meshoptimizer/commit/99ab49af6706daf9716c0f1e2d1a1d99fdf12d81), with Thai Buddha model available [on Sketchfab](https://sketchfab.com/3d-models/thai-buddha-cba029e262bd4f22a7ee4fcf064e22ee).
 
+---
 [^1]: This corresponds to ~28.5 million triangles/second which arguably is fast enough for practical purposes, but I was curious as to how much it's possible to push the hardware here.
 [^2]: In this case making the quadric structure larger by 8 bytes doesn't seem to make a difference performance-wise; unaligned loads should be mostly running at the same speed as aligned loads these days so it likely doesn't matter much one way or the other.
 [^3]: Or rather what you should normally do is to pack data using small groups of SIMD registers, for example `float x[8], y[8], z[8]` for each 8 vertices in your input data - this is known as AoSoA (arrays-of-structures-of-arrays) and gives a good balance between cache locality and ease of loading into SIMD registers.

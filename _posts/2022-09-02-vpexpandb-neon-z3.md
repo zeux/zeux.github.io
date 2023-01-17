@@ -190,5 +190,6 @@ To reproduce the performance measurements, you can clone meshoptimizer from GitH
 
 While the specific code snippets presented here are probably not as generally useful unless you're writing a SIMD-friendly compressor, I hope that the introduction to Z3 motivates other people to use theorem provers more, both to discover numeric properties that might not be obvious at first glance, and to validate code transformations. The single program shared here likely represents a tiny fraction of Z3 power and utility - feel free to share other fun things you've used Z3 for in the comments!
 
+---
 [^1]: As an aside, the process of contributing to WebAssembly SIMD proposal was very enjoyable!
 [^2]: In our case, the natural bit order works best; when a different bit order is desired, it's a matter of simply changing the magic constant. E.g. to get the reverse order, you need to multiply `0x8040201008040201` by the multiplicative inverse of 255 mod 2<sup>64</sup> to get `0x0080c0e0f0f8fcff`

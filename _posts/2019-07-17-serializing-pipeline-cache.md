@@ -95,6 +95,7 @@ We also create the empty pipeline cache if the pipeline cache file was not found
 
 Good luck. ~~You're going to need it.~~
 
+---
 [^1]: Which you can absolutely do these days! For example, [here's an implementation of vkGetPipelineCacheData for radv](https://github.com/mesa3d/mesa/blob/1d5ee315536d4563714b35004d9efc1bd6621f53/src/amd/vulkan/radv_pipeline_cache.c#L525).
 [^2]: The remainder of this article is based on the experience of continuously shipping [Roblox](https://corp.roblox.com/) client on Android with Vulkan support and surviving through various Android OS updates, driver updates and in general dealing with both early and current Vulkan drivers from all major vendors.
 [^3]: In theory `rename` is supposed to be atomic, but in practice the exact semantics and guarantees vary with the file system; hash is useful as a way to perform a robust comparison.

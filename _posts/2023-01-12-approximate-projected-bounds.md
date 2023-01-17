@@ -128,6 +128,7 @@ This is not that significant of a win in practice, however - `projectBox` takes 
 
 Thus when the input is a sphere, the precise version is also, on the balance, the best version; the view-space approximation, however, can still be useful when the input is an AABB, as the approximation is much cheaper to compute than the precise bounds.
 
+---
 [^1]: In this post we simplify the reasoning about the execution cost and treat every primitive operation as a single FLOP. The real performance implications are a little more nuanced, as division and square root are typically more expensive, and some multiplies and adds in the code above can be fused.
 
 [^2]: Again, these are approximate. For example on AMD GPUs, division is actually two operations, one of which (1/x) is comparatively expensive, and the computation above assumes `min(x, y)` is a single operation whereas it may actually require two - compare and select.

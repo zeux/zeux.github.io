@@ -207,6 +207,7 @@ In terms of code size, while it's looking really good right now at just under 4K
 
 It's likely possible to recode `memcpy` to fit the workflow better and/or rely on the eventual builtin; JS runtime could be minified, running it through UglifyJS produces 1059 byte file which is ~900 bytes smaller, and it's possible that instead of using Base64 to encode the file, a better option is to either use a larger but more compressible encoding, or to put the data into a separate file and use some kind of prefetch declaration in the source HTML file to fetch `.js` and `.wasm` files in parallel.
 
+---
 [^1]: This is probably a good time to mention that while I have extensive experience with native code, my exposure to JavaScript or WebAssembly has been non-existent before this work. I'm likely doing many things wrong, and comments with suggestions for improvements are appreciated!
 [^2]: A more or less complete example of performing all the necessary transformations can be found [in tools/meshencoder.cpp](https://github.com/zeux/meshoptimizer/blob/master/tools/meshencoder.cpp).
 [^3]: All timings are taken on i7-8700K; C++ version is compiled using `gcc -O3`, WebAssembly version is running in latest stable Chrome and the measurements are taken after 10 runs of the function to exclude JIT/warmup.

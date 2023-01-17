@@ -70,6 +70,7 @@ Looking at the original NVidia mesh shader publication, one concrete number they
 
 Unfortunately, applying this configuration on AMD hardware will lead to suboptimal execution due to the specifics of how AMD hardware supports mesh shaders - and it's also not clear whether "transform waste" is important there relative to some other factors! This is a subject we'll explore in a future post, as it requires looking closely at how exactly mesh shaders execute on different hardware.
 
+---
 [^1]: This is not necessarily the case in general as not all subsets of two-manifold meshes can be planarized, but it's a reasonable generalization.
 [^2]: Euler's formula says `V-E+F=2` but it treats the infinitely large region outside of any face as one, so `F=T+1`.
 [^3]: 256/256 is currently the de-facto common denominator across all vendors that have an implementation of `EXT_mesh_shader`, as well as the minimum set of limits required by the spec - however, there are other important limits to keep in mind that we will discuss later.

@@ -206,6 +206,7 @@ However, studying the data is very powerful, and sometimes the machine can look 
 
 Optimization algorithms in particular are an incredibly effective tool to have in the toolbox. A lot of attention is on deep learning and study of differentiable programs these days, but even if you don't know too much about how the target function behaves, and you can't run the learning algorithm on a large cluster of GPUs, it's still possible to leverage the data to come up with enlightening answers.
 
+---
 [^1]: A necessary disclaimer: I'm not a machine learning expert. It's entirely possible that this article misuses some terms and that some analysis and conclusions here are wrong. You have been warned.
 [^2]: For example, it's tempting to always pick the triangle that shares two vertices with the last emitted triangle; this can result in strip-like order which tends to be inefficient in the long run since it produces long strips of triangles and each vertex ends up being transformed twice on average for regular meshes.
 [^3]: Of course if you optimize the mesh for a FIFO cache of a size that's too large, the results are going to be substantially worse than expected - however, the variation between cache sizes isn't that high in practice.
