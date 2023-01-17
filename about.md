@@ -40,6 +40,10 @@ I'm also working on a wide variety of open-source projects, most of which are ho
 
 [volk](http://github.com/zeux/volk) is a meta-loader for Vulkan. It allows you to write a Vulkan application without adding a dependency to the Vulkan loader, which can be important if you plan to support other rendering APIs in the same applications; additionally it provides a way to load device entrypoints using vkGetDeviceProcAddr which can reduce the draw call dispatch overhead by bypassing the loader dispatch thunks.
 
+### niagara
+
+[niagara](http://github.com/zeux/niagara) is a Vulkan renderer that is written on stream (broadcast on YouTube) from scratch. The project implements a few modern Vulkan rendering techniques, such as GPU culling & scene submission, cone culling, automatic occlusion culling, task/mesh shading. It is not meant to be a production renderer, but aims to present production-ready techniques even if the implementation cuts some corners for expediency. Past streams are available in [a playlist](https://www.youtube.com/playlist?list=PL0JVLUVCkk-l7CWCn3-cdftR0oajugYvd).
+
 ### qgrep
 
 [qgrep](http://github.com/zeux/qgrep) is a fast grep that uses an incrementally updated index to perform fast regular-expression based searches in large code bases. It uses [RE2](http://code.google.com/p/re2/) and [LZ4](http://code.google.com/p/lz4/) along with a lot of custom optimizations to make sure queries are as fast as possible. Additionally it features a Vim plugin for great search experience in the best text editor ;)
