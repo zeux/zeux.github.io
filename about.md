@@ -74,4 +74,9 @@ I also have a [blog](https://zeux.io) with technical posts on various subjects (
 Arseny Kapoulkine has worked on game technology for the past decade. Having worked on rendering, physics simulation, language runtimes, multithreading and many other areas, he is still discovering exciting problems in game development that require low-level thinking. After helping ship many titles on PS3 including several FIFA games, he joined [Roblox](https://corp.roblox.com/) in 2012 and has been working on the in-house engine ever since, helping young game developers achieve their dreams.
 
 ## Contacts
-You can reach me by e-mail at `arseny.kapoulkine@gmail.com` or on Twitter [@zeuxcg](https://twitter.com/zeuxcg).
+
+You can reach me by e-mail at `arseny.kapoulkine@gmail.com`, on Twitter [@zeuxcg](https://twitter.com/zeuxcg) or on Mastodon [zeux@mastodon.gamedev.place](https://mastodon.gamedev.place/@zeux)
+
+## License
+
+Unless specified otherwise, code snippets on this blog are distributed under the terms of [MIT License](https://opensource.org/licenses/MIT).
