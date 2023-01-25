@@ -24,7 +24,7 @@ This is only one example; other APIs may specify different behaviors. For exampl
 
 Once we know the decoding formula, it's easy to infer the encoding formula which gives the minimum error on average. Let's start with unsigned numbers first. We have a [0..1] floating point number, and a 3-bit unsigned integer ([0..7] integer range).
 
-[![](http://zeuxcg.files.wordpress.com/2010/12/unorm.png)](http://zeuxcg.files.wordpress.com/2010/12/unorm.png)
+[![](/images/qfloat_unorm.png)](/images/qfloat_unorm.png)
 
 First let's mark all values that are exactly representable using the decode function on the 0..1 range (the top row of numbers, and black lines denote these) - just decode all integers from the range and draw a line. Now, in order to minimize the error, for every number we have to encode we have to pick the closest line, and select the corresponding number. I've drawn red lines that are exactly in the middle of corresponding black lines; all numbers between two red lines (which correspond to values in the row labeled 'original') will be encoded to the same number. The number each subrange should encode to is specified in the bottommost row.
 
@@ -32,7 +32,7 @@ Now we can visualize the encoding; all that's left is to provide a function. Not
 
 The function is easy - if you multiply all numbers from the row 'original' by 7 (2<sup>n</sup> - 1), you'll see that all that's left is to apply the round-to-nearest function; since we're limited to unsigned numbers, the encode function is `encode(x) = int (x / 7.0 + 0.5)` (which is a standard way to turn round-to-zero, which is the C float-to-int cast behavior, to round-to-nearest for positive numbers).
 
-[![](http://zeuxcg.files.wordpress.com/2010/12/snorm.png)](http://zeuxcg.files.wordpress.com/2010/12/snorm.png)
+[![](/images/qfloat_snorm.png)](/images/qfloat_snorm.png)
 
 Here is another image for the signed numbers, using Direct3D 10 rules. The range is [-1..1], we still have a 3-bit integer with [-4..3] range - we're going to provide an encoding function that gives us the number in [-3..3] range. Using exactly the same reasoning as above, to encode the number we have to multiply it by 3, and then round to the nearest integer. Be careful - since float-to-int cast does a round-to-zero, or a truncate, the round function is slightly more complex. The encode function is as follows: `encode(x) = int (x / 3.0 + (x > 0 ? 0.5 : -0.5))`.
 
