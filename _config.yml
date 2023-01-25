@@ -1,5 +1,5 @@
 name: zeux.io
-url: http://zeux.io
+url: https://zeux.io
 markdown: kramdown
 permalink: /:year/:month/:day/:title/
 gems:
