@@ -75,7 +75,7 @@ Arseny Kapoulkine has worked on game technology for the past decade. Having work
 
 ## Contacts
 
-You can reach me by e-mail at `arseny.kapoulkine@gmail.com`, ~on Twitter [@zeuxcg](https://twitter.com/zeuxcg)~ or on Mastodon [zeux@mastodon.gamedev.place](https://mastodon.gamedev.place/@zeux)
+You can reach me by e-mail at `arseny.kapoulkine@gmail.com`, ~~on Twitter [@zeuxcg](https://twitter.com/zeuxcg)~~ or on Mastodon [zeux@mastodon.gamedev.place](https://mastodon.gamedev.place/@zeux)
 
 ## License
 
