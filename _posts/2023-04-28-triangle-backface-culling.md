@@ -25,9 +25,9 @@ For the purpose of this article, backface culling can be done on meshlet granula
 
 ![Cone culling](/images/backface_1.png)
 
-This test is cheap and coarse, which makes it a good candidate for task/mesh shaders. However, it's also very conservative: while on average we'd expect 50% of triangles to be backfacing, when using 64-triangle clusters and a single cone per cluster, the cone culling can typically reject only up to ~25% on dense and reasonably smooth meshes, and the rejection rate will be lower on meshes with larger triangles or more complex topology (for example, on Lumberyard Bistro interior scene the rejection rate is just 4%)[^1].
+This test is cheap and coarse, which makes it a good candidate for task/mesh shaders. However, it's also very conservative: while on average we'd expect 50% of triangles to be backfacing, when using 124-triangle clusters and a single cone per cluster, the cone culling can typically reject only up to ~25% on dense and reasonably smooth meshes, and the rejection rate will be lower on meshes with larger triangles or more complex topology (for example, on Lumberyard Bistro interior scene the rejection rate is just 4%)[^1].
 
-While the cone is an imperfect approximation, fundamentally on meshes with large triangles or sharp changes in local curvature coarse backface culling is bound to be much less effective, as triangles with different orientation will be mixed together in the same meshlet. This can be mitigated by grouping triangles into meshlets by orientation, but that introduces a lot of topological seams that hurt transformation and rasterization efficiency, and a poor tradeoff as a result[^2].
+While the cone is an imperfect approximation, fundamentally on meshes with large triangles or sharp changes in local curvature coarse backface culling is bound to be much less effective, as triangles with different orientation will be mixed together in the same meshlet. This can be mitigated by grouping triangles into meshlets by orientation, but that introduces a lot of topological seams that hurt transformation and rasterization efficiency, and results in a poor tradeoff[^2].
 
 # Bruteforce backface culling
 
@@ -78,7 +78,7 @@ gl_MeshPrimitivesEXT[i].gl_CullPrimitiveEXT =
     maskSide >= 0 && (meshletData[maskOffset + (i >> 5)] & (1 << (i & 31))) == 0;
 ```
 
-To compute the region, we need to assign region index based on the camera position in cluster space. This requires transforming the camera position with inverse object transforms, and classifying using code like this for 6 regions:
+To compute the region, we need to assign region index based on the camera position in cluster space. This requires transforming the camera position with inverse object transforms, and classifying the resulting vector using code like this for 6 regions:
 
 ```glsl
 	int maskSide =
@@ -185,7 +185,7 @@ What we may or may not expect is that while efficiency and performance do not co
 
 As a result, combining cluster cone culling (to minimize the amount of work done by the mesh shader) with brute-force culling (to cull the triangles that cluster cone culling misses) gives us the best of both worlds: we get the performance of cluster cone culling with the efficiency of brute-force culling. This is the approach that [niagara](https://github.com/zeux/niagara) uses right now. All of the other culling methods are interesting, but fundamentally the bruteforce culling is cheap enough that the extra complexity doesn't really pay off as none of the methods can reach the same culling efficiency. Of course, the results in a more production ready scene or on a different GPU may vary.
 
-> Note: I originally intended to rerun the experiments on AMD Radeon GPU, but these take forever to gather, and based on my previous experiments with fine-grained culling on AMD hardware I suspect the results will hold even more strongly there, as seemingly any amount of ALU that is spent to cull triangles pays off there... Sorry!
+> Note: I originally intended to rerun the experiments on AMD Radeon GPU, but these numbers take forever to gather, and based on my previous experiments with fine-grained culling on AMD hardware I suspect the results will hold even more strongly there, as seemingly any amount of ALU that is spent to cull triangles pays off there... Sorry!
 
 # Conclusion
 
