@@ -5,29 +5,29 @@ excerpt_separator: <!--more-->
 math: true
 ---
 
-Backface culling is something we take for granted when rendering triangle meshes on the GPU. In general, an average mesh is expected to have about 50% of its triangles facing away from the camera. Unless you forget to set appropriate render states in your favorite graphics API, the hardware will reject these triangles as early in rasterization pipeline as possible. Thus, it would seem that backface culling is a solved problem. In this post, however, we'll explore a few alternative strategies that may or may not improve rendering performance.
+Backface culling is something we take for granted when rendering triangle meshes on the GPU. In general, an average mesh is expected to have about 50% of its triangles facing away from the camera. Unless you forget to set appropriate render states in your favorite graphics API, the hardware will reject these triangles as early in the rasterization pipeline as possible. Thus, it would seem that backface culling is a solved problem. In this post, however, we'll explore a few alternative strategies that may or may not improve rendering performance.
 
 <!--more-->
 
 # Standard backface culling
 
-As long as you're setting up backface culling in your graphics API, for example by using VK_CULL_MODE_BACK_BIT in Vulkan, the hardware will perform backface culling automatically. Any back facing triangle will be culled early in the triangle setup process, typically by a fixed function unit. Triangle setup typically can process a small number of triangles per cycle per geometry engine, and the triangle rejection rate may be a small multiple of that - the performance will certainly vary by the GPU vendor and by the GPU model. For example, according to the [RDNA whitepaper](https://www.amd.com/system/files/documents/rdna-whitepaper.pdf), Navi GPUs cull two primitives per clock per "primitive unit", of which Radeon 5700 XT has four - adding up to rejection rate of 8 triangles per clock. The 2-to-1 ratio of cull throughput to processing throughput is typical as half of the triangles will be culled on average.
+As long as you're setting up backface culling in your graphics API, for example by using VK_CULL_MODE_BACK_BIT in Vulkan, the hardware will perform backface culling automatically. Any backfacing triangle will be culled early in the triangle setup process, typically by a fixed function unit. Triangle setup typically can process a small number of triangles per cycle per geometry engine, and the triangle rejection rate may be a small multiple of that - the performance will certainly vary by the GPU vendor and by the GPU model. For example, according to the [RDNA whitepaper](https://www.amd.com/system/files/documents/rdna-whitepaper.pdf), Navi GPUs cull two primitives per clock per "primitive unit", of which Radeon 5700 XT has four - adding up to rejection rate of 8 triangles per clock. The 2-to-1 ratio of cull throughput to processing throughput is typical as half of the triangles will be culled on average.
 
 On some GPU drivers, the culling may be implemented in "software" and run in a shader stage; we will cover this later in this post.
 
 # Cluster cone culling
 
-In more recent GPU architectures, the geometry pipeline gained more flexibility with introduction of task and mesh shaders. NVidia GeForce GPUs support task/mesh shaders starting from 20xx series (Turing), and AMD Radeon GPUs support them starting from 6xxx series (RDNA2), although there's some amount of impedance mismatch for AMD between the exposed programming model and the hardware support, that has been improved in 7xxx (RDNA3). Task/mesh shaders can be used in Vulkan (via [VK_EXT_mesh_shader](https://github.com/KhronosGroup/Vulkan-Docs/blob/main/proposals/VK_EXT_mesh_shader.adoc)) and in DirectX 12 (via [shader model 6.5](https://devblogs.microsoft.com/directx/coming-to-directx-12-mesh-shaders-and-amplification-shaders-reinventing-the-geometry-pipeline/)).
+In more recent GPU architectures, the geometry pipeline gained more flexibility with the introduction of task and mesh shaders. NVidia GeForce GPUs support task/mesh shaders starting from 20xx series (Turing), and AMD Radeon GPUs support them starting from 6xxx series (RDNA2), although there's some amount of impedance mismatch for AMD between the exposed programming model and the hardware support, that has been improved in 7xxx (RDNA3). Task/mesh shaders can be used in Vulkan (via [VK_EXT_mesh_shader](https://github.com/KhronosGroup/Vulkan-Docs/blob/main/proposals/VK_EXT_mesh_shader.adoc)) and in DirectX 12 (via [shader model 6.5](https://devblogs.microsoft.com/directx/coming-to-directx-12-mesh-shaders-and-amplification-shaders-reinventing-the-geometry-pipeline/)).
 
 With these extensions, coarse grained culling of geometry becomes feasible: the geometry is split into a number of "meshlets", each of which is a small number of triangles, and the task shader can reject meshlets if no triangles in the meshlet are visible. As long as this check can be done efficiently (and conservatively), this could improve rasterization performance on geometry-dense scenes, as the culling is performed in batches of triangles.
 
-For the purpose of this article, backface culling can be done on meshlet granularity by using [cluster cone culling](https://gpuopen.com/learn/geometryfx-1-2-cluster-culling/). For each meshlet, the intersection between all negative half-spaces of all triangles in the meshlet is approximated with a cone, such that any point in that cone is simultaneously in all negative half-spaces - if the camera is in this cone, all triangles are back facing and do not need to be rendered. meshoptimizer provides algorithms for [splitting meshes into meshlets and computing bounding information](https://github.com/zeux/meshoptimizer#mesh-shading), and you can look at a full end-to-end integration of this technique in [niagara renderer](https://github.com/zeux/niagara).
+For the purpose of this article, backface culling can be done on meshlet granularity by using [cluster cone culling](https://gpuopen.com/learn/geometryfx-1-2-cluster-culling/). For each meshlet, the intersection between all negative half-spaces of all triangles in the meshlet is approximated with a cone, such that any point in that cone is simultaneously in all negative half-spaces - if the camera is in this cone, all triangles are backfacing and do not need to be rendered. meshoptimizer provides algorithms for [splitting meshes into meshlets and computing bounding information](https://github.com/zeux/meshoptimizer#mesh-shading), and you can look at a full end-to-end integration of this technique in [niagara renderer](https://github.com/zeux/niagara).
 
 ![Cone culling](/images/backface_1.png)
 
-This test is cheap and coarse, which makes it a good candidate for task/mesh shaders. However, it's also very conservative: while on average we'd expect 50% of triangles to be backfacing, when using 124-triangle clusters and a single cone per cluster, the cone culling can typically reject only up to ~25% on dense and reasonably smooth meshes, and the rejection rate will be lower on meshes with larger triangles or more complex topology (for example, on Lumberyard Bistro interior scene the rejection rate is just 4%)[^1].
+This test is cheap and coarse, which makes it a good candidate for task/mesh shaders. However, it's also very conservative: while on average we'd expect 50% of triangles to be backfacing when using 124-triangle clusters and a single cone per cluster, cone culling can typically reject only up to ~25% on dense and reasonably smooth meshes, and the rejection rate will be lower on meshes with larger triangles or more complex topology (for example, on Lumberyard Bistro interior scene the rejection rate is just 4%)[^1].
 
-While the cone is an imperfect approximation, fundamentally on meshes with large triangles or sharp changes in local curvature coarse backface culling is bound to be much less effective, as triangles with different orientation will be mixed together in the same meshlet. This can be mitigated by grouping triangles into meshlets by orientation, but that introduces a lot of topological seams that hurt transformation and rasterization efficiency, and results in a poor tradeoff[^2].
+While the cone is an imperfect approximation, fundamentally on meshes with large triangles or sharp changes in local curvature coarse backface culling is bound to be much less effective, as triangles with different orientations will be mixed together in the same meshlet. This can be mitigated by grouping triangles into meshlets by orientation, but that introduces a lot of topological seams that hurt transformation and rasterization efficiency, and results in a poor tradeoff[^2].
 
 # Bruteforce backface culling
 
@@ -59,11 +59,11 @@ gl_MeshPrimitivesEXT[i].gl_CullPrimitiveEXT =
     determinant(mat3(vertexClip[a], vertexClip[b], vertexClip[c])) > 0;
 ```
 
-Either of the above formula results in rejecting backfacing triangles precisely, reaching ~50% culling efficiency. But, why repeat the work the hardware is doing anyway - wouldn't a fixed function unit be more efficient?
+Either of the above formulas results in rejecting backfacing triangles precisely, reaching ~50% culling efficiency. But, why repeat the work the hardware is doing anyway - wouldn't a fixed function unit be more efficient?
 
-As briefly noted before, on some hardware when using traditional rasterization pipeline, the driver may end up doing some amount of per-triangle culling in the synthesized shaders. Notably, on AMD GPUs radv driver - and likely other drivers - [does this for backface, frustum and small primitive culling](https://timur.hu/blog/2022/what-is-ngg), using some heuristics to decide whether this is worthwhile.
+As briefly noted before, on some hardware when using traditional rasterization pipeline, the driver may end up doing some amount of per-triangle culling in the synthesized shaders. Notably, on AMD GPUs radv driver - and likely other drivers - [does this for backface, frustum, and small primitive culling](https://timur.hu/blog/2022/what-is-ngg), using some heuristics to decide whether this is worthwhile.
 
-The intuition behind why this can be beneficial lies in the imbalance between fixed function geometry units and shader units. Going back to Radeon 5700 XT as an example, with its four primitive units it can cull 8 triangles per cycle. At the same time, that GPU has 40 compute units, with each unit dispatching up to 64 scalar multiply-adds per cycle, that adds up to ~2560 multiply-adds per cycle. A 3x3 matrix determinant (above) takes ~9 scalar multiply-adds, so theoretically we should be able to cull ~280 triangles per cycle using ALUs. Of course, this speed of light computation omits a lot of details, and some of the shader units may be busy executing other workloads (although for geometry-heavy passes like depth prepass or shadowmap pass the bottleneck is likely going to be in rasterization), but ultimately it's clear that in certain cases it's possible to dramatically outperform the fixed function culling hardware.
+The intuition behind why this can be beneficial lies in the imbalance between fixed function geometry units and shader units. Going back to Radeon 5700 XT as an example, with its four primitive units it can cull 8 triangles per cycle. At the same time, that GPU has 40 compute units, with each unit dispatching up to 64 scalar multiply-adds per cycle, which adds up to ~2560 multiply-adds per cycle. A 3x3 matrix determinant (above) takes ~9 scalar multiply-adds, so theoretically we should be able to cull ~280 triangles per cycle using ALUs. Of course, this speed of light computation omits a lot of details, and some of the shader units may be busy executing other workloads (although for geometry-heavy passes like depth prepass or shadowmap pass the bottleneck is likely going to be in rasterization), but ultimately it's clear that in certain cases it's possible to dramatically outperform the fixed function culling hardware.
 
 In fact, because AMD drivers tend to use shader culling when using traditional rasterization pipeline (at least, on desktop), using some form of fine-grained shader culling may be required to reach performance parity with mesh shading pipeline, as - at least as of this writing and on radv - mesh shaders do not get any form of shader culling by default.
 
@@ -71,14 +71,14 @@ In fact, because AMD drivers tend to use shader culling when using traditional r
 
 While 9 multiply-adds per triangle is not that much, it can be tempting to omit these computations altogether and find a more compute efficient way to cull triangles. In 2015, the [GPU-Driven Rendering Pipelines](https://advances.realtimerendering.com/s2015/aaltonenhaar_siggraph2015_combined_final_footer_220dpi.pdf) SIGGRAPH talk introduced a technique for precomputing triangle visibility masks. The space around the center of each cluster is classified into a small number of regions (6 in the talk), and for each region we pre-compute a mask where each bit of a mask corresponds to triangle visibility in that region. The mask has to be conservative - we must record 1 in the mask if the triangle is visible from any point in that region.
 
-Then, at runtime, we classify the camera position into one of the regions, and use the corresponding mask to cull triangles using simple bit tests. Other than classificaiton, which can be done in the task shader as the results are shared between all triangles in the cluster, this only requires to fetch the mask - which can be done using scalar loads for each 32-triangle group - and a bit test:
+Then, at runtime, we classify the camera position into one of the regions and use the corresponding mask to cull triangles using simple bit tests. Other than classification, which can be done in the task shader as the results are shared between all triangles in the cluster, this only requires to fetch the mask - which can be done using scalar loads for each 32-triangle group - and a bit test:
 
 ```glsl
 gl_MeshPrimitivesEXT[i].gl_CullPrimitiveEXT =
     maskSide >= 0 && (meshletData[maskOffset + (i >> 5)] & (1 << (i & 31))) == 0;
 ```
 
-To compute the region, we need to assign region index based on the camera position in cluster space. This requires transforming the camera position with inverse object transforms, and classifying the resulting vector using code like this for 6 regions:
+To compute the region, we need to assign a region index based on the camera position in cluster space. This requires transforming the camera position with inverse object transforms, and classifying the resulting vector using code like this for 6 regions:
 
 ```glsl
 	int maskSide =
@@ -93,11 +93,11 @@ To compute the region, we need to assign region index based on the camera positi
 
 This is not particularly cheap in abstract but, when done in task shader, the work is shared between all triangles in a cluster and as such has a fairly negligible cost.
 
-Computing the masks is fairly simple: we need to test each triangle against each region of space and see if the region is entirely within negative half-space of the triangle plane (in which case no point in the region can see the front side of the triangle), or not. This task is made slightly harder by the fact that the region is infinite, but it has a simple algebraic formulation. For example, for a 6-side frustum, the region corresponding to "+X" side is defined by four rays, where t is the point along the ray:
+Computing the masks is fairly simple: we need to test each triangle against each region of space and see if the region is entirely within the negative half-space of the triangle plane (in which case no point in the region can see the front side of the triangle), or not. This task is made slightly harder by the fact that the region is infinite, but it has a simple algebraic formulation. For example, for a 6-side frustum, the region corresponding to "+X" side is defined by four rays, where t is the point along the ray:
 
 $ P(t) = (t, \pm t, \pm t) $
 
-Since the camera position is unlikely to be inside the cluster, we can assume `t >= meshlet radius` (and check that this actually holds during runtime classification so that the tests are conservative). Then, we simply need to solve the negative half-space test for each ray, assuming triangle plane equation is $ Ax + By + Cz + D = 0 $:
+Since the camera position is unlikely to be inside the cluster, we can assume `t >= meshlet radius` (and check that this actually holds during runtime classification so that the tests are conservative). Then, we simply need to solve the negative half-space test for each ray, assuming the triangle plane equation is $ Ax + By + Cz + D = 0 $:
 
 $ \forall t \ge radius : At \pm Bt \pm Ct + D \le 0 $
 
@@ -105,9 +105,9 @@ $ \forall t \ge radius : At \pm Bt \pm Ct \le -D $
 
 $ A \pm B \pm C \le min(0, -D/radius) $
 
-If the above holds for each of four rays (there are four +/- combinations), the region is entirely in negative half-space of the triangle plane and we can set the corresponding bit in the mask to 0. This works because any point inside the region is a linear combination of up to four points on the rays that delimit it, and the result of plane equation can be interpolated linearly, resulting in a negative number (put another way, the region is a convex set with the boundary defined by four rays).
+If the above holds for each of four rays (there are four +/- combinations), the region is entirely in the negative half-space of the triangle plane and we can set the corresponding bit in the mask to 0. This works because any point inside the region is a linear combination of up to four points on the rays that delimit it, and the result of the plane equation can be interpolated linearly, resulting in a negative number (put another way, the region is a convex set with the boundary defined by four rays).
 
-If the above does not hold for any of the rays, the region is not entirely in negative half-space of the triangle plane and we must set the corresponding bit in the mask to 1. While this results in a conservative approximation of visibility, it's not entirely precise - we'll look at experimental results in a minute, but intuitively in a similar test done in 2D with the space split into four quadrants, most triangles would be classified as invisible only from one region out of 4, as the plane will intersect the other two and the fourth will be entirely in positive half-space:
+If the above does not hold for any of the rays, the region is not entirely in the negative half-space of the triangle plane and we must set the corresponding bit in the mask to 1. While this results in a conservative approximation of visibility, it's not entirely precise - we'll look at experimental results in a minute, but intuitively in a similar test done in 2D with the space split into four quadrants, most triangles would be classified as invisible only from one region out of 4, as the plane will intersect the other two and the fourth will be entirely in positive half-space:
 
 ![Precomputed masks](/images/backface_2.png)
 
@@ -140,7 +140,7 @@ gl_MeshPrimitivesEXT[i].gl_CullPrimitiveEXT =
 
 # Estimating culling efficiency
 
-For any given mesh, it's fairly straighforward to analyze the culling efficiency offline: assume the camera is in a given position, run the classification/culling code sketched above, count the total number of backface culled triangles. The results depend greatly on the mesh structure and the camera position; the table below summarizes culling rates for several meshes in a test set using each of the approximate culling techniques described above (keeping in mind that optimal target is 50%)
+For any given mesh, it's fairly straightforward to analyze the culling efficiency offline: assume the camera is in a given position, run the classification/culling code sketched above, and count the total number of backface culled triangles. The results depend greatly on the mesh structure and the camera position; the table below summarizes culling rates for several meshes in a test set using each of the approximate culling techniques described above (keeping in mind that the optimal target is 50%)
 
 |------------------|------------------|------------------|------------------|------------------|
 | Algorithm        | Kitten (niagara) | Happy Buddha     | Sponza | Lumberyard Interior        |
@@ -152,7 +152,7 @@ For any given mesh, it's fairly straighforward to analyze the culling efficiency
 | Multi-cone culling (4 cones) | 38.1% | 42.5% | 28.5% | 24.3% |
 |------------------|------------------|------------------|------------------|------------------|
 
-As we can see, cone culling is very sensitive to the cluster composition - even when using 4 cones per cluster, we see very different culling rates depending on how the meshes are constructed. In contrast, precomputed masks give much more consistent results, although they also suffer from dependency of triangle alignment vs region planes.
+As we can see, cone culling is very sensitive to the cluster composition - even when using 4 cones per cluster, we see very different culling rates depending on how the meshes are constructed. In contrast, precomputed masks give much more consistent results, although they also suffer from the dependency on triangle alignment vs region planes.
 
 Unfortunately, neither 2 cones nor 6 precomputed masks get us close to the 50% target, and even with 24 regions the precomputed masks only get as far as ~25% culling efficiency. 24 masks require 24 bits per triangle; 4 cones require 2 bits per triangle plus ~16 bytes of cone data per meshlet (~3 bits per triangle total, assuming 128 triangle meshlets).
 
@@ -191,7 +191,7 @@ As a result, combining cluster cone culling (to minimize the amount of work done
 
 In this post we've looked at a number of different techniques to cull backfacing triangles in mesh shaders. We've seen that cluster cone culling - which is the only method that can cull triangles on the cluster level - can result in suboptimal culling rates but is still valuable to reduce the mesh shader workload. When considering triangle-level culling methods, all of them seem to, in the end, lose to bruteforce culling or at best be on par with it.
 
-The code for fine-grained culling as well as cone culling integration is available in [niagara](https://github.com/zeux/niagara) and [meshoptimizer](https://github.com/zeux/meshoptimizer); mask-based culling is likely going to be added to meshoptimizer [in the future](https://github.com/zeux/meshoptimizer/pull/553) as well even though it looks like it's not going to be the best option for most use cases. Implementing K-means for cone cluster selection is left as an exercise to the reader ;)
+The code for fine-grained culling, as well as cone culling integration, is available in [niagara](https://github.com/zeux/niagara) and [meshoptimizer](https://github.com/zeux/meshoptimizer); mask-based culling is likely going to be added to meshoptimizer [in the future](https://github.com/zeux/meshoptimizer/pull/553) as well even though it looks like it's not going to be the best option for most use cases. Implementing K-means for cone cluster selection is left as an exercise to the reader ;)
 
 [^1]: There are other, more powerful, culling techniques that can make task-level culling of meshlets more effective, such as occlusion culling which is also implemented in [niagara](https://github.com/zeux/niagara), but are outside of the scope for today's post.
 [^2]: meshoptimizer's main algorithm for meshlet construction, meshopt_buildMeshlets, has a parameter `cone_weight` that helps control this tradeoff to a small extent, although the algorithm always prefers connectivity over orientation. All numbers in this post assume `cone_weight = 0.5`.
