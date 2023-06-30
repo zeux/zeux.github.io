@@ -37,7 +37,7 @@ LLVM 2.7 was released in April 2010, which was 11 years ago (10.5 years before t
 We're going to compare these compilers on compile time and run time axis as follows:
 
 - Using an amalgamated version of [meshoptimizer](https://github.com/zeux/meshoptimizer) library, we're going to build `libmeshoptimizer.o` several times for each compiler, with and without optimizations (-O0 through -O3), and note the build time.
-- Using the resulting optimized .o file we're going to compile the meshoptimized demo program using modern clang, run it on a Stanford dragon mesh and compare timings for various algorithms.
+- Using the resulting optimized .o file we're going to compile the meshoptimizer demo program using modern clang, run it on a Stanford dragon mesh and compare timings for various algorithms.
 
 The reason why we're going to compile the demo program separately is that demo program uses STL and I don't want to find versions of STL that are compatible with these older compilers.
 
@@ -111,7 +111,7 @@ The picture that is beginning to emerge here seems rather grim. We see speedups 
 
 Now, it's important that in addition to the disclaimer about the comparison not being particularly scientific the reader also understands one extra detail - all algorithms in meshoptimizer are carefully optimized. This isn't a run-of-the-mill C++ code - this is the code that was studied under various profilers and tweaked until, while it remained reasonably concise, the performance was deemed worthy.
 
-It is possible in theory that code that's less carefully optimized exhibits different behavior, or that the benchmarks chosen here are simply not as amenable to compiler optimization as they could be - the lack of prominent difference between different optimization levels is also noteworthy (although O3 in particular has been stufied before in academic research and the value of that mode was inconclusive).
+It is possible in theory that code that's less carefully optimized exhibits different behavior, or that the benchmarks chosen here are simply not as amenable to compiler optimization as they could be - the lack of prominent difference between different optimization levels is also noteworthy (although O3 in particular has been studied before in academic research and the value of that mode was inconclusive).
 
 To try to get a more complete picture, let's now look at more algorithms and compare them in O2 build only.
 
