@@ -215,6 +215,8 @@ for (unsigned int* tri = begin; tri != end; ++tri)
 
 The jagged array in a single allocation (or two) is surprisingly useful and versatile! Hopefully you've liked the post, which I tried to structure such that transformations from naive to optimal solution are intuitive and have a clear rationale. There are other algorithms and data structures that can benefit from similar optimizations; most crucially, cleanly splitting the operations into "build" and "query" such that you can build up the structure in one go is something that can be used in many other cases to get to a much better data layout or performance, whether driven by algorithmic complexity or machine efficiency. Past which, it really pays off to be careful with allocations and structure as much data as possible in the form of large directly indexable arrays.
 
+> Note: After publishing this, Paul Lalonde on Mastodon noted that the final algorithm can be a good match for GPU processing: between atomics for the counting/filling phase, and a plethora of fast parallel prefix sum algorithms, the construction of this data structure can be done entirely on the GPU with a few compute shaders/kernels, and once built the structure is easy and fast to query as well.
+
 Sometimes, ability to mutate is still important and some ideas from this post will not apply. Some algorithms in [meshoptimizer](https://github.com/zeux/meshoptimizer) use the second-to-last variant of the code (with `counts` and `offsets` separated): while it does not allow for arbitrary mutation, it does allow *removing* elements from the individual lists which can speed up the adjacency queries in some cases, so merging these two is not always fruitful.
 
 ---
