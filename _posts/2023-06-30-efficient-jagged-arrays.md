@@ -49,7 +49,7 @@ For code above if each vertex belongs to 6 triangles, the allocations where the 
 
 # Counting once
 
-The majority of inefficiencies all come from the fact that we aren't quite sure how long each per-vertex list of triangles should be; guessing this number up front can misfire, but given that the lists are not going to change in size after the adjacency computation is done, we can do much better by counting the list sizes *first*. Once that's done, we will be able to `reserve` each vector to the exact size that it needs.
+The majority of inefficiencies all come from the fact that we aren't quite sure how long each per-vertex list of triangles should be; guessing this number up front can misfire, but given that the lists are not going to change in size after the adjacency computation is done, we can do much better by counting the list sizes *first* in a separate pass. Once that's done, we will be able to `reserve` each vector to the exact size that it needs, and fill the lists as we did before.
 
 While we are here, we can also replace `std::vector` with a plain old array pointer that we allocate with `new` - after all, we're paying a substantial memory cost for each `std::vector` object since it needs to manage the `size` and `capacity` fields.
 
@@ -91,7 +91,9 @@ In total, we've reduced the total number of allocations to one per vertex, and t
 
 # Merging allocations
 
-Note that just precomputing `count` was not enough: we also need to track `offset` for each vertex during the algorithm's operation, as we need to know which element in each triangle list to write to next. With one more pass over the counts, we can instead compute offset assuming all lists are in one large allocation: instead of each offset starting from 0, we will start offset for each vertex with the total number of elements needed by all preceding vertices. This will allow us to allocate all triangle lists as part of one large allocation, *and* stop storing the pointer to each list in each vertex. The initial value for each offset is known as a [prefix sum](https://en.wikipedia.org/wiki/Prefix_sum) and is trivial to compute in one pass.
+The major source of remaining inefficiencies is the fact that each list is allocated separately. A much more efficient approach would be to allocate enough memory for all the lists and then place each list at an offset in the resulting large allocation such that for each list, the items of that list follow the items of the list before it. This sounds as if it would require a lot of extra code and tracking data, but it turns out we are in a reasonable position to do this without too much extra complexity:
+
+Note that in our previous solution, just precomputing `count` was not enough: we also needed to track `offset` for each vertex during the algorithm's operation, as we needed to know which element in each triangle list to write to next. With one more pass over the counts, we can instead compute the offset assuming all lists are in one large allocation: instead of each offset starting from 0, we will start offset for each vertex with the total number of elements needed by all preceding vertices. This will allow us to allocate all triangle lists as part of one large allocation, *and* stop storing the pointer to each list in each vertex. The initial value for each offset is known as a [prefix sum](https://en.wikipedia.org/wiki/Prefix_sum) and is trivial to compute in one pass.
 
 After we do that and fill all lists, we will have shifted each offset by the size of each list - in order to refer back to the correct range, we will need to subtract count from offset again to compensate for the extra additions. This was not a problem in our previous solution because we'd store a pointer in each list, but now that all the memory for all lists is shared we need offset to refer to the contents of each list when actually using the adjacency structure.
 
