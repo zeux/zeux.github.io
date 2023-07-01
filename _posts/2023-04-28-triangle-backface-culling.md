@@ -81,14 +81,14 @@ gl_MeshPrimitivesEXT[i].gl_CullPrimitiveEXT =
 To compute the region, we need to assign a region index based on the camera position in cluster space. This requires transforming the camera position with inverse object transforms, and classifying the resulting vector using code like this for 6 regions:
 
 ```glsl
-	int maskSide =
-		max(abs(dir.x), max(abs(dir.y), abs(dir.z))) <= meshlets[mi].radius
-			? -1
-			: abs(dir.x) > abs(dir.y) && abs(dir.x) > abs(dir.z)
-				? (dir.x >= 0 ? 0 : 3)
-				: abs(dir.y) > abs(dir.z)
-					? (dir.y >= 0 ? 1 : 4)
-					: (dir.z >= 0 ? 2 : 5);
+int maskSide =
+    max(abs(dir.x), max(abs(dir.y), abs(dir.z))) <= meshlets[mi].radius
+        ? -1
+        : abs(dir.x) > abs(dir.y) && abs(dir.x) > abs(dir.z)
+            ? (dir.x >= 0 ? 0 : 3)
+            : abs(dir.y) > abs(dir.z)
+                ? (dir.y >= 0 ? 1 : 4)
+                : (dir.z >= 0 ? 2 : 5);
 ```
 
 This is not particularly cheap in abstract but, when done in task shader, the work is shared between all triangles in a cluster and as such has a fairly negligible cost.
