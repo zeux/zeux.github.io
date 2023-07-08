@@ -48,9 +48,22 @@ I'm also working on a wide variety of open-source projects, most of which are ho
 
 [qgrep](https://github.com/zeux/qgrep) is a fast grep that uses an incrementally updated index to perform fast regular-expression based searches in large code bases. It uses [RE2](https://github.com/google/re2) and [LZ4](https://github.com/lz4/lz4) along with a lot of custom optimizations to make sure queries are as fast as possible. Additionally it features a Vim plugin for great search experience in the best text editor ;)
 
+## Past projects
+
+In addition to current projects, I've worked on open-source projects that have been shelved for the foreseeable future and are archived [on GitHub](https://github.com/zeux?tab=repositories&type=archived). Here's a short selection:
+
 ### codesize
 
 [codesize](https://github.com/zeux/codesize) is a tool that shows the memory impact of your code using a hierarchical display adapted to work well in large C++ codebases. It works by parsing debug information from PDB/ELF/Mach-O files. The purpose of the tool is to let the developer quickly find areas in the codebase that can be improved to gain memory by reducing code size, which is particularly important on memory-constrained platforms.
+
+### phyx
+
+[PhyX](https://github.com/zeux/phyx) is a 2D physics engine with SoA/SIMD/multicore optimizations. The project is based on an open-source physics engine [SusliX](https://github.com/MrSmile/SusliX-Lite); the original engine is scalar and single-core, whereas the main goal of this project was to explore various optimization techniques. In addition to traditional physics engine optimizations the project features fully SIMDified (SSE/AVX2) solver which works by pre-sorting the constrains into non-overlapping groups to eliminate data dependencies as well as "sloppy" island-less parallelization scheme that relies on convergence of racy impulse updates. Other parts of the project are heavily optimized with carefully implemented algorithms and data structures.
+
+### fastprintf
+
+[fastprintf](https://github.com/zeux/fastprintf) is an F# library that replaces built-in formatting functions from `printf` family with much faster alternatives. The implementation compiles the format specification and a set of types to a sequence of
+functions that do the necessary formatting; the compilation result is cached by format string and type list in a thread-safe cache. The compilation process uses reflection introspection and generics, but does not use dynamic code generation (Reflection.Emit). The library was written in F# 2/3 days to eliminate significant performance bottlenecks in any code that used standard formatting facilities; modern versions of F# (5+) include string interpolation as well as a faster standard printf style formatter so the library is only relevant in historical/educational sense.
 
 ## Publications
 
