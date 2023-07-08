@@ -62,8 +62,8 @@ In addition to current projects, I've worked on open-source projects that have b
 
 ### fastprintf
 
-[fastprintf](https://github.com/zeux/fastprintf) is an F# library that replaces built-in formatting functions from `printf` family with much faster alternatives. The implementation compiles the format specification and a set of types to a sequence of
-functions that do the necessary formatting; the compilation result is cached by format string and type list in a thread-safe cache. The compilation process uses reflection introspection and generics, but does not use dynamic code generation (Reflection.Emit). The library was written in F# 2/3 days to eliminate significant performance bottlenecks in any code that used standard formatting facilities; modern versions of F# (5+) include string interpolation as well as a faster standard printf style formatter so the library is only relevant in historical/educational sense.
+[fastprintf](https://github.com/zeux/fastprintf) is an F# library that replaces built-in formatting functions from `printf` family with much faster alternatives. The implementation compiles and caches the format specification and a set of types to a sequence of
+functions that do the necessary formatting and get JIT compiled by .NET runtime (without the use of Reflection.Emit). The library was written in F# 2/3 days to eliminate significant performance bottlenecks in code that used standard formatting facilities; modern versions of F# (5+) include string interpolation as well as a faster standard printf style formatter.
 
 ## Publications
 
