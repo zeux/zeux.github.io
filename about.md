@@ -46,7 +46,7 @@ I'm also working on a wide variety of open-source projects, most of which are ho
 
 ### qgrep
 
-[qgrep](https://github.com/zeux/qgrep) is a fast grep that uses an incrementally updated index to perform fast regular-expression based searches in large code bases. It uses [RE2](https://github.com/google/re2) and [LZ4](https://github.com/lz4/lz4) along with a lot of custom optimizations to make sure queries are as fast as possible. Additionally it features a Vim plugin for great search experience in the best text editor ;)
+[qgrep](https://github.com/zeux/qgrep) is a fast grep that uses an incrementally updated index to perform fast regular-expression based searches in large code bases. It uses [RE2](https://github.com/google/re2) and [LZ4](https://github.com/lz4/lz4) along with a lot of custom optimizations to make sure queries are as fast as possible (see [blog post](https://zeux.io/2019/04/20/qgrep-internals/)), and a file system watcher to keep the index up to date. Additionally it features a Vim plugin for great search experience in the best text editor ;)
 
 ## Past projects
 
