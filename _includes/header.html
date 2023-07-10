@@ -9,13 +9,21 @@
   <meta name="twitter:card"  content="summary">
   <meta name="twitter:title" content="{{ page.title }}">
 
-  {% if page.twitter %}
-  <meta name="twitter:description" content="{{ page.twitter }}">
-  {% elsif page.excerpt %}
+  {% if page.excerpt %}
   <meta name="twitter:description" content="{{ page.excerpt | strip_html }}">
   {% endif %}
   <meta name="twitter:image" content="https://zeux.io/images/avatar.jpg">
   <!-- end of Twitter cards -->
+
+  <!-- OpenGraph metadata -->
+  <meta property="og:title" content="{{ page.title }}">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://zeux.io/images/avatar.jpg">
+  <meta property="og:url" content="https://zeux.io{{ page.url }}">
+
+  {% if page.excerpt %}
+  <meta property="og:description" content="{{ page.excerpt | strip_html }}">
+  {% endif %}
 
   <!-- Enable responsiveness on mobile devices-->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
