@@ -45,6 +45,8 @@ The code is simple but has a number of efficiency problems[^2]:
 - Because `std::vector` stores data on heap, we will end up also potentially wasting memory on allocation metadata and block rounding. The size depends on the allocator, on Linux we end up wasting ~16 bytes between each allocation to allocation headers.
 - In addition, we will need to reallocate each vector continuously as we're pushing new elements. The growth of `std::vector` is particularly slow for small sizes, and to get to size 6 we will need 4 allocations. This results in a substantial performance overhead, as doing this many small allocations and deallocations could easily dominate the performance of the algorithm. While this (and the previous) problem can be mitigated by reserving the size of each element up-front if we have a guess[^3], if our guess is off in either direction we could waste more memory or more time.
 
+![Naive layout](/images/jagarr_1.png)
+
 For code above if each vertex belongs to 6 triangles, the allocations where the actual lists are stored are going to be ~48 bytes apart on Linux; this is reasonable from the macro locality perspective[^4], but given that we only have ~24 bytes of data (`6 * sizeof(unsigned int)`) it still means that traversing this data would waste ~half of the bytes loaded into cache, even ignoring the `sizeof(std::vector)` (which is also 24 bytes, so in total we're using ~72 bytes per vertex to store just 24 bytes of triangle indices).
 
 # Counting once
@@ -80,6 +82,8 @@ for (size_t i = 0; i < index_count; ++i)
 ```
 
 We now need to do one more pass through the source data to compute the size of each individual list; once that's done, we can allocate the exact number of entries and fill them with a second pass. While we're here, we can also use 32-bit integers instead of 64-bit integers for `count` and `offset`, unless we want to process vertices that are part of >4B triangles.
+
+![Array layout](/images/jagarr_2.png)
 
 Let's see how we're doing on our efficiency goals.
 
@@ -135,6 +139,8 @@ for (size_t i = 0; i < vertex_count; ++i)
 
 Instead of allocating each list separately we now put them all one after each other in a large allocation. This packs the data more densely and allows us to use indices instead of pointers to refer to individual elements, as well as eliminating all allocation waste and overhead.
 
+![Merged layout](/images/jagarr_3.png)
+
 Note that in the code above, `offset` is now tracking a "global" offset - which is to say, we now expect that the sum of all lengths of all lists fits into a 32-bit integer. This is valuable for memory efficiency, but does technically restrict this structure to slightly smaller data sources. It's easy to change by using `size_t` for `offset` and `sum` if necessary.
 
 Let's see how we're doing on our efficiency goals.
@@ -160,6 +166,8 @@ Our fourth loop finally corrects this by subtracting count from each element.
 If you look at the shifted offset array carefully, it's actually *almost* a subset of our initial offsets array! Which really makes sense: if `offsets[v]` is initially pointing at the beginning of each individual list, then after we filled all the lists `offsets[v]` is pointing at the end of the list - which also happens to be the beginning of the next list due to how we've laid out all lists in memory!
 
 This means that we don't need to adjust the offsets using counts - we can simply shift the elements forward by 1 in the array -- conceptually. Or we can simply fill the elements in the right place in the array. This also means that counts, once filled in the initial loop and used in the prefix sum, are no longer necessary - except in iteration when querying adjacency lists, but there we can simply use `offsets[v + 1]` to denote the end of the range where the list is stored.
+
+![Final layout](/images/jagarr_4.png)
 
 This allows us to mostly ignore `count` - we still need to compute it once, but we'll store it in the `offsets[]` array, and all further operations will work with offsets. Instead of shifting the array by moving the elements around, we will simply carefully adjust the offset indexing, which will save us the trouble of doing any offset correction at the end.
 
