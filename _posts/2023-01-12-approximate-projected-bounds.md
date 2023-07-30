@@ -179,20 +179,20 @@ So far we've ended up with two projection functions for bounding boxes, an optim
 
 `projectBoxView` takes ~29 FLOPs instead of ~42 FLOPs for `projectSphereView`, but that assumes that we're already starting with a view-space sphere. It's likely that we need to transform the sphere to view space instead, which adds 18 FLOPs for a matrix transform, for 47 FLOPs vs 60 FLOPs - or a ~27% speedup, at least as far as operation count is concerned - which is similar to the FLOPs delta between `projectBoxApprox` and `projectBox`.
 
-As noted before, FLOPs are not an accurate measure of performance. To get a better sense of performance of different variants on a real GPU, we will use [AMD Radeon GPU Analyzer](https://github.com/GPUOpen-Tools/radeon_gpu_analyzer), compile each of the four variants and measure the instruction count[^3]:
+As noted before, FLOPs are not an accurate measure of performance. To get a better sense of performance of different variants on a real GPU, we will use [AMD Radeon GPU Analyzer](https://github.com/GPUOpen-Tools/radeon_gpu_analyzer), compile each of the four variants and measure the instruction count[^3], as well as use [PVRShaderEditor](https://developer.imaginationtech.com/pvrshadereditor/) to estimate cycle count on PowerVR Series6 GPUs and [Mali Offline Compiler](https://developer.arm.com/Tools%20and%20Software/Mali%20Offline%20Compiler) to estimate cycle count on ARM Mali-G78.
 
-Function | FLOPs | GCN instructions
+Function | FLOPs | GCN instructions | PVR cycles | Mali cycles
 -----|-------|-------------
-projectBox | 110 | 138
-projectBoxApprox | 83 | 102
-projectSphere | 60 | 86
-projectSphereApprox | 47 | 82
+projectBox | 110 | 138 | 73 | 0.91
+projectBoxApprox | 83 | 102 | 36 | 0.64
+projectSphere | 60 | 86 | 38 | 0.59
+projectSphereApprox | 47 | 82 | 26 | 0.41
 
-We can see that while the bounding box approximation is yielding some ALU savings, the sphere approximation is almost identical in instruction count and will likely yield similar performance.
+We can see that while the bounding box approximation is yielding meaningful ALU savings, the sphere approximation is much closer to the precise sphere projection and will likely yield similar performance.
 
 Importantly, both approximations convert the primitive into a view-space bounding box and as such they yield larger bounds. To evaluate this, I've integrated all 4 methods into [niagara](https://github.com/zeux/niagara), and looked at the ratio of screen space bounds areas that approximations return, as well as the impact the approximations have on occlusion culling efficiency.
 
-Unfortunately, both approximations end up returning ~1.65x larger bounds in terms of area, which results in ~10% reduction in occlusion culling efficiency. As such, even for the box projection, any savings in ALU on the approximation are likely to be negated by the reduction in efficiency in later rendering stages.
+Unfortunately, both approximations end up returning ~1.65x larger bounds in terms of area, which results in ~10% reduction in occlusion culling efficiency. As such, even for the box projection, savings in ALU on the approximation are likely to be negated by the reduction in efficiency in later rendering stages, assuming the projection results are used for geometry culling downstream.
 
 ## Conclusion
 
@@ -203,4 +203,4 @@ Despite the title of the article, it looks like in general, when computing proje
 
 [^2]: Again, these are approximate. For example on AMD GPUs, division is actually two operations, one of which (1/x) is comparatively expensive, and the computation above assumes `min(x, y)` is a single operation whereas it may actually require two - compare and select.
 
-[^3]: While measuring instruction count is better than measuring FLOPs as it takes into account the compiler and hardware specifics, it's still a bad approximation of the real performance as some GCN instructions have different throughput and scheduling constraints. Unfortunately, RGA does not output cycle estimates, and I could not easily get any other static shader performance analysis tools to run, so that's what we get so far!
+[^3]: While measuring instruction count is better than measuring FLOPs as it takes into account the compiler and hardware specifics, it's still a bad approximation of the real performance as some GCN instructions have different throughput and scheduling constraints. Unfortunately, RGA does not output cycle estimates.
