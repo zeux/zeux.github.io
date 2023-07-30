@@ -18,7 +18,7 @@ Spheres are convenient to transform - e.g. a world-space sphere can be converted
 
 ```glsl
 // 2D Polyhedral Bounds of a Clipped, Perspective-Projected 3D Sphere. Michael Mara, Morgan McGuire. 2013
-bool projectSphere(vec3 c, float r, float znear, float P00, float P11, out vec4 aabb)
+bool projectSphereView(vec3 c, float r, float znear, float P00, float P11, out vec4 aabb)
 {
     if (c.z < r + znear) return false;
 
@@ -45,34 +45,86 @@ Note that in this implementation we assume that the projection is symmetrical fo
 
 All in all this requires ~30 FLOPs for the transform plus 12 FLOPs for the final conversions.[^1] Note that `c` is a view-space center of the sphere above - when the sphere is in world space instead, we'll need to transform it to view space first, which takes ~18 FLOPs, for a grand total of 60 FLOPs.
 
-## Box projection
+## Naive box projection
 
 If the input is an AABB, things become more difficult. Unlike a sphere, that retains the properties of being a sphere after transformation, an axis-aligned bounding box stops being axis-aligned - this makes precise calculation of the projected bounds difficult as any corner of the bounding box can be extremum, and the problem lacks symmetry. Because of this, a typical method requires projecting all 8 corners, performing a perspective divide, and computing min/max of the resulting values. To perform near plane rejection, before doing the divide we need an "early" out if any transformed vectors have `.w < znear`.
 
 Here's a pseudo-code for what this entails, assuming a world-space input:
 
 ```glsl
-vec4 P0 = vec4(min.x, min.y, min.z, 1.0) * ViewProjection;
-vec4 P1 = vec4(min.x, min.y, max.z, 1.0) * ViewProjection;
-...
-vec4 P7 = vec4(max.x, max.y, max.z, 1.0) * ViewProjection;
+bool projectBox(vec3 bmin, vec3 bmax, float znear, mat4 viewProjection, out vec4 aabb)
+{
+    vec4 P0 = vec4(bmin.x, bmin.y, bmin.z, 1.0) * viewProjection;
+    vec4 P1 = vec4(bmin.x, bmin.y, bmax.z, 1.0) * viewProjection;
+    vec4 P2 = vec4(bmin.x, bmax.y, bmin.z, 1.0) * viewProjection;
+    vec4 P3 = vec4(bmin.x, bmax.y, bmax.z, 1.0) * viewProjection;
+    vec4 P4 = vec4(bmax.x, bmin.y, bmin.z, 1.0) * viewProjection;
+    vec4 P5 = vec4(bmax.x, bmin.y, bmax.z, 1.0) * viewProjection;
+    vec4 P6 = vec4(bmax.x, bmax.y, bmin.z, 1.0) * viewProjection;
+    vec4 P7 = vec4(bmax.x, bmax.y, bmax.z, 1.0) * viewProjection;
 
-if (min(P0.w, P1.w, ..., P7.w) < znear) return false;
+    if (min(P0.w, P1.w, P2.w, P3.w, P4.w, P5.w, P6.w, P7.w) < znear) return false;
 
-float minx = min(P0.x / P0.w, ..., P7.x / P7.w);
-// repeat for miny/maxx/maxy
+    aabb.xy = min(
+        P0.xy / P0.w, P1.xy / P1.w, P2.xy / P2.w, P3.xy / P3.w,
+        P4.xy / P4.w, P5.xy / P5.w, P6.xy / P6.w, P7.xy / P7.w);
+    aabb.zw = max(
+        P0.xy / P0.w, P1.xy / P1.w, P2.xy / P2.w, P3.xy / P3.w,
+        P4.xy / P4.w, P5.xy / P5.w, P6.xy / P6.w, P7.xy / P7.w);
+
+    // clip space -> uv space
+    aabb = aabb.xwzy * vec4(0.5f, -0.5f, 0.5f, -0.5f) + vec4(0.5f);
+
+    return true;
+}
 ```
 
-This is substantially more expensive than the equivalent computation for a sphere - each vector-matrix transform requires 24 FLOPs, so the entire function requires 192 FLOPs just to do the transformation, 16 FLOPs for post-perspective divide, 35 FLOPs for various min/max computations and 8 FLOPs for final conversions of the result - a grand total of 251 operations![^2]
-
-There is some amount of redundancy in the transformations above - the bulk of operations is dealing with the matrix multiplication, and a large amount of individual elements that are being multiplied there are shared between transforms of individual corners. If we eliminate this redundancy (given enough registers, a sufficiently smart compiler may do that for us), we end up with "only" 24 multiplications and 96 additions for transforms, saving 72 FLOPs, which would bring the total down to 179 FLOPs - still, a hefty cost. Additionally this doesn't help us much if the target platform implements multiply-add instructions, which all GPUs do, as it replaces 96 MADs with 24 MULs and 96 ADDs, and doesn't free us from having to do 16 divisions.
+This is substantially more expensive than the equivalent computation for a sphere - each vector-matrix transform requires 18 FLOPs (as resulting `.z` is unused), so the entire function requires 144 FLOPs just to do the transformation, 16 FLOPs for post-perspective divide, 35 FLOPs for various min/max computations and 8 FLOPs for final conversions of the result - a grand total of 203 operations![^2]
 
 > Update: After the article was published, several people noted that it's also possible to slightly reduce the overhead here using point classification: using the technique from [Fast Projected Area Computation for
-Three-Dimensional Bounding Boxes](https://arbook.icg.tugraz.at/schmalstieg/Schmalstieg_031.pdf), once the camera position in bounding box space is known, you can classify silhouette edges via a table lookup, which gives 6 (or, rarely, 4) silhouette vertices that then need to be transformed as above. This leaves the transformation precise but isn't a significant performance win compared to the method described below. Thanks to Eric Haines and Alan Hickman for correction!
+Three-Dimensional Bounding Boxes](https://arbook.icg.tugraz.at/schmalstieg/Schmalstieg_031.pdf), once the camera position in bounding box space is known, you can classify silhouette edges via a table lookup, which gives 6 (or, rarely, 4) silhouette vertices that then need to be transformed as above. This leaves the transformation precise, but requires additional code and table data so may or may not be worthwhile on a GPU compared to the methods below. Thanks to Eric Haines and Alan Hickman for correction!
 
-## View-space AABB
+## Optimized box projection
 
-In order to improve these results we need to convert the box to something that is easier to deal with - namely, another axis-aligned box, but this time in view space. Converting AABBs between different spaces [has been discussed on this blog before](/2010/10/17/aabb-from-obb-with-component-wise-abs/), and requires an additional vector transform by a 3x3 matrix which is a component-wise modulus of the original rotation matrix. Note that this transformation is conservative but not precise - the resulting bounding volume and, as a result, the projected bounds are going to be larger.
+The original version of this article provided a way to reduce the amount of computation in the naive projection by eliminating redundant multiplications, but Aslan Dzodzikov suggested a much more efficient version in the comments. Instead of computing the corners by multiplying the world-space corner of AABB by the matrix, we can take advantage of the distributive property of matrix multiplication and note that `vec4(bmin.x, bmin.y, bmax.z, 1.0) * viewProjection == vec4(bmin.x, bmin.y, bmin.z, 1.0) * viewProjection + vec4(0, 0, bmax.z - bmin.z, 0) * viewProjection`. This allows us to only compute one full vector-matrix product and three products that reduce to row/column multiplication, and the rest of the computation is just vector additions:
+
+```glsl
+bool projectBox(vec3 bmin, vec3 bmax, float znear, mat4 viewProjection, out vec4 aabb)
+{
+    vec4 SX = vec4(bmax.x - bmin.x, 0.0, 0.0, 0.0) * viewProjection;
+    vec4 SY = vec4(0.0, bmax.y - bmin.y, 0.0, 0.0) * viewProjection;
+    vec4 SZ = vec4(0.0, 0.0, bmax.z - bmin.z, 0.0) * viewProjection;
+
+    vec4 P0 = vec4(bmin.x, bmin.y, bmin.z, 1.0) * viewProjection;
+    vec4 P1 = P0 + SZ;
+    vec4 P2 = P0 + SY;
+    vec4 P3 = P2 + SZ;
+    vec4 P4 = P0 + SX;
+    vec4 P5 = P4 + SZ;
+    vec4 P6 = P4 + SY;
+    vec4 P7 = P6 + SZ;
+
+    if (min(P0.w, P1.w, P2.w, P3.w, P4.w, P5.w, P6.w, P7.w) < znear) return false;
+
+    aabb.xy = min(
+        P0.xy / P0.w, P1.xy / P1.w, P2.xy / P2.w, P3.xy / P3.w,
+        P4.xy / P4.w, P5.xy / P5.w, P6.xy / P6.w, P7.xy / P7.w);
+    aabb.zw = max(
+        P0.xy / P0.w, P1.xy / P1.w, P2.xy / P2.w, P3.xy / P3.w,
+        P4.xy / P4.w, P5.xy / P5.w, P6.xy / P6.w, P7.xy / P7.w);
+
+    // clip space -> uv space
+    aabb = aabb.xwzy * vec4(0.5f, -0.5f, 0.5f, -0.5f) + vec4(0.5f);
+
+    return true;
+}
+```
+
+To compute each of `SX/SY/SZ` we need 4 FLOPs (since resulting `.z` is unused, and the matrix multiplication reduces to a row/column multiplication); the matrix transform requires 18 FLOPs and the rest of the calculations require 7\*3 = 21 FLOPs, so the transformation requires 51 FLOPs in total. The rest of the computation remains as is, with 16+35+8 FLOPs to compute the bounds, which adds up to 110 FLOPs - about half as many as the naive computation! The result is still precise, although may not be exactly equal to the naive computation due to round-off errors.
+
+## View-space approximations
+
+In order to improve these results further we would need to convert the box to something that is easier to deal with - namely, another axis-aligned box, but this time in view space. Converting AABBs between different spaces [has been discussed on this blog before](/2010/10/17/aabb-from-obb-with-component-wise-abs/), and requires an additional vector transform by a 3x3 matrix which is a component-wise modulus of the original rotation matrix. Note that this transformation is conservative but not precise - the resulting bounding volume and, as a result, the projected bounds are going to be larger.
 
 Once the AABB we have is in view space, a number of things become easier. To perform the near clipping rejection, we simply need to look at the minimum Z coordinate for the AABB - no need to compute it from scratch! For the actual projection, the first step is to notice that out of 8 corners, 4 of them on the "front" side (minimum Z) and 4 of them on the "back" side (maximum Z) share the denominator during post-perspective division. Additionally, when computing, for example, the maximum X for the projection, we obviously only need to consider the "right" side of the box - now that we work in view space, it's easy to know which vertices may be extremum! - and all vertices on the right side share the same view-space X. As such, to compute the max X, we simply need to consider two values:
 
@@ -89,7 +141,7 @@ float maxx = viewmax.x / (viewmax.x >= 0 ? viewmin.z : viewmax.z);
 With this, we're ready to implement the entire function:
 
 ```glsl
-bool projectBox(vec3 c, vec3 r, float znear, float P00, float P11, out vec4 aabb)
+bool projectBoxView(vec3 c, vec3 r, float znear, float P00, float P11, out vec4 aabb)
 {
     if (c.z - r.z < znear) return false;
 
@@ -109,26 +161,46 @@ bool projectBox(vec3 c, vec3 r, float znear, float P00, float P11, out vec4 aabb
     return true;
 }
 
-bool projectBoxWorld(vec3 min, vec3 max, mat4x4 view, float znear, float P00, float P11, out vec4 aabb)
+bool projectBoxApprox(vec3 min, vec3 max, mat4 view, float znear, float P00, float P11, out vec4 aabb)
 {
     vec4 c = vec4((min + max) * 0.5, 1.0) * view;
-    vec3 r = ((max - min) * 0.5) * mat3x3(abs(view[0].xyz), abs(view[1].xyz), abs(view[2].xyz));
+    vec3 s = (max - min) * 0.5;
+    vec3 r = s * mat3(abs(view[0].xyz), abs(view[1].xyz), abs(view[2].xyz));
     
-    return projectBox(c.xyz, r, znear, P00, P11, aabb);
+    return projectBoxView(c.xyz, r, znear, P00, P11, aabb);
 }
 ```
 
-The view-space projection takes 17 FLOPs to implement the core projection, plus 12 FLOPs to transform the result; to project a box to view-space, we need to convert the box to center+radius form (12 FLOPs, although this may not be necessary if the AABB is already stored as center+radius), and do the matrix multiplications (18 FLOPs for center and 24 FLOPs for radius), for a grand total of 83 FLOPs, which is 2-3x better than the precise version. Note that in the `projectBox` code above we choose to precompute reciprocals of min/max Z to reduce the cost - this technically increases the number of floating-point operations by 2 by trading 4 divisions by 2 reciprocal operations and 4 multiplies, which is usually a good tradeoff on GPUs.
+The view-space projection takes 17 FLOPs to implement the core projection, plus 12 FLOPs to transform the result; to project a box to view-space, we need to convert the box to center+radius form (12 FLOPs, although this may not be necessary if the AABB is already stored as center+radius), and do the matrix multiplications (18 FLOPs for center and 24 FLOPs for radius), for a grand total of 83 FLOPs, which is ~30% fewer operations than the optimized precise version. Note that in the `projectBoxApprox` code above we choose to precompute reciprocals of min/max Z to reduce the cost - this technically increases the number of floating-point operations by 2 by trading 4 divisions by 2 reciprocal operations and 4 multiplies, which is usually a good tradeoff on GPUs.
+
+## Evaluation
+
+So far we've ended up with two projection functions for bounding boxes, an optimized precise variant and a view space approximation. We can also adapt `projectBoxView` to serve as a sphere approximation - which is to say, by approximating a sphere with a box with the same radius, we still retain the conservative nature of the projection, and trade off some computational time for precision.
+
+`projectBoxView` takes ~29 FLOPs instead of ~42 FLOPs for `projectSphereView`, but that assumes that we're already starting with a view-space sphere. It's likely that we need to transform the sphere to view space instead, which adds 18 FLOPs for a matrix transform, for 47 FLOPs vs 60 FLOPs - or a ~27% speedup, at least as far as operation count is concerned - which is similar to the FLOPs delta between `projectBoxApprox` and `projectBox`.
+
+As noted before, FLOPs are not an accurate measure of performance. To get a better sense of performance of different variants on a real GPU, we will use [AMD Radeon GPU Analyzer](https://github.com/GPUOpen-Tools/radeon_gpu_analyzer), compile each of the four variants and measure the instruction count[^3]:
+
+Function | FLOPs | GCN instructions
+-----|-------|-------------
+projectBox | 110 | 138
+projectBoxApprox | 83 | 102
+projectSphere | 60 | 86
+projectSphereApprox | 47 | 82
+
+We can see that while the bounding box approximation is yielding some ALU savings, the sphere approximation is almost identical in instruction count and will likely yield similar performance.
+
+Importantly, both approximations convert the primitive into a view-space bounding box and as such they yield larger bounds. To evaluate this, I've integrated all 4 methods into [niagara](https://github.com/zeux/niagara), and looked at the ratio of screen space bounds areas that approximations return, as well as the impact the approximations have on occlusion culling efficiency.
+
+Unfortunately, both approximations end up returning ~1.65x larger bounds in terms of area, which results in ~10% reduction in occlusion culling efficiency. As such, even for the box projection, any savings in ALU on the approximation are likely to be negated by the reduction in efficiency in later rendering stages.
 
 ## Conclusion
 
-Finally, it's worth noting that instead of using precise `projectSphere` version to project a sphere, we can use `projectBox` - which is to say, by approximating a sphere with a box with the same radius, we still retain the conservative nature of the projection, and trade off some computational time for precision.
-
-This is not that significant of a win in practice, however - `projectBox` takes ~29 FLOPs instead of ~42 FLOPs for `projectSphere`, but that assumes that we're already starting with a view-space sphere. It's likely that we need to transform the sphere to view space instead, which adds 18 FLOPs for a matrix transform, for 47 FLOPs vs 60 FLOPs. This is a good time to mention, for the third time, that these counts of operations are a mere approximation of the real execution cost. Indeed, if we compile both versions of sphere projection using Mali offline compiler, we'll see that both versions have the same number of estimated cycles - however, the approximate version yields larger bounds. On a test scene from [niagara](https://github.com/zeux/niagara), the approximation of sphere with a box returns, on average, bounds that are ~1.7x larger in terms of area, which results in a reduction of occlusion culling efficiency by ~10% - not a good tradeoff!
-
-Thus when the input is a sphere, the precise version is also, on the balance, the best version; the view-space approximation, however, can still be useful when the input is an AABB, as the approximation is much cheaper to compute than the precise bounds.
+Despite the title of the article, it looks like in general, when computing projected bounds, it's enough to approximate them by rejecting the cases when the primitive intersects the near plane - and in all other cases computing precise bounds, when done carefully with well optimized code, is reasonably close to view space approximations in performance while providing a much more accurate result. A more accurate result allows more precise culling, which is likely to be a net benefit overall.
 
 ---
 [^1]: In this post we simplify the reasoning about the execution cost and treat every primitive operation as a single FLOP. The real performance implications are a little more nuanced, as division and square root are typically more expensive, and some multiplies and adds in the code above can be fused.
 
 [^2]: Again, these are approximate. For example on AMD GPUs, division is actually two operations, one of which (1/x) is comparatively expensive, and the computation above assumes `min(x, y)` is a single operation whereas it may actually require two - compare and select.
+
+[^3]: While measuring instruction count is better than measuring FLOPs as it takes into account the compiler and hardware specifics, it's still a bad approximation of the real performance as some GCN instructions have different throughput and scheduling constraints. Unfortunately, RGA does not output cycle estimates, and I could not easily get any other static shader performance analysis tools to run, so that's what we get so far!
