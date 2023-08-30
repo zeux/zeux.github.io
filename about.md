@@ -6,7 +6,7 @@ title: About
 
 I’m a technical fellow at [Roblox](https://corp.roblox.com/). Previously I worked as a rendering engineer at [Sperasoft, Inc.](https://sperasoft.com/) on FIFA 13 and FIFA Street titles, as a PS3 programmer at [Saber Interactive](https://saber.games/) and as a lead engine developer at [Creat Studios](https://en.wikipedia.org/wiki/List_of_games_developed_by_Creat_Studios); during my career I’ve helped ship many games on PS2/PS3/XBox 360/PC. [More...](/resume/)
 
-> Games in reverse chronological order:
+> [Games](https://www.mobygames.com/person/360714/arseny-kapoulkine/) in reverse chronological order:
 >
 > FIFA 13 (<small>PC/PS3/X360</small>),
 > UEFA EURO 2012 (<small>PC/PS3/X360</small>),
