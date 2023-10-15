@@ -7,8 +7,6 @@ title: Resume
 
 Expert on game engine technology, including rendering, performance, language runtimes and compilers, simulation, networking. Effectively combines technical leadership and individual contributions in high-profile areas to build and execute the technical vision. Especially enjoys contributing to high-impact technology platforms. Writing code is a pastime.
 
-If you reach out to me with an IC role then you need to re-read the paragraph above and my work history. Please be respectful of my time.
-
 ## Work history
 
 ### Roblox - Technical Fellow (April 2019 - present)
