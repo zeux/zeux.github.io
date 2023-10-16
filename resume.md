@@ -15,14 +15,14 @@ Expert on game engine technology, including rendering, performance, language run
 - Ongoing research & development of language-related improvements (actor-based parallelism, garbage collection, JIT)
 - Improve internal engine technology and satellite projects through review and mentorship
 - Technical guidance for all internal projects that involve or interface with "native" (C++) stack
-- Influence the state of graphics hardware/APIs through advisory panels/boards
-- Contribute to open standards such as WebAssembly and glTF
+- Influence the state of graphics hardware/APIs through advisory panels/boards (Intel Visual Computing ARB, Vulkan Advisory Panel)
+- Contribute to open standards such as WebAssembly (SIMD) and glTF (quantization, compression)
 
 ### Roblox - Technical Director (April 2014 - March 2019)
 
 - Guide internal projects that involve the native (C++) stack: design review, code review, mentoring, hiring, middleware evaluation, performance analysis and recommendations, etc. etc.
 - Improve network bandwidth by optimizing gameplay and physics data (general-purpose compression, repacking data for better compression, redesigned GUID replication, custom packed physics transform compressors)
-- Implement always-enabled memory and performance profiling systems for internal and external use (category-based memory tracking, instrumentationbased profiling based on open-source but *very* substantially improved microprofile library)
+- Implement always-enabled memory and performance profiling systems for internal and external use (category-based memory tracking, instrumentation based profiling based on open-source but *very* substantially improved microprofile library)
 - Define direction for future Roblox lighting engine by implementing various prototypes and guiding the team in shipping the results (Forward+ with tiled shadow maps, custom GPU-based voxel system, HDR, physically based BRDFs)
 - Implement multi-API shader recompilation system to reduce shader maintenance (single source of truth, offline shader optimization passes, custom SPIRV transform pipelines for Vulkan)
 - Extend rendering backend to support Metal and Vulkan (also persevere through myriads of Android issues and ship support for Vulkan on Android 7.x and above)
@@ -36,7 +36,7 @@ Expert on game engine technology, including rendering, performance, language run
 - Worked on porting ROBLOX client to iOS (performance/memory optimization, OpenGL ES2 support, improving stability, etc.)
 - Developed an adaptive rendering system that optimizes user-generated content on the fly to balance CPU/GPU usage (automatic static and dynamic geometry batching, character texture compositing, material and batch LOD)
 - Developed a custom compressed binary format optimized for specific ROBLOX needs to significantly improve load/save times (generic DOM serialization with special packing to optimize for loading efficiency and compression ratio with transparent versioning/compatibility)
-- Developed a novel approach to lighting the environment using CPU-based voxel computations (sun shadows, sky occlusion, local point/spot lights with shadow support)
+- Developed a novel approach to lighting the environment using CPU-based voxel computations (sun shadows, sky occlusion, local point/spot lights with shadow support, SSE2/NEON optimizations)
 - Optimized client and server for performance, memory and load times (clientside CPU and GPU optimizations for a wide range of hardware, significant reduction of render farm size)
 - Rewritten the low level rendering engine from scratch, replacing Ogre3D with an in-house solution (significantly improved performance and load times, 10x less code to maintain; D3D9/GL/GLES2)
 
