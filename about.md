@@ -12,7 +12,7 @@ During my career I’ve helped [ship many games](https://www.mobygames.com/perso
 
 ## Projects
 
-I'm also working on a wide variety of open-source projects, most of which are hosted [on GitHub](https://github.com/zeux/). Here's a short selection:
+I'm working on a wide variety of open-source projects, most of which are hosted [on GitHub](https://github.com/zeux/). Here's a short selection:
 
 ### pugixml
 
@@ -70,7 +70,7 @@ I also have a [blog](https://zeux.io) with technical posts on various subjects (
 
 ## Biography
 
-Arseny Kapoulkine has worked on game technology for the past decade. Having worked on rendering, physics simulation, language runtimes, multithreading and many other areas, he is still discovering exciting problems in game development that require low-level thinking. After helping ship many titles on PS3 including several FIFA games, he joined [Roblox](https://corp.roblox.com/) in 2012 and has been working on the in-house engine ever since, helping young game developers achieve their dreams.
+Arseny Kapoulkine has worked on game technology for more than 15 years. Having worked on rendering, physics simulation, language runtimes, multithreading and many other areas, he is still discovering exciting problems in computing that require low-level thinking. After helping ship many titles on PS3 including several FIFA games, he worked on the Roblox platform for 11 years, helping young game developers achieve their dreams.
 
 ## Contacts
 
