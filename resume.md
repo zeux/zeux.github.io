@@ -11,8 +11,11 @@ Expert on game engine technology, including rendering, performance, language run
 
 ### Roblox - Technical Fellow (April 2019 - present)
 
-- Design and implementation of new Lua VM (optimizing bytecode compiler, fast interpreter, gradual typing proof of concept)
-- Ongoing research & development of language-related improvements (actor-based parallelism, garbage collection, JIT)
+- Design and implementation of new Lua VM (heavily optimizing bytecode compiler, fast interpreter, optimized memory allocator, numerous library optimizations, bytecode compression, memory optimization, A64 native code generation, GC optimizations)
+- Language tooling development (various static analyses to improve program correctness, low-overhead cross platform sampling profiler, low-overhead debugger, code coverage collection, heap analysis and leak detection, benchmarking infrastructure)
+- Language evolution (establishing RFC process, compatibility strategy, design & implementation for compound assignments, continue statement, generalized iteration and others)
+- Ongoing research & development of language-related improvements (gradual typing proof of concept, actor-based parallelism, improved garbage collection designs, JIT proof of concept)
+- Drive open source efforts around Luau (reaching consensus, code sanitization and release, establishing processes, engaging with community)
 - Improve internal engine technology and satellite projects through review and mentorship
 - Technical guidance for all internal projects that involve or interface with "native" (C++) stack
 - Influence the state of graphics hardware/APIs through advisory panels/boards (Intel Visual Computing ARB, Vulkan Advisory Panel)
