@@ -5,11 +5,11 @@ title: Resume
 
 ## Resume
 
-Expert on game engine technology, including rendering, performance, language runtimes and compilers, simulation, networking. Effectively combines technical leadership and individual contributions in high-profile areas to build and execute the technical vision. Especially enjoys contributing to high-impact technology platforms. Writing code is a pastime.
+Expert on game engine and low-level systems technology, including rendering, all areas of performance, language runtimes and compilers, simulation, networking. Effectively combines technical leadership and individual contributions in high-profile areas to build and execute the technical vision. Especially enjoys contributing to high-impact technology platforms. Writing code is a pastime.
 
 ## Work history
 
-### Roblox - Technical Fellow (April 2019 - present)
+### Roblox - Technical Fellow (April 2019 - November 2023)
 
 - Design and implementation of new Lua VM (heavily optimizing bytecode compiler, fast interpreter, optimized memory allocator, numerous library optimizations, bytecode compression, memory optimization, A64 native code generation, GC optimizations)
 - Language tooling development (various static analyses to improve program correctness, low-overhead cross platform sampling profiler, low-overhead debugger, code coverage collection, heap analysis and leak detection, benchmarking infrastructure)

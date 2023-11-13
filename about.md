@@ -4,25 +4,11 @@ title: About
 ---
 ## Work
 
-I’m a technical fellow at [Roblox](https://corp.roblox.com/). Previously I worked as a rendering engineer at [Sperasoft, Inc.](https://sperasoft.com/) on FIFA 13 and FIFA Street titles, as a PS3 programmer at [Saber Interactive](https://saber.games/) and as a lead engine developer at [Creat Studios](https://en.wikipedia.org/wiki/List_of_games_developed_by_Creat_Studios); during my career I’ve helped ship many games on PS2/PS3/XBox 360/PC. [More...](/resume/)
+I'm available for advising and consulting; please reach out [via e-mail](mailto:arseny.kapoulkine@gmail.com).
 
-> [Games](https://www.mobygames.com/person/360714/arseny-kapoulkine/) in reverse chronological order:
->
-> FIFA 13 (<small>PC/PS3/X360</small>),
-> UEFA EURO 2012 (<small>PC/PS3/X360</small>),
-> FIFA Street 2012 (<small>PS3/X360</small>),
-> Battle: Los Angeles (<small>PC/PS3/X360</small>),
-> SkyFighter (<small>PS3</small>),
-> TerRover (<small>PS3</small>),
-> Hamster Ball (<small>PS3</small>),
-> Wakeboarding HD (<small>PS3</small>),
-> Mushroom Wars (<small>PS3</small>),
-> Digger HD (<small>PS3</small>),
-> Smash Cars (<small>PS3</small>),
-> Magic Ball (<small>PS3</small>),
-> Cuboid (<small>PS3</small>),
-> Mahjong Tales (<small>PS3</small>),
-> Aqua Teen Hunger Force (<small>PS2</small>)
+Previously I've worked as a technical fellow at [Roblox](https://corp.roblox.com/), rendering engineer at [Sperasoft](https://sperasoft.com/) on FIFA 13 and FIFA Street, as a PS3 programmer at [Saber Interactive](https://saber.games/) and as a lead engine developer at [Creat Studios](https://en.wikipedia.org/wiki/List_of_games_developed_by_Creat_Studios).
+
+During my career I’ve helped [ship many games](https://www.mobygames.com/person/360714/arseny-kapoulkine/) on PS2/PS3/XBox 360/PC as well as being involved in supporting PC/Mac/iOS/Android/XBox One/PS4 at Roblox. [My resume](/resume/) contains more details although I am not looking for recruiter reachouts.
 
 ## Projects
 
