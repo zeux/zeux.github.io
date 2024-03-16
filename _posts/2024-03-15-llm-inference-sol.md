@@ -8,6 +8,8 @@ In the process of working on [calm](https://github.com/zeux/calm), a minimal fro
 
 <!--more-->
 
+> If you're interested in more derivation and some graphs, [this notebook](https://github.com/zeux/calm/blob/main/tools/sol.ipynb) does the same modeling in Python.
+
 # Inference mechanics
 
 When a language model[^1] is generating [tokens](https://tiktokenizer.vercel.app/), it does so one token at a time; language models (specifically, decoder-only text transformer models, but the rest of the post will just describe them as LLMs) can be understood as a function that takes a token as input and produces an array of probabilities for all tokens from the vocabulary (which typically has 50-250K tokens, and each token is a few letters). Then, the program samples from the set of all tokens using the probabilities to guide the sampling, produces the next token, and the process repeats. This means that there is no possibility of parallelism when generating one sequence of text - the generation process can be modeled one token at a time[^2].
@@ -37,7 +39,7 @@ The composition of the parameters is as follows:
 - 32 \* (4096 \* 14336 \* 3) = 5637M parameters for transforming hidden state via a feed-forward network
 - 4096 \* 32000 = 131M parameters for converting the hidden state into token probabilities; this is used in a matrix multiply unlike the embedding matrix
 
-This adds up to ~7111M "active" parameters that are used in matrix multiplications. If the model is using FP16 for the matrix elements, we end up having to read ~14.2 GB of data for each token.[^6] Additionally, while each matrix is going to be used again when running inference for the next token, caches are measured in tens of megabytes, and as such we can assume this process can not run faster than memory bandwidth.
+This adds up to ~7111M "active" parameters that are used in matrix multiplications. If the model is using FP16 for the matrix elements, we end up having to read ~14.2 GB of data for each token.[^6] Additionally, while each matrix is going to be used again when running inference for the next token, caches are measured in tens of megabytes, and as such we can assume this process can not run faster than memory bandwidth as the weights won't stay in cache between runs[^9].
 
 This covers matrix math; attention computation needs to read the KV-cache up until the current token, so the amount of data read depends on how many tokens the model sees when generating the new one - that includes the system prompt (usually hidden from the user), user prompt, previous model output, and can include multiple user prompts for a longer chat session.
 
@@ -91,3 +93,4 @@ If these models used 4x GQA, the size and required bandwidth for KV-cache would 
 [^6]: Here and elsewhere GB is a decimal unit, equal to 1000^3, not GiB. All bandwidth measurements reported by manufacturers are powers of 10 even though the RAM sizes are powers of 2.
 [^7]: Close, but not quite there - 100% bandwidth utilization is unfortunately very hard to get close to on NVidia GPUs for this workload. Larger GPUs like H100 are even more difficult to fully saturate; on Mixtral - this is a different architecture but it obeys the same tradeoffs for single sequence generation if you only count active parameters - calm achieves ~75% of theoretically possible performance, although large denser models like Llama 70B can get closer to the peak.
 [^8]: Command-R has a large vocab (256K) and large hidden state (8192) so it spends a whopping 2B parameters on embeddings, but it reuses the same matrix for embedding and classification so we don't need to exclude this from the inference bandwidth calculation.
+[^9]: There's an architectural variant that fixes this by duplicating some layers which for smaller models can keep them in memory during inference, but I'm not aware of an open-source model that uses this.
