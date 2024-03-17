@@ -20,11 +20,11 @@ Now, both matrix-vector multiplication and attention computation have one import
 
 Modern CPUs and GPUs have a much higher rate of ALU operations (multiplies, adds) compared to the rate at which they can read inputs from memory. For example:
 
-- AMD Ryzen 7950X has 67 GB/s memory bandwidth and 2735 GFLOPs, for a 40:1 FLOP:byte ratio[^4]
-- NVidia GeForce 4090 has 1008 GB/s memory bandwidth and 83 TFLOPs, for a 82:1 FLOP:byte ratio[^5]
-- NVidia H100 SXM (which is a data-center card) has 3350 GB/s memory bandwidth and 67 TFLOPs, for a seemingly more modest 20:1 FLOP:byte; however, for problems that look like a matrix multiplication, tensor cores provide ~494 TFLOPs without sparsity for a 147:1 FLOP:byte ratio.
+- AMD Ryzen 7950X has 67 GB/s memory bandwidth and 2735 GFLOPS, for a 40:1 FLOP:byte ratio[^4]
+- NVidia GeForce 4090 has 1008 GB/s memory bandwidth and 83 TFLOPS, for a 82:1 FLOP:byte ratio[^5]
+- NVidia H100 SXM (which is a data-center card) has 3350 GB/s memory bandwidth and 67 TFLOPS, for a seemingly more modest 20:1 FLOP:byte; however, for problems that look like a matrix multiplication, tensor cores provide ~494 TFLOPS without sparsity for a 147:1 FLOP:byte ratio.
 
-The numbers get even worse for smaller floating point numbers like FP16 or FP8: H100 tensor cores have a theoretical throughput of 1979 TFLOPs for dense FP8 matrices, which brings the FLOP:byte ratio to 590:1. Needless to say, in any of these configurations and regardless of whether tensor cores are used or what the floating-point format is, ALU is in abundance.
+The numbers get even worse for smaller floating point numbers like FP16 or FP8: H100 tensor cores have a theoretical throughput of 1979 TFLOPS for dense FP8 matrices, which brings the FLOP:byte ratio to 590:1. Needless to say, in any of these configurations and regardless of whether tensor cores are used or what the floating-point format is, ALU is in abundance.
 
 Thus, any problem that only needs to do two operations per element must be bandwidth-limited, and we should be able to estimate the minimum amount of time it can take to run the inference process from the model configuration, the size of the KV-cache, and the available bandwidth.
 
