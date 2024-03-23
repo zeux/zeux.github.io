@@ -7,7 +7,7 @@ excerpt_separator: <!--more-->
 When using `std::condition_variable`, there's an easy to remember rule: all variables accessed in wait predicate must be changed under a mutex.
 However, this is easy to accidentally violate by throwing atomics in the mix.
 
-<!--mode-->
+<!--more-->
 
 > This post is much shorter than usual, and it was originally written in 2022 and published [on Cohost](https://cohost.org/zeux/post/520125-condition-variables). Originally my plan was to use Cohost for shorter notes like this one, and this blog post for long-form carefully detailed content. However, Cohost has an uncertain future and various limitations, and restricting this blog to long form posts results in very few articles that actually end up being written! As such, I'm going to experiment with posting shorter technical content like this more regularly in the coming months, including reposting my earlier Cohost posts (of which this is one of).
 
