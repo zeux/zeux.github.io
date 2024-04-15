@@ -30,6 +30,10 @@ I'm working on a wide variety of open-source projects, most of which are hosted 
 
 [niagara](https://github.com/zeux/niagara) is a Vulkan renderer that is written on stream (broadcast on YouTube) from scratch. The project implements a few modern Vulkan rendering techniques, such as GPU culling & scene submission, cone culling, automatic occlusion culling, task/mesh shading. It is not meant to be a production renderer, but aims to present production-ready techniques even if the implementation cuts some corners for expediency. Past streams are available in [a playlist](https://www.youtube.com/playlist?list=PL0JVLUVCkk-l7CWCn3-cdftR0oajugYvd).
 
+### calm
+
+[calm](https://github.com/zeux/calm) is a fast minimal GPU-accelerated large language model (decoder-only transformers) inference implementation, written in C with no dependencies. calm supports CUDA and Metal, and is one of the fastest implementations for NVidia/Apple hardware for token generation on a single-user single-GPU use case (calm intentionally does not support request batching or fast prefill to limit the scope to generation). It is not meant to be a production inference application, but aims to get as close to the bandwidth limit as possible on supported hardware and formats.
+
 ### qgrep
 
 [qgrep](https://github.com/zeux/qgrep) is a fast grep that uses an incrementally updated index to perform fast regular-expression based searches in large code bases. It uses [RE2](https://github.com/google/re2) and [LZ4](https://github.com/lz4/lz4) along with a lot of custom optimizations to make sure queries are as fast as possible (see [blog post](https://zeux.io/2019/04/20/qgrep-internals/)), and a file system watcher to keep the index up to date. Additionally it features a Vim plugin for great search experience in the best text editor ;)
