@@ -60,8 +60,8 @@ Of course, even on Linux this can be a problem. Some distributions, like Alpine 
 
 So yes, the `target_clones` attribute exists, and it solves the problem pretty elegantly... when it is supported, which, even 6 years after it was introduced in gcc, still is "pretty rarely". It's unfortunate that SIMD in C is full of portability problems like this - for a language that prides itself in unlocking the maximum performance, actually reaching that performance can be rather painful.
 
-[^1]: gcc can generate the inline SSE2 version with -ffast-math but that switch is unsafe to enable globally, so absent a way to enable it just for one function we're still out of luck.
+[^1]: gcc can generate the inline SSE2 version with `-ffast-math` but that switch is unsafe to enable globally, so absent a way to enable it just for one function we're still out of luck.
 
-[^2]: This is intentional as OSX 10.11 still supports iMacs released in 2007, that have Core 2 Duo (T7700) CPU - these support up to SSSE3, but roundsd is from SSE4.1.
+[^2]: This is intentional as OSX 10.11 still supports iMacs released in 2007, that have Core 2 Duo (T7700) CPU - these support up to SSSE3, but `roundsd` is from SSE4.1.
 
 [^3]: It's not fully clear to me which components of the system on Alpine really present the problem - this ostensibly should be a linker feature, not a libc feature, but I digress.
