@@ -20,8 +20,9 @@ X may be slow because it's actually doing the work, but doing the work isn't nec
 
 X may not even use the right framing for a problem. C++ compilers are notoriously slow, but it's not because the process of code compilation is fundamentally slow - it's because every element of the stack often carries profound inefficiencies that can be corrected by reframing the problem (which may require significant changes to the formulation - maybe instead of C++ you need to compile a different language!).
 
-And yet there are cases when "X is slow because it's doing a lot of work" is actually probably right - when the problem has been well explored and can't be reframed, when the implementation is thoroughly profiled and optimized, and especially when you can do some sort of speed of light calculation, eg "on this system we can't read memory faster than 50 GB/s, and yes we do need to read this much memory because we've already compressed the data to the extent feasible".
+And yet there are cases when "X is slow because it's doing a lot of work" is actually probably right - when the problem has been well explored and can't be reframed, when the implementation is thoroughly profiled and optimized, and especially when you can do some sort of speed of light calculation[^2], eg "on this system we can't read memory faster than 50 GB/s, and yes we do need to read this much memory because we've already compressed the data to the extent feasible".
 
 It can be very difficult to tell the difference, which is why I get annoyed a little bit every time I hear this, because the odds that enough analysis has been done on the particular implementation of the particular solution on the specific hardware and the exact data that's being processed before the statement is made are slim.
 
 [^1]: As should be obvious from the framing, X here is a variable, not a web site formerly known as Twitter.
+[^2]: [LLM inference speed of light](https://zeux.io/2024/03/15/llm-inference-sol/) post provides a practical example of such exercise.
