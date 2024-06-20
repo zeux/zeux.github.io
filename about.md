@@ -14,13 +14,17 @@ During my career I’ve helped [ship many games](https://www.mobygames.com/perso
 
 I'm working on a wide variety of open-source projects, most of which are hosted [on GitHub](https://github.com/zeux/). Here's a short selection:
 
+### meshoptimizer
+
+[meshoptimizer](https://github.com/zeux/meshoptimizer) is a library that can optimize geometry to render faster on GPUs by reordering vertex/index data. The library has algorithms that optimize vertex reuse, vertex access locality and overdraw, resulting in fewer vertex/fragment shader invocations and fewer cache misses when loading vertex data, as well as simplification, compression algorithms and other mesh processing utilities. [gltfpack](https://github.com/zeux/meshoptimizer/tree/master/gltf#readme), which is a tool that can automatically optimize glTF files, is also developed and distributed alongside the library.
+
 ### pugixml
 
 [pugixml](https://pugixml.org/) is a light-weight C++ XML processing library with an extremely fast and memory efficient DOM parser and XPath 1.0 support. It is used in a wide range of applications, including various embedded systems, video game engines, offline renderers, web backends and robotics/space software. A lot of effort goes into making sure pugixml has an easy-to-use API, has as few defects as possible and runs on all widespread platforms.
 
-### meshoptimizer
+### calm
 
-[meshoptimizer](https://github.com/zeux/meshoptimizer) is a library that can optimize geometry to render faster on GPUs by reordering vertex/index data. The library has algorithms that optimize vertex reuse, vertex access locality and overdraw, resulting in fewer vertex/fragment shader invocations and fewer cache misses when loading vertex data, as well as simplification, compression algorithms and other mesh processing utilities. [gltfpack](https://github.com/zeux/meshoptimizer/tree/master/gltf#readme), which is a tool that can automatically optimize glTF files, is also developed and distributed alongside the library.
+[calm](https://github.com/zeux/calm) is a fast minimal GPU-accelerated large language model (decoder-only transformers) inference implementation, written in C with no dependencies. calm supports CUDA and Metal, and is one of the fastest implementations for NVidia/Apple hardware for token generation on a single-user single-GPU use case (calm intentionally does not support request batching or fast prefill to limit the scope to generation). It is not meant to be a production inference application, but aims to get as close to the bandwidth limit as possible on supported hardware and formats.
 
 ### volk
 
@@ -29,10 +33,6 @@ I'm working on a wide variety of open-source projects, most of which are hosted 
 ### niagara
 
 [niagara](https://github.com/zeux/niagara) is a Vulkan renderer that is written on stream (broadcast on YouTube) from scratch. The project implements a few modern Vulkan rendering techniques, such as GPU culling & scene submission, cone culling, automatic occlusion culling, task/mesh shading. It is not meant to be a production renderer, but aims to present production-ready techniques even if the implementation cuts some corners for expediency. Past streams are available in [a playlist](https://www.youtube.com/playlist?list=PL0JVLUVCkk-l7CWCn3-cdftR0oajugYvd).
-
-### calm
-
-[calm](https://github.com/zeux/calm) is a fast minimal GPU-accelerated large language model (decoder-only transformers) inference implementation, written in C with no dependencies. calm supports CUDA and Metal, and is one of the fastest implementations for NVidia/Apple hardware for token generation on a single-user single-GPU use case (calm intentionally does not support request batching or fast prefill to limit the scope to generation). It is not meant to be a production inference application, but aims to get as close to the bandwidth limit as possible on supported hardware and formats.
 
 ### qgrep
 
