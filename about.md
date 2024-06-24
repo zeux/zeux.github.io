@@ -10,6 +10,8 @@ Previously I've worked as a technical fellow at [Roblox](https://corp.roblox.com
 
 During my career I’ve helped [ship many games](https://www.mobygames.com/person/360714/arseny-kapoulkine/) on PS2/PS3/XBox 360/PC as well as being involved in supporting PC/Mac/iOS/Android/XBox One/PS4 at Roblox. [My resume](/resume/) contains more details although I am not looking for recruiter reachouts.
 
+Among many other things at Roblox, I've started [Luau](https://luau-lang.org/), a fast, small, safe, gradually typed embeddable scripting language derived from Lua. Luau is [open-source](https://github.com/luau-lang/), and while I am no longer working on it full-time, I occasionally contribute patches and remain an expert on the internals.
+
 ## Projects
 
 I'm working on a wide variety of open-source projects, most of which are hosted [on GitHub](https://github.com/zeux/). Here's a short selection:
