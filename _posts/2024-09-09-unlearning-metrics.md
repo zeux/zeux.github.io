@@ -10,7 +10,7 @@ That said, my recollection is that people mostly wrote what was fun or interesti
 
 <!--more-->
 
-> This post is different than usual, and it was originally written in late 2022 and published on Cohost. I have originally been excited about Cohost's future and planned to use it as a micro-blogging platform, reserving this blog for long, very technical and carefully written posts.
+> This post is different than usual, and it was originally written in late 2022 and published on Cohost. Back then, I was excited about Cohost's future and planned to use it as a micro-blogging platform, reserving this blog for long, very technical and carefully written posts.
 >
 > In the middle of 2023, following a [Financial Update](https://cohost.org/staff/post/1690393-h1-2023-financial-up) post, I realized Cohost will not survive much longer, and had to change the plans. As a result, most of the prior Cohost content has already been reposted on this blog; one more small technical post will be posted in the coming weeks. I wanted to repost this here, today, even if it doesn't follow the typical theme of this blog - because, today Cohost team [announced it will shut down imminently](https://cohost.org/staff/post/7611443-cohost-to-shut-down). This post seemed relevant, and it's the only remaining non-technical post that I'd like to keep for posterity.
 >
