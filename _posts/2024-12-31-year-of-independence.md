@@ -82,6 +82,8 @@ So, where does this leave us, a few short hours before 2025 begins? What are the
 
 And maybe most importantly: by combining "work can be fun" and "you can just do things", we arrive at "you can just do work that is fun". Hopefully for many years to come.
 
+![](/images/independence_7.png)
+
 [^1]: And some travel and unwinding did happen at various points of this year :) But this is not a travel blog...
 [^2]: As recently as a few days ago I needed to write a 5-line function and both Claude and O1 failed completely at doing that for me, so I had to do it myself - in a classical [xkcd automation moment](https://xkcd.com/1319/), it took me much less time to do it myself than to try to get an LLM to do it for me.
 [^3]: I hear it's better these days with projects like [gpt-fast](https://github.com/pytorch-labs/gpt-fast) and [torchao](https://github.com/pytorch/ao); there's also now alternatives like [tinygrad](https://github.com/tinygrad/tinygrad) that are much more pleasant to work with.
