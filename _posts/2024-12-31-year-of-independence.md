@@ -58,7 +58,7 @@ There is a little bit of a risk of a bus factor here: having just one sponsor me
 
 > Notably, gltfpack is still being developed in spare time. If your company is interested in funding gltfpack development with no strings attached, feel free to reach out by e-mail!
 
-As a result of all of this, meshoptimizer has seen significant work done this year, and I expect this to continue. While this is an imperfect metric, here's a line pie chart that, for each line of the core library, says "when was this line changed?". meshoptimizer does not go through mass spontaneous refactors and the code is generally changed when it needs to improve, so I like this as a rough way to gauge the progress as well as the robustness of some parts of the codebase.
+As a result of all of this, meshoptimizer has seen [significant](https://github.com/zeux/meshoptimizer/releases/tag/v0.21) work [done](https://github.com/zeux/meshoptimizer/releases/tag/v0.22) this year, and I expect this to continue. While this is an imperfect metric, here's a line pie chart that, for each line of the core library, says "when was this line changed?". meshoptimizer does not go through mass spontaneous refactors and the code is generally changed when it needs to improve, so I like this as a rough way to gauge the progress as well as the robustness of some parts of the codebase.
 
 ![](/images/independence_4.png){: width="600"}
 
