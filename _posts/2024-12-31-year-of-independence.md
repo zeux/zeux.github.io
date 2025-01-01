@@ -16,7 +16,7 @@ This project was born out of my desire to learn more but also out of dissatisfac
 
 ![](/images/independence_1.png)
 
-Before this project, I've spent more than a decade programming GPUs, but somehow have never done it in CUDA. I had a rough understanding of what that entails of course, but it was still a lot of fun discovering the peculiarities of the modern NVidia hardware, working with excellent NVidia performance tools, and coming up with ideas for how to structure the data and kernels to squeeze as close to the [theoretically possible performance](/2024/03/15/llm-inference-sol/) as possible. I even ended up going into some wild corners of multi-GPU programming and wrote a fully fused cooperative kernel (NVidia, please don't deprecate these) that managed to run on H100 with okay efficiency[^4].
+Before this project, I've spent almost two decades programming GPUs, but somehow have never done it in CUDA. I had a rough understanding of what that entails of course, but it was still a lot of fun discovering the peculiarities of the modern NVidia hardware, working with excellent NVidia performance tools, and coming up with ideas for how to structure the data and kernels to squeeze as close to the [theoretically possible performance](/2024/03/15/llm-inference-sol/) as possible. I even ended up going into some wild corners of multi-GPU programming and wrote a fully fused cooperative kernel (NVidia, please don't deprecate these) that managed to run on H100 with okay efficiency[^4].
 
 ![](/images/independence_2.jpg)
 
