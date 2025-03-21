@@ -4,7 +4,7 @@ title: About
 ---
 ## Work
 
-I'm available for advising and consulting; please reach out [via e-mail](mailto:arseny.kapoulkine@gmail.com).
+I'm available for advising (but not for employment or contract work); please reach out [via e-mail](mailto:arseny.kapoulkine@gmail.com).
 
 Previously I've worked as a technical fellow at [Roblox](https://corp.roblox.com/), rendering engineer at [Sperasoft](https://sperasoft.com/) on FIFA 13 and FIFA Street, as a PS3 programmer at [Saber Interactive](https://saber.games/) and as a lead engine developer at [Creat Studios](https://en.wikipedia.org/wiki/List_of_games_developed_by_Creat_Studios).
 
