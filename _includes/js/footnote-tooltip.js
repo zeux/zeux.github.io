@@ -1,9 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-	// Create a tooltip element that will be reused
-	const tooltip = document.createElement("div");
-	tooltip.className = "footnote-tooltip";
-	tooltip.style.display = "none";
-	document.body.appendChild(tooltip);
+	const tooltip = document.querySelector(".footnote-tooltip");
 
 	document.body.addEventListener("mouseover", function (e) {
 		// Check if the hovered element is a footnote link
