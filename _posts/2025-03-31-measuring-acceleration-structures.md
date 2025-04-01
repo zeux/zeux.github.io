@@ -218,7 +218,7 @@ All of this makes it difficult to correctly estimate the optimal storage capacit
 Since BVH nodes are 8-wide, this also proportionally reduces the total expected number of box nodes, from 1/3 of primitive nodes to just 1/7[^17]. And given that the parent pointers are already embedded into box nodes, this gives us a best case theoretical bound of approximately:
 
 - 128-byte primitive nodes with 16 triangles/node = 8 bytes/triangle
-- 128-byte box nodes, 1/7th of 1/15th of triangles = 1.2 bytes/triangle
+- 128-byte box nodes, 1/7th of 1/16th of triangles = 1.2 bytes/triangle
 
 ... for a grand total of 9.2 bytes/triangle. Now, with the *actual* numbers of ~48 bytes/triangle, this is clearly a wildly unrealistic goal:
 
