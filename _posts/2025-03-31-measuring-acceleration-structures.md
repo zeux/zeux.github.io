@@ -253,7 +253,7 @@ struct QuantizedBVH8BoxNode
 
 Primitive node is somewhat similar to triangle node, but it's larger (128 bytes) and much more versatile: it can store a variable number of triangle pairs per node, and does that using what seems like a micro-meshlet format, where triangle pairs use vertex indices, with a separate section of the 128-byte packet storing the vertex positions - using a variable amount of bits per vertex for position storage.
 
-For position storage, all bits inside coordinates for a single node are split into three parts: prefix (must be the same across all floats for the same axis), value (variable width), trailing zeroes. For fp16 source positions, I would expect prefix storage to remove the initial segment of bits shared between the positions which would be close together in space, and most of the trailing fp32 bits to be zero. It would probably be reasonable to expect around 30-33 bits per vertex (3 * 10-bit mantissas, with most of the exponent bits shared and the trailing zeroes removed) with that setup on average.
+For position storage, all bits inside coordinates for a single node are split into three parts: prefix (must be the same across all floats for the same axis), value, trailing zeroes; all parts have the same bit width for the same axis across all vertices in the node. For fp16 source positions, I would expect prefix storage to remove the initial segment of bits shared between the positions which would be close together in space, and most of the trailing fp32 bits to be zero. It would probably be reasonable to expect around 30-33 bits per vertex (3 * 10-bit mantissas, with most of the exponent bits shared and the trailing zeroes removed) with that setup on average.
 
 ![](/images/blas_4.jpg)
 
