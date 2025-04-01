@@ -46,7 +46,7 @@ Now, that's quite a gap! The delta between earlier AMD GPUs and the latest NVIDI
 
 Now, this table presents each BLAS memory consumption as a function of the GPU - it's clear that there's some effect of the GPU generation on the memory consumption[^3]. However, another important contributing factor is the software, or more specifically the driver. For AMD, we can compare the results of the various driver releases during the last year, as well as an alternative driver, [radv](https://docs.mesa3d.org/drivers/radv.html)[^4], on the same GPU - Radeon 7900 GRE:
 
-| Driver           | BLAS size | Bytes/triangle |
+| Driver (RDNA3)   | BLAS size | Bytes/triangle |
 | ---------------- | --------- | -------------- |
 | AMDVLK 2024.Q3   | 155 MB    | 88.4           |
 | AMDVLK 2024.Q4   | 105 MB    | 59.9           |
@@ -65,7 +65,7 @@ First, let's contextualize this with how much data we are feeding in. The way Vu
 
 The index buffer is your usual 32-bit or 16-bit data you would expect to see in rasterization; however, in most or maybe all cases, the index buffer is just a way to communicate your geometry to the driver - unlike rasterization, where [efficiency of your index and vertex buffers is critical](https://github.com/zeux/meshoptimizer),  here the drivers would typically build the acceleration structure without regard to explicit indexing information.
 
-A flat triangle position list, then, would take 6 bytes per triangle corner * 3 corners per triangle * 1.754M triangles = 31.5 MB. This is not the most memory efficient storage: this scene uses 1.672M unique vertices, so using a 16-bit index buffer would require ~10 MB for vertex positions and ~10.5 MB for indices, and some meshlet compression schemes can go below that[^9]; but regardless, our baseline for a not-very-efficient geometry storage can be in the neighborhood of 31.5 MB, or 18 bytes per triangle. Impressively, NV driver comes close to this raw number.
+A flat triangle position list, then, would take 6 bytes per triangle corner * 3 corners per triangle * 1.754M triangles = 31.5 MB. This is not the most memory efficient storage: this scene uses 1.672M unique vertices, so using a 16-bit index buffer would require ~10 MB for vertex positions and ~10.5 MB for indices, and some meshlet compression schemes can go below that[^9]; but regardless, our baseline for a not-very-efficient geometry storage can be in the neighborhood of 20-30 MB, or up to 18 bytes per triangle. Impressively, NV driver comes close to this raw number.
 
 A flat triangle list is not useful - the driver needs to build the acceleration structure that can be used to efficiently trace rays against. These structures are usually called "BVH" - [bounding volume hierarchy](https://en.wikipedia.org/wiki/Bounding_volume_hierarchy) - and represent a tree with a low branching factor where the intermediate nodes are defined as bounding boxes, and the leaf nodes store triangles. We will go over specific examples of this in the next section.
 
@@ -97,11 +97,11 @@ Conveniently, this means N triangles should take, approximately, `N*sizeof(Trian
 
 This analysis is imprecise for a number reasons. It ignores the potential for imbalanced trees (not all boxes may use 4 children for optimal spatial splits); it ignores various hardware factors like memory alignment and extra data; it assumes a specific set of node sizes; and it assumes the number of leaf (triangle) nodes is equal to the input triangle count. Let's revisit these assumptions as we try to understand how BVHs *actually* work.
 
-# Hardware storage: radv
+# radv
 
 Since the memory layout of a BVH is ultimately up to the specific vendor's hardware and software and I don't want to overly generalize this, let's focus on AMD.
 
-AMD has a benefit of having multiple versions of their RDNA architecture - although there were no changes between RDNA2 & 3 that would affect the memory sizes - and having documentation as well as open source drivers. Now, one caveat is that AMD actually does not properly document the BVH structure (the expected node memory layout *should* have been part of [RDNA ISA](https://www.amd.com/content/dam/amd/en/documents/radeon-tech-docs/instruction-set-architectures/rdna3-shader-instruction-set-architecture-feb-2023_0.pdf), but it's not - AMD, please fix this), but between the two open source drivers enough details should be clear here. By contrast, pretty much nothing is known about NVidia, but they clearly have a significant competitive advantage here so maybe they have something to hide.[^11]
+AMD has a benefit of having multiple versions of their RDNA architecture - although there were no changes between RDNA2 and RDNA3 that would affect the memory sizes - and having documentation as well as open source drivers. Now, one caveat is that AMD actually does not properly document the BVH structure (the expected node memory layout *should* have been part of [RDNA ISA](https://www.amd.com/content/dam/amd/en/documents/radeon-tech-docs/instruction-set-architectures/rdna3-shader-instruction-set-architecture-feb-2023_0.pdf), but it's not - AMD, please fix this), but between the two open source drivers enough details should be clear here. By contrast, pretty much nothing is known about NVidia, but they clearly have a significant competitive advantage here so maybe they have something to hide.[^11]
 
 The way AMD implements ray tracing is as follows: the hardware units ("ray accelerators") are accessible to shader cores as instructions that are similar to texture fetching; each instruction is given the pointer to a single BVH node and ray information, and can automatically perform ray-box or ray-triangle tests against all boxes or triangles in the node and return the results. The driver, then, is responsible for:
 
@@ -145,7 +145,7 @@ Another, more crucial, observation, is that at the time of this writing radv doe
 
 ... for a grand total of ~114 bytes/triangle we would expect from radv. Now, radv's *actual* data is 137 bytes/triangle - 23 more bytes unaccounted for! This would be a good time to mention that while we would hope that the tree is perfectly balanced and the branching factor is, indeed, 4, in reality we would expect some amount of imbalance - both due to the nature of the algorithms that build these trees, that are highly parallel in nature and don't always reach the optimum, and due to some geometry configurations just requiring somewhat uneven splits in parts of the tree for optimal traversal performance[^12].
 
-# Hardware storage: AMDVLK
+# AMDVLK
 
 Given that the hardware formats of the BVH nodes are fixed, it does not seem like there would be *that* much leeway in how much memory a BVH can take. With fp32 box nodes, we've estimated that BVH can take a minimum of 114 bytes/triangle on AMD hardware, and yet even the largest number we can see from the official driver was 88.4 bytes/triangle. What is going on here?
 
@@ -184,7 +184,7 @@ Which brings up the total to 57 bytes/triangle... assuming ideal conditions: all
 
 radv does not implement this optimization at this time; importantly, in addition to this impacting memory consumption significantly, I would expect this also has a significant impact in ray tracing cost - indeed, my measurements indicate that radv is significantly slower on this scene than the official AMD driver, but that is a story for another time.
 
-Now, what happened in AMD's 2024.Q4 release? If we trace the source changes closely (which is non-trivial as the commit structure is erased from source code dumps, but I'm glad we at least have as much!), it becomes obvious that what has happened is that fp16 box nodes are now enabled by default. Before this, box nodes used fp32 by default, and with that change many box nodes would use fp16 instead. There are some specific conditions when this would happen - if you noticed from the radv structs, fp32 box nodes have one more `reserved` field and fp16 box nodes don't - this field is actually used to store some extra information that may be deemed important on a per-node basis in some cases. But regardless, the *perfect* configuration for RDNA2/3 system seems to be:
+Now, what happened in AMD's 2024.Q4 release? If we trace the source changes closely (which is non-trivial as the commit structure is erased from source code dumps, but I'm glad we at least have as much!), it becomes obvious that what has happened is that fp16 box nodes are now enabled by default. Before this, box nodes used fp32 by default, and with that change many box nodes would use fp16 instead. There are some specific conditions when this would happen - if you noticed from the radv structs, fp32 box nodes have one more `reserved` field and fp16 box nodes don't - this field is actually used to store some extra information that may be deemed important on a per-node basis in some cases[^18]. But regardless, the *perfect* configuration for RDNA2/3 system seems to be:
 
 - 2 triangles per 64-byte leaf = 32 bytes/triangle
 - 64-byte fp16 box * 1/3 * 1/2 = 11 bytes/triangle
@@ -194,7 +194,7 @@ Now, what happened in AMD's 2024.Q4 release? If we trace the source changes clos
 
 Worth noting that 2025.Q1 release reduced the memory consumption from ~60 bytes/triangle to ~57 bytes/triangle. Since we know some amount of memory is lost in various inefficiencies of the resulting structure compared to the optimum, it might be possible to squeeze more juice from this in the future - but given that the hardware units expect a fixed format, and some amount of efficiency loss is inevitable if you need to maintain good tracing performance, the remaining gains are going to be limited.
 
-# Hardware storage: RDNA4
+# RDNA4
 
 ... until the next hardware revision, that is.
 
@@ -241,10 +241,11 @@ It will be interesting to revisit this topic in a year or so: AMD has made signi
 [^8]: Note that all of these numbers are *not* using NVidia's latest clustered acceleration structures aka "mega geometry"; this is a subject for another post, but it doesn't affect the analysis drastically.
 [^9]: For example, a recently released [AMD DGF SDK](https://github.com/GPUOpen-LibrariesAndSDKs/DGF-SDK/) seems to primarily target position-only geometry, and as such might be useful for future AMD GPUs, it would just cover the geometry storage though, so we can't use their numbers to estimate the future BVH cost, and we don't know if this is even something that they plan to support in their RT cores.
 [^10]: For Intel GPUs it looks like N=6; for AMD GPUs, N=4 for RDNA2/3 and RDNA4 appears to have an N=8 mode, but I haven't checked if the driver uses it. Little is known about NVidia GPUs as usual.
-[^11]: I could have studied Intel more, as they do have an open source driver as part of Mesa; however, it's unclear if their proprietary driver shares the same source, and in general I just was more interested in AMD when studying this.
-[^12]: Interested readers are encouraged to explore this topic further; on AMD hardware, you can use [Radeon Raytracing Analyzer](https://gpuopen.com/radeon-raytracing-analyzer/) to analyze the BVH as well as traversal efficiency characteristics for your workload.
+[^11]: I could have studied Intel more, as they do have an open source driver as part of Mesa; however, it's unclear if their proprietary driver shares the same source, and in general I just was more interested in AMD when investigating this.
+[^12]: Curious readers are encouraged to explore this topic further; on AMD hardware, you can use [Radeon Raytracing Analyzer](https://gpuopen.com/radeon-raytracing-analyzer/) to analyze the BVH as well as traversal efficiency characteristics for your workload.
 [^13]: It also should be noted that gpurt sources make vague references to larger-than-64 byte triangle nodes that contain more triangles; if that can result in using more shared edges than the optimum might be lower - but this also might refer to earlier hardware revisions that never materialized.
 [^14]: In theory it should be possible to do further tests with AMDVLK driver to disambiguate this somewhat and/or patch the code to provide more statistics, but it's 9 PM and I'd like to finish this post today if possible.
 [^15]: Note: I have not studied this source code as extensively as the RDNA2/3 details, so all of this is an approximate description of what I can gather from skimming the code. Some details here are likely incorrect and/or missing.
 [^16]: This math is similar to meshlet configurations described [in an earlier post](/2023/01/16/meshlet-size-tradeoffs/).
 [^17]: As a generalization of Archimedes formula, sum(1/k^i) = 1/(k-1)
+[^18]: fp16 boxes also are naturally limited to the range of 16-bit floating point numbers; this would be a problem for some meshes with fp32 vertex coordinates, but it's not an issue if the source vertex positions are also fp16.
