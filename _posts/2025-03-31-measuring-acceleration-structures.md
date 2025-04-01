@@ -17,7 +17,7 @@ It's going to be difficult to make any generalized claims here; and testing this
 The results are captured by running [niagara](https://github.com/zeux/niagara) renderer; if you'd like to follow along, you will need Vulkan 1.4 SDK and drivers, and something along these lines:
 
 ```
-git clone https://github.com/zeux/niagara.git --recursive
+git clone https://github.com/zeux/niagara --recursive
 cd niagara
 git clone https://github.com/zeux/niagara_bistro bistro
 cmake . && make
