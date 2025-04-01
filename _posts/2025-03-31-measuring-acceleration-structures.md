@@ -26,6 +26,8 @@ cmake . && make
 
 The [code](https://github.com/zeux/niagara/blob/master/src/scenert.cpp#L15) will parse the glTF scene, convert the meshes to use fp16 positions, build a BLAS for every mesh[^1], compact it using the relevant parts of `VK_KHR_acceleration_structure` extension, and print the resulting compacted sizes. While a number of levels of detail are built as the scene is loaded, only the original geometry makes it into acceleration structures, for a total of 1.754M triangles[^2].
 
+![](/images/blas_1.jpg)
+
 The builds are using `PREFER_FAST_TRACE` build mode; on some drivers, using `LOW_MEMORY` flag allows to reduce the BLAS size further at some cost to traversal performance, which we will ignore for now.
 
 # Experimental results
@@ -88,6 +90,8 @@ struct TriangleNode
 ```
 
 N is the branching factor; while any number between 2 (for a binary tree) and something exorbitantly large like 32 is possible in theory, in practice we should expect a small number that allows the hardware to test a reasonably small number of AABBs against a ray quickly; we will assume N=4 for now.[^10]
+
+![](/images/blas_2.jpg)
 
 With N=4 and fp32 coordinates everywhere, BoxNode is 112 bytes and TriangleNode is 44 bytes. If both structures use fp16 instead, we'd get 64 bytes for boxes and 26 bytes for triangles instead. We know (mostly...) how many triangle nodes we should have - one per input triangle - but how many boxes are there?
 
@@ -184,9 +188,13 @@ This changes our analysis pretty significantly:
 
 Which brings up the total to 57 bytes/triangle... assuming ideal conditions: all triangles can be merged in pairs, all nodes have a branching factor of 4 (something we know is probably false based on radv results). In reality this is the configuration that AMD driver used to run in 2024.Q3 drivers, and it had 88 bytes/triangle - 31 bytes more than expected - which is probably a combination of more box nodes than we would expect, as well as less-than-perfect triangle pairing. Another quirk here is that AMDVLK driver implements what's known as [SBVH](https://www.nvidia.in/docs/IO/77714/sbvh.pdf): individual triangles can be "split" across multiple BVH nodes, effectively appearing in the tree multiple times. This helps with ray tracing performance for long triangles, and may further skew our statistics as the number of triangles stored in leaf nodes may indeed be larger than the input provided![^14]
 
-radv does not implement this optimization at this time; importantly, in addition to this impacting memory consumption significantly, I would expect this also has a significant impact in ray tracing cost - indeed, my measurements indicate that radv is significantly slower on this scene than the official AMD driver, but that is a story for another time.
+radv does not implement either optimization at this time; importantly, in addition to this impacting memory consumption significantly, I would expect this also has a significant impact in ray tracing cost - indeed, my measurements indicate that radv is significantly slower on this scene than the official AMD driver, but that is a story for another time.
 
-Now, what happened in AMD's 2024.Q4 release? If we trace the source changes closely (which is non-trivial as the commit structure is erased from source code dumps, but I'm glad we at least have as much!), it becomes obvious that what has happened is that fp16 box nodes are now enabled by default. Before this, box nodes used fp32 by default, and with that change many box nodes would use fp16 instead. There are some specific conditions when this would happen - if you noticed from the radv structs, fp32 box nodes have one more `reserved` field and fp16 box nodes don't - this field is actually used to store some extra information that may be deemed important on a per-node basis in some cases[^18]. But regardless, the *perfect* configuration for RDNA2/3 system seems to be:
+Now, what happened in AMD's 2024.Q4 release? If we trace the [source changes](https://github.com/GPUOpen-Drivers/xgl/commit/a367518e0bf308056492d994c5713e06af9429af) closely (which is non-trivial as the commit structure is erased from source code dumps, but I'm glad we at least have as much!), it becomes obvious that what has happened is that fp16 box nodes are now enabled by default. Before this, box nodes used fp32 by default, and with that change many box nodes would use fp16 instead.
+
+![](/images/blas_3.png)
+
+There are some specific conditions when this would happen - if you noticed from the radv structs, fp32 box nodes have one more `reserved` field and fp16 box nodes don't - this field is actually used to store some extra information that may be deemed important on a per-node basis in some cases[^18]. But regardless, the *perfect* configuration for RDNA2/3 system seems to be:
 
 - 2 triangles per 64-byte leaf = 32 bytes/triangle
 - 64-byte fp16 box * 1/3 * 1/2 = 11 bytes/triangle
@@ -207,9 +215,47 @@ While RDNA3 kept the BVH format for RDNA2 for the most part (with some previousl
 
 As is clear from the name, BVH8 node stores 8 children; instead of using fp16 for box bounds, it stores the box corners in a special format[^15] with 12-bit mantissa and shared 8-bit exponent between all corners, plus a full fp32 origin corner. This adds up to 128 bytes - from the memory perspective it's just as much as two fp16 BVH4 nodes from RDNA2/3, but it should permit the full fp32 range of bounding box values - fp16 box nodes could not represent geometry with coordinates outside of +-64K! - so I would expect that RDNA4 BVH data does not need to use any BVH4 nodes, and this allows AMD to embed other sorts of data into the box node, such as the OBB index for their new rotation support, and the parent pointer (which previously, as you recall, had to be allocated separately).
 
+```c++
+struct ChildInfo
+{
+    uint32_t minX         : 12;
+    uint32_t minY         : 12;
+    uint32_t cullingFlags : 4;
+    uint32_t unused       : 4;
+
+    uint32_t minZ         : 12;
+    uint32_t maxX         : 12;
+    uint32_t instanceMask : 8;
+
+    uint32_t maxY      : 12;
+    uint32_t maxZ      : 12;
+    uint32_t nodeType  : 4;
+    uint32_t nodeRange : 4;
+};
+
+struct QuantizedBVH8BoxNode
+{
+    uint32_t internalNodeBaseOffset;
+    uint32_t leafNodeBaseOffset;
+    uint32_t parentPointer;
+    float3 origin;
+
+    uint32_t xExponent  : 8;
+    uint32_t yExponent  : 8;
+    uint32_t zExponent  : 8;
+    uint32_t childIndex : 4;
+    uint32_t childCount : 4;
+
+    uint32_t obbMatrixIndex;
+    ChildInfo childInfos[8];
+};
+```
+
 Primitive node is somewhat similar to triangle node, but it's larger (128 bytes) and much more versatile: it can store a variable number of triangle pairs per node, and does that using what seems like a micro-meshlet format, where triangle pairs use vertex indices, with a separate section of the 128-byte packet storing the vertex positions - using a variable amount of bits per vertex for position storage.
 
 For position storage, all bits inside coordinates for a single node are split into three parts: prefix (must be the same across all floats for the same axis), value (variable width), trailing zeroes. For fp16 source positions, I would expect prefix storage to remove the initial segment of bits shared between the positions which would be close together in space, and most of the trailing fp32 bits to be zero. It would probably be reasonable to expect around 30-33 bits per vertex (3 * 10-bit mantissas, with most of the exponent bits shared and the trailing zeroes removed) with that setup on average.
+
+![](/images/blas_4.jpg)
 
 The triangle pair indices are encoded using 4 bits per index, with a few other bits used for other fields; primitive indices are stored as a delta from a single base value inside the primitive node, similarly to positions. Notably, the triangle pair has three independent indices for three corners per triangle - so it looks like the pair does not necessarily have to share the geometric edge, which presumably improves the efficiency at which geometry can be converted to this format at a small cost of 8 extra bits for every other triangle[^19]. The number of pairs per node is limited to 8 pairs, or 16 triangles.
 
