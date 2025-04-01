@@ -19,7 +19,7 @@ The results are captured by running [niagara](https://github.com/zeux/niagara) r
 ```
 git clone https://github.com/zeux/niagara.git --recursive
 cd niagara
-git clone https://github.com/zeux/niagara_bistro niagara
+git clone https://github.com/zeux/niagara_bistro bistro
 cmake . && make
 ./niagara bistro/bistro.gltf
 ```
