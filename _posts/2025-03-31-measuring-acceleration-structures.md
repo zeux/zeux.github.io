@@ -39,6 +39,7 @@ Running this on the latest (as of end of March) drivers of all respective vendor
 | AMD Ryzen 7950X (RDNA2 iGPU) | 100 MB    | 57.0           |
 | AMD Radeon 7900 GRE (RDNA3)  | 100 MB    | 57.0           |
 | AMD Radeon 9070 (RDNA4)      | 84 MB     | 47.9           |
+| NVIDIA GeForce RTX 2080      | 46 MB     | 26.5           |
 | NVIDIA GeForce RTX 3050      | 45 MB     | 25.7           |
 | NVIDIA GeForce RTX 4090      | 45 MB     | 25.7           |
 | NVIDIA GeForce RTX 5070      | 33 MB     | 18.8           |
@@ -46,7 +47,7 @@ Running this on the latest (as of end of March) drivers of all respective vendor
 
 Now, that's quite a gap! The delta between earlier AMD GPUs and the latest NVIDIA GPUs is 3x; comparing the latest AMD and NVIDIA GPUs, we still see a 2.5x disparity in memory consumption. Intel[^6] is a little ahead of RDNA4, at 2.4x larger BLAS vs NVIDIA.
 
-Now, this table presents each BLAS memory consumption as a function of the GPU - it's clear that there's some effect of the GPU generation on the memory consumption[^3]. However, another important contributing factor is the software, or more specifically the driver. For AMD, we can compare the results of the various driver releases during the last year, as well as an alternative driver, [radv](https://docs.mesa3d.org/drivers/radv.html)[^4], on the same GPU - Radeon 7900 GRE:
+Now, this table presents each BLAS memory consumption as a function of the GPU - it's clear that there's some effect of the GPU generation on the memory consumption. However, another important contributing factor is the software, or more specifically the driver. For AMD, we can compare the results of the various driver releases during the last year, as well as an alternative driver, [radv](https://docs.mesa3d.org/drivers/radv.html)[^4], on the same GPU - Radeon 7900 GRE:
 
 | Driver (RDNA3)   | BLAS size | Bytes/triangle |
 | ---------------- | --------- | -------------- |
@@ -284,7 +285,6 @@ It will be interesting to revisit this topic in a year or so: AMD has made signi
 
 [^1]: For the purpose of this analysis we will ignore TLAS; for this particular scene the memory costs of TLAS storage are very low - it only has a few hundred mesh instances; while this can be much larger in real games, I would expect BLAS storage to dominate.
 [^2]: Due to instancing, the amount of geometry present in the scene is larger - around 4M; be careful with that detail if you compare other Bistro variants to the numbers presented here, as they may not match.
-[^3]: I don't have access to RTX 2000 series to measure this, feel free to reproduce this and contribute a number! You will need latest (570+) drivers.
 [^4]: radv is the default user-space driver for Linux systems, and the production driver for Steam Deck; all AMD measurements apart from the one explicitly listed below are taken from their official driver, AMDVLK, which is mostly the same between Windows/Linux.
 [^5]: I think the gaming community affectionately refers to this phenomenon as "AMD fine wine".
 [^6]: These numbers were captured using official Intel drivers on Windows, *not* Mesa on Linux. I don't have Intel's Linux numbers handy, and don't feel like re-plugging the GPU again.
