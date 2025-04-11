@@ -44,6 +44,7 @@ Running this on the latest (as of end of March) drivers of all respective vendor
 | NVIDIA GeForce RTX 4090      | 45 MB     | 25.7           |
 | NVIDIA GeForce RTX 5070      | 33 MB     | 18.8           |
 | Intel Arc B580               | 79 MB     | 45.0           |
+| Apple M4[^20]                | 123 MB    | 70.0           |
 
 Now, that's quite a gap! The delta between earlier AMD GPUs and the latest NVIDIA GPUs is 3x; comparing the latest AMD and NVIDIA GPUs, we still see a 2.5x disparity in memory consumption. Intel[^6] is a little ahead of RDNA4, at 2.4x larger BLAS vs NVIDIA.
 
@@ -303,3 +304,4 @@ While standardized BVH formats would make it much easier to reason about the mem
 [^17]: As a generalization of Archimedes formula, sum(1/k^i) = 1/(k-1)
 [^18]: fp16 boxes are also naturally limited to the range of 16-bit floating point numbers; this would be a problem for some meshes with fp32 vertex coordinates, but it's not an issue if the source vertex positions are also fp16.
 [^19]: The text here is written using "triangle pair" as this is how the code references these structures, but it's unclear if there are *any* restrictions on packing - it may be that AMD kept the term for convenience, or maybe earlier versions of the format used a shared edge with a smaller descriptor, and they later introduced extra bits to decouple the triangles and didn't rename the concept.
+[^20]: The Apple number was added after the article was published originally (on April 10th); since existing translation layers like MoltenVK do not support raytracing, this is based on the separate code that shares geometry processing code and uses Metal APIs to build the acceleration structures.
