@@ -233,6 +233,5 @@ Keep in mind that these timings are estimated, not measured. My ghetto measureme
 
 All of the above code and more is [available here](https://gist.github.com/zeux/1935b5f6d1c8c311e68bbd4a13955dfa). Note that the SIMD code is admittedly pretty ugly - the intrinsic names, sign bit manipulations etc. obscure the meaning of the code which is unfortunate because really the SIMD code is very much like the scalar code and the process of converting one to the other is pretty automatic, even if the results look wildly different. But that's a problem for another time.
 
----
 [^1]: I do have some benchmarking code in the Gist with the sources, but I did not spend any effort to make the results stable.
 [^2]: There is a more efficient way to do this in this specific case by just manipulating the sign bit but this was the only branch that I could show the technique on.

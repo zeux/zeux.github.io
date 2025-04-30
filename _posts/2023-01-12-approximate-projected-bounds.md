@@ -198,9 +198,6 @@ Unfortunately, both approximations end up returning ~1.65x larger bounds in term
 
 Despite the title of the article, it looks like in general, when computing projected bounds, it's enough to approximate them by rejecting the cases when the primitive intersects the near plane - and in all other cases computing precise bounds, when done carefully with well optimized code, is reasonably close to view space approximations in performance while providing a much more accurate result. A more accurate result allows more precise culling, which is likely to be a net benefit overall.
 
----
 [^1]: In this post we simplify the reasoning about the execution cost and treat every primitive operation as a single FLOP. The real performance implications are a little more nuanced, as division and square root are typically more expensive, and some multiplies and adds in the code above can be fused.
-
 [^2]: Again, these are approximate. For example on AMD GPUs, division is actually two operations, one of which (1/x) is comparatively expensive, and the computation above assumes `min(x, y)` is a single operation whereas it may actually require two - compare and select.
-
 [^3]: While measuring instruction count is better than measuring FLOPs as it takes into account the compiler and hardware specifics, it's still a bad approximation of the real performance as some GCN instructions have different throughput and scheduling constraints. Unfortunately, RGA does not output cycle estimates.

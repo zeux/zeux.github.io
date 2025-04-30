@@ -199,7 +199,6 @@ Note also how we got pretty good results despite the fact that we did not optimi
 
 Now that we got two good approximations and analyzed the error we can make an informed decision of whether to use a more or less precise implementation. In the next article we will look at the implementation of proposed approximations to see the relative performance of all interpolation methods.
 
----
 [^1]: Of course, in reality you have to make tradeoffs so it will be slower than $nlerp$ and less precise than $slerp$...
 [^2]: It is possible to find a general fit for a polynomial of two variables using methods like GLM instead of trying to guess a good form of an approximation. I tried to use GLM for this problem and the results are comparable in terms of precision but are slightly more expensive to compute if you try to use a generic polynomial of the same degree.
 [^3]: It is crucial for an interpolation function to be exact in 0 and 1; having an exact solution for 0.5 is a nice to have.

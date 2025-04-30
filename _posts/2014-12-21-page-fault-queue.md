@@ -130,7 +130,6 @@ Investigating performance issues requires good tools and willingness to dive dee
 
 *Thanks to Bruce Dawson for corrections and suggestions for clarification.*
 
----
 [^1]: Time flies. If you remember this blog from 4 years ago you may have noticed that I changed the blogging platform again. This resulted in some spurious RSS updates - sorry about that! Posts and comments have been migrated and the feed should be stable now. Please let me know if something is off. Oh, and I will not promise to blog on a regular basis since apparently it does not end well.
 [^2]: I may be exaggerating here since the actual overhead of small allocations depends a lot on the implementation details (operating system version, process bitness, etc). The cost model usually boils down to "they can be expensive", which is probably good enough.
 [^3]: Why not `foobar`? Wait until another article about `qgrep` internals to find out!

@@ -227,7 +227,6 @@ The jagged array in a single allocation (or two) is surprisingly useful and vers
 
 Sometimes, ability to mutate is still important and some ideas from this post will not apply. Some algorithms in [meshoptimizer](https://github.com/zeux/meshoptimizer) use the second-to-last variant of the code (with `counts` and `offsets` separated): while it does not allow for arbitrary mutation, it does allow *removing* elements from the individual lists which can speed up the adjacency queries in some cases, so merging these two is not always fruitful.
 
----
 [^1]: We technically don't *need* to use a jagged array here - an array of any list-like data structure would suffice. However, an array is desirable as it would improve traversal performance as elements would be next to each other in memory.
 [^2]: For astute readers, the division by 3 may or may not be a small efficiency concern; the compiler can replace it with an induction variable and even if it doesn't, this will get compiled to a few instructions that don't involve integer divisions - we will ignore this specific problem throughout the rest of the article as it's very specific to computing triangle indices and trivial to fix.
 [^3]: The number "6" referenced above is not accidental, because for large manifold meshes it's likely that each vertex participates in ~6 triangles, however even here depending on triangulation it is possible to see other valences.

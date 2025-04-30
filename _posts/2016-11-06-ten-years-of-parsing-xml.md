@@ -25,7 +25,6 @@ I have heard from individuals and companies, big and small; people who make smal
 
 I learned an incredible amount over these 10 years, and a big part of that is due to my work on pugixml. While the pace of pugixml development has definitely been slowing down, there are some big features that I occasionally implement, and I expect to continue maintaining, improving and polishing it in the future - so here's to another 10 years!
 
----
 [^1]: No, I am not really sure how to pronounce it.
 [^2]: It's still a single source file and a small header - this simplifies integration and forces me to keep source reasonably small
 [^3]: Yes, I still maintain support for this compiler. It is mostly straightforward, except for working around the template mangling issue where every single template argument has to be present in the function signature, otherwise a wrong instantiation may be used.
