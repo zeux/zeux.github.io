@@ -19,7 +19,7 @@ unsigned int a = edgefifo[(edgefifooffset - 1 - fe) & 15][0];
 unsigned int b = edgefifo[(edgefifooffset - 1 - fe) & 15][1];
 ```
 
-... then read and decode the third vertex, `c`, write two new edges of the triangle, BC and CA, using a simple function:
+... then read and decode the third vertex, `c`, write two new edges of the triangle, `bc` and `ca`, using a simple function:
 
 ```c++
 void pushEdgeFifo(EdgeFifo fifo, unsigned int a, unsigned int b, size_t& offset)
@@ -30,7 +30,7 @@ void pushEdgeFifo(EdgeFifo fifo, unsigned int a, unsigned int b, size_t& offset)
 }
 ```
 
-... and finally write the triangle (as defined by indices `a, b, c`) to the output buffer.
+... and finally write the triangle (indices `a, b, c`) to the output buffer.
 
 All other details are not material to the performance differences we are going to discuss: there are multiple less commonly encountered paths through the decoder, the third vertex can be encoded using multiple different ways, etc. For simplicity, let's focus on the FIFO in question and the code that reads and writes data to it. The FIFO is simply a 16-element array with two integers per element:
 
@@ -47,7 +47,7 @@ The decoder is used at runtime to decompress the data; when using 32-bit indices
 In production, we'd expect that this code is compiled using clang (when targeting mobile or console hardware, or macOS and, in some cases, Windows) or MSVC (when targeting Windows or Xbox). We'll ignore MSVC here: it has some other challenges with this loop but they are outside of the scope of this post. So, let's look at how clang (using clang-20) compiles accesses to this array and how fast does the loop run. For simplicity, we'll ignore most of the loop and just focus on the instructions that read or write to the FIFO or the triangle output buffer[^3]:
 
 ```nasm
-; read edge ab
+; read edge ab from FIFO
 mov     r11d,DWORD PTR [rsp+rdx*8-0x10]
 mov     edx,DWORD PTR [rsp+rdx*8-0xc]
 ...
@@ -248,7 +248,7 @@ Regular structure copies may sometimes hit this problem as well, although these 
 
 In clang, this problem on this specific code is mercifully restricted to just a single version; hopefully, gcc will follow suit and figure out how to fix this regression before gcc-16 is released. Unfortunately, the presence or absence of this problem is often ephemeral and depends on the exact code the compiler uses; for cases where performance matters, beware store-load conflicts and pay close attention to the code compiler generates!
 
-[^1]: The compression ratio for triangle data is not state of the art compared to methods like Edgebreaker, but that's an explicit design point, as we want a way to encode index buffers without distoring the vertex cache optimized order, and encoding is specialized to produce the results friendly to general purpose LZ/entropy codecs, so it could be compressed further if needed.
+[^1]: The compression ratio for triangle data is not state of the art compared to methods like Edgebreaker, but that's an explicit design point, as we want a way to encode index buffers without distoring the vertex cache optimized order. The encoding is specialized to be friendly to general purpose LZ/entropy codecs, so the encoded output could be compressed further by LZ4/Zstd if needed.
 [^2]: Or, to be specific, decimal gigabytes or gibibytes per second, which is the common unit of bandwidth measurement. If you have seen my Mastodon posts about this, or have read the numbers in my bug report, those use binary gigabytes and as such feature smaller numbers - sorry!
 [^3]: The performance of writing to the output buffer is not critical here, but seeing these instructions may help understand the code flow a little better.
 [^4]: I don't often use bisection for issues like this, but in this case I was asked to file a [bug report](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119960) so I thought bisection would be useful to pinpoint the change that led to this regression. As noted later in the post, this in not a bug in itself: the change simply has an unintended consequence of a devastating performance regression on this specific code.
