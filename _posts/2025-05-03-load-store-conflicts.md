@@ -4,13 +4,13 @@ title: Load-store conflicts
 excerpt_separator: <!--more-->
 ---
 
-[meshoptimizer](https://github.com/zeux/meshoptimizer) implements several [geometry compression](https://meshoptimizer.org/#vertexindex-buffer-compression) algorithms that are designed to take advantage of redundancies common in mesh data and decompress quickly - targeting many gigabytes per second in decoding throughput[^1]. One of them, index decoder, has seen a significant and unexpected variance in performance across multiple compilers and compiler releases recently; upon closer investigation, the differences can mostly be attributed to the same microarchitectural detail that is not often talked about. So I thought it would be interesting to write about it.
+[meshoptimizer](https://github.com/zeux/meshoptimizer) implements several [geometry compression](https://meshoptimizer.org/#vertexindex-buffer-compression) algorithms that are designed to take advantage of redundancies common in mesh data and decompress quickly - targeting many gigabytes per second in decoding throughput. One of them, index decoder, has seen a significant and unexpected variance in performance across multiple compilers and compiler releases recently; upon closer investigation, the differences can mostly be attributed to the same microarchitectural detail that is not often talked about. So I thought it would be interesting to write about it.
 
 <!--more-->
 
 # Algorithm
 
-The encoding in this case is specialized to index buffers that store triangle lists; every triangle is represented by three vertex indices, so the job of the decoder is to compute the three indices and write them to the output buffer. The encoding scheme takes advantage of multiple sources of redundancy present in carefully optimized index buffers - for the sake of the performance investigation here, we'll omit most of details except for a central intermediate structure used by both the encoder and decoder: the edge FIFO.
+The encoding in this case is specialized to index buffers that store triangle lists; every triangle is represented by three vertex indices, so the job of the decoder is to compute the three indices and write them to the output buffer. The encoding scheme takes advantage of multiple sources of redundancy[^1] present in carefully optimized index buffers - for the sake of the performance investigation here, we'll omit most of details except for a central intermediate structure used by both the encoder and decoder: the edge FIFO.
 
 The edge FIFO contains up to 16 triangle edges - pairs of 32-bit indices - and the encoded form of each triangle can reference a previously encountered edge. Thus, to decode the triangle, we need to read the recently seen edge from the FIFO like so:
 
@@ -69,11 +69,11 @@ When running this code on typical dense/regular meshes, on AMD Ryzen 7950X it de
 
 # Store-to-load forwarding
 
-To understand the performance characteristics of this code, it's important to note that FIFO elements that are written to on one iteration will often be read on the next iteration. A triangle is likely to share an edge with one of the triangles seen very recently; this allows a fairly small FIFO to still capture most of the edge reuse.
+To understand the performance characteristics of this code, it's important to note that FIFO elements that are written on one iteration will often be read on the next iteration. A triangle is likely to share an edge with one of the triangles seen very recently; this allows a fairly small FIFO to still capture most of the edge reuse.
 
 If you've written code that targets the PowerPC generation of game consoles, like Xbox 360 and PlayStation 3, you might be getting worried right about now. If you haven't, let me introduce you to store buffers and [Load-Hit-Store](https://en.wikipedia.org/wiki/Load-Hit-Store).
 
-When the processor executes a store instruction, it's tempting to assume that the write goes straight to the L1 cache. However, this would be inefficient: a write to L1 cache may require fetching the cache line from the next cache level or even memory, and we are likely to see a write to the same cache line follow soon after. For in-order CPUs, it is critical to amortize the cost of writes in this case, so most in-order CPUs include a special queue, usually called a store buffer; writes go to that buffer when the store instruction executes, and eventually make their way to the cache line / memory. For out-of-order CPUs, this is also ubiquitous as store buffers help reduce the amount of time store instructions spend in the retirement queues, and enable executing store instructions speculatively (as the pending stores can be committed or discarded, but all cache writes are final).
+When the processor executes a store instruction, it's tempting to assume that the write goes straight to the L1 cache. However, this would be inefficient: a write to L1 cache may require fetching the cache line from the next cache level or even memory, and we are likely to see a write to the same cache line follow soon after. For in-order CPUs, it is critical to amortize the cost of writes in this case, so most in-order CPUs include a special queue, usually called a store buffer; writes go to that queue when the store instruction executes, and eventually make their way to the cache line / memory. For out-of-order CPUs, this is also ubiquitous as store buffers help reduce the amount of time store instructions spend in the retirement queues, and enable executing store instructions speculatively (as the pending stores can be committed or discarded, but all cache writes are final).
 
 If a store instruction does not update the cache immediately, how do load instructions work? What happens when a load instruction needs to access memory that has a pending store in the store buffer?
 
@@ -87,7 +87,7 @@ Fortunately, most CPUs, even old in-order ARM chips that you can still see in ve
 
 As mentioned above, most production workloads where decoder performance is critical are using clang or MSVC as the compilers; gcc is a little bit more of an outlier, as it is only used on Linux and even then, often commercial games would choose to use clang to build the code for Linux instead. Often gcc trails clang a little bit on some other parts of the decoder family, which is completely fine and not a cause for concern. That said, ever since switching to Linux as my main OS, I would occasionally profile gcc just because it's the default system wide compiler.
 
-So at one point I was pleasantly surprised to discover that gcc (as late as gcc-14, which is the default compiler on latest Ubuntu version) significantly outperforms clang on this code: clang built decoder achieves 6.6 GB/s (~9.9 cycles/triangle), and gcc-14 runs this code at ~7.5 GB/s (~8.7 cycles/triangle). That's a significant improvement! After investigating the differences in the generated code, it looks like the gains are mostly attributed to the same FIFO code that is compiled very differently:
+So at one point I was pleasantly surprised to discover that gcc (as late as gcc-14, which is the default compiler on latest Ubuntu) significantly outperforms clang on this code: clang built decoder achieves 6.6 GB/s (~9.9 cycles/triangle), and gcc-14 runs this code at ~7.5 GB/s (~8.7 cycles/triangle). That's a significant improvement! After investigating the differences in the generated code, it looked like the gains are mostly attributed to the same FIFO code that is compiled very differently:
 
 ```nasm
 ; read FIFO entry twice: as a 64-bit pair (into rbp) and two 32-bit values (xmm)
@@ -121,7 +121,7 @@ I tried a similar approach using 64-bit integer registers and it generated worse
 
 ... until [gcc-15 released](https://gcc.gnu.org/gcc-15/changes.html) last week. I ran a routine benchmark and was surprised to discover that gcc-15 was now producing code that, instead of being a little faster than clang's, was significantly slower! While gcc-14 code ran at ~7.5 GB/s (~8.7 cycles/triangle), gcc-15 produced code that runs at ~4.8 GB/s (~13.6 cycles/triangle). A rather dramatic 5-cycle regression compared to the previous version.
 
-I've expected some sort of significant difference in branching or loop structure, which are issues I've ran into on this code in the past, but I think I haven't internalized just how key the FIFO load-store specifically is on this decoder loop. To spare you a few hours of bisection[^4] to find the offending gcc commit and compare the loop code alongside performance metrics, let's just immediately look at the way gcc-15 compiles the FIFO access now.
+I've expected some sort of significant difference in branching or loop structure, which are issues I've ran into on this code in the past, but I think I haven't internalized just how key the FIFO load-store specifically is to this decoder loop. To spare you a few hours of bisection[^4] to find the offending gcc commit and compare the loop code alongside performance metrics, let's just immediately look at the way gcc-15 compiles the FIFO access now:
 
 ```nasm
 ; read FIFO entry as a 64-bit pair
@@ -147,9 +147,9 @@ This doesn't look too bad, does it? Gone is the redundant two-way read, so we on
 
 See, my earlier description was a little bit hand-wavy: the store ends up in the store buffer, and the load instruction checks the store buffer to see if it can read the data from that buffer instead. However, the store buffer in this case would contain *two* separate stores for each FIFO entry, that each have the 32-bit element they are writing. What happens if a single 64-bit load looks at the store buffer and sees two separate entries that, together, would provide the value for that load?
 
-The answer is, it depends. But your baseline expectation should be "nothing good". Indeed, if we check the [Zen 4 optimization guide](http://www.numberworld.org/blogs/2024_8_7_zen5_avx512_teardown/57647_zen4_sog.pdf), we will see:
+The answer depends on the microarchitecture, but your baseline expectation should be "nothing good". Indeed, if we check the [Zen 4 optimization guide](http://www.numberworld.org/blogs/2024_8_7_zen5_avx512_teardown/57647_zen4_sog.pdf), we will see (emphasis mine):
 
-> The LS unit supports store-to-load forwarding (STLF) when there is an older store that contains all of the load's bytes, and the store's data has been produced and is available in the store queue. The load does not require any particular alignment relative to the store or to the 64B load alignment boundary as long as it is fully contained within the store.
+> The LS unit supports store-to-load forwarding (STLF) when there is an older store that contains **all of the load's bytes**, and the store's data has been produced and is available in the store queue. The load does not require any particular alignment relative to the store or to the 64B load alignment boundary as long as it is fully contained within the store.
 
 In our case, the load is actually no longer fully contained within the store. What happens, then, is that the store-to-load forwarding mechanism fails, and the load instruction needs to wait for stores to actually hit the cache. Mercifully, this is not as bad as what used to happen on PowerPC in case of an LHS: the penalty is much smaller and independent parts of the loop may still proceed, however at best this limits the throughput of the loop to the latency of an L1 load (7 cycles for SSE load) plus the latency of the L1 store. [Chips and Cheese](https://chipsandcheese.com/p/amds-zen-4-part-2-memory-subsystem-and-conclusion) post measures the end-to-end penalty at 19 cycles; in our case, the entire loop ends up running at <14 cycles per iteration but there may be opportunities for partial overlap and not all triangles may need access to edges written by the previous triangle: if the edge we need is the edge written by the triangle before that, the latency may be mostly hidden.
 
