@@ -202,7 +202,7 @@ str   w7, [x12]
 
 ... okay then. We are seeing what is, essentially, the same code we have already seen gcc-15 generate: when reading FIFO entry, we read it into a SIMD register using a 64-bit load; components of that register are then written to two separate FIFO entries, along with the third vertex, as separate 32-bit loads. We have just seen this strategy result in a fairly catastrophic performance cliff because the CPU can't merge two stores from a store buffer into a single load. Is this, perhaps, not the case for Apple CPUs? Let's refer to [Apple Silicon CPU Optimization Guide](https://developer.apple.com/documentation/apple-silicon/cpu-optimization-guide):
 
-![](/images/loadstore_3.jpg)
+![](/images/loadstore_3.jpg){: width="600"}
 
 Interesting! It looks like on Apple chips, specifically on their performance cores, a 64-bit load may source both - or one of - 32-bit halves from the entries in the store buffer; this would explain why we are seeing such excellent performance (7.2 cycles/triangle) on M4 even though the code is seemingly inefficient. The manual, however, does say that this may introduce more strict dependencies, and does not allow more efficient single-element store forwarding, so let's look at how the code and performance changes with newer compiler.
 
