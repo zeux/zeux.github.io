@@ -42,7 +42,7 @@ This code is simple and straightforward; what can possibly go wrong?
 
 # Baseline: clang-20 x86_64
 
-The decoder is used at runtime to decompress the data; when using 32-bit indices, the output form of each triangle is 3 32-bit indices, or 12 bytes of data. Performance of the decoding loop is critical; here and below, we will measure performance as gigabytes[^2] per second written (assuming 32-bit indices), and cycles per triangle. If 16-bit indices are used, most of the code except for writing the triangle runs the same instructions and costs the same, so the expected effective bandwidth is approximately halved, but the cycles per triangle stay the same.
+The decoder is used at runtime to decompress the data; when using 32-bit indices, the output form of each triangle is 3 32-bit indices, or 12 bytes of data. Performance of the decoding loop is critical; here and below, we will measure performance as gigabytes per second[^2] written (assuming 32-bit indices), and cycles per triangle. If 16-bit indices are used, most of the code except for writing the triangle runs the same instructions and costs the same, so the expected effective bandwidth is approximately halved, but the cycles per triangle stay the same.
 
 In production, we'd expect that this code is compiled using clang (when targeting mobile or console hardware, or macOS and, in some cases, Windows) or MSVC (when targeting Windows or Xbox). We'll ignore MSVC here: it has some other challenges with this loop but they are outside of the scope of this post. So, let's look at how clang (using clang-20) compiles accesses to this array and how fast does the loop run. For simplicity, we'll ignore most of the loop and just focus on the instructions that read or write to the FIFO or the triangle output buffer[^3]:
 
@@ -167,7 +167,9 @@ Using `perf` with `-e ls_bad_status2.stli_other` produces the following output w
 
 ![](/images/loadstore_2.jpg){: width="450"}
 
-Here, the instructions with lots of hits are the instruction that immediately follows the problematic load (it is typical for performance sampling to hit instructions that are soon after the expensive ones), and the instruction that is dependent on it. However, this only works because we already know STLI is the problem; the default profile is much less descriptive with a much longer and less precise [skid window](https://www.intel.com/content/www/us/en/docs/vtune-profiler/user-guide/2023-0/hardware-event-skid.html).
+Here, the instructions with lots of hits are the instruction that immediately follows the problematic load (it is typical for performance sampling to hit instructions that are soon after the expensive ones), and the instruction that is dependent on it. However, this only works because we already know STLI is the problem; the default profile is much less descriptive with a much longer and less precise [skid window](https://www.intel.com/content/www/us/en/docs/vtune-profiler/user-guide/2023-0/hardware-event-skid.html):
+
+![](/images/loadstore_4.jpg){: width="450"}
 
 # Surprising reversal: clang aarch64
 
@@ -247,8 +249,8 @@ Regular structure copies may sometimes hit this problem as well, although these 
 In clang, this problem on this specific code is mercifully restricted to just a single version; hopefully, gcc will follow suit and figure out how to fix this regression before gcc-16 is released. Unfortunately, the presence or absence of this problem is often ephemeral and depends on the exact code the compiler uses; for cases where performance matters, beware store-load conflicts and pay close attention to the code compiler generates!
 
 [^1]: The compression ratio for triangle data is not state of the art compared to methods like Edgebreaker, but that's an explicit design point, as we want a way to encode index buffers without distoring the vertex cache optimized order, and encoding is specialized to produce the results friendly to general purpose LZ/entropy codecs, so it could be compressed further if needed.
-[^2]: Or, to be specific, decimal gigabytes or gibibytes, which is the common unit of bandwidth measurements. If you have seen my Mastodon posts about this, or have read the gcc bug report, those use binary gigabytes and as such feature smaller numbers - sorry!
+[^2]: Or, to be specific, decimal gigabytes or gibibytes per second, which is the common unit of bandwidth measurement. If you have seen my Mastodon posts about this, or have read the numbers in my bug report, those use binary gigabytes and as such feature smaller numbers - sorry!
 [^3]: The performance of writing to the output buffer is not critical here, but seeing these instructions may help understand the code flow a little better.
-[^4]: I don't often use bisection for issues like this, but in this case I was asked to file the [bug report](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119960) so I thought bisection would be useful to pinpoint the change that led to this regression. As noted later in the post, this in not a bug in itself: the change simply has an unintended consequence of a devastating performance regression on this specific code.
+[^4]: I don't often use bisection for issues like this, but in this case I was asked to file a [bug report](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119960) so I thought bisection would be useful to pinpoint the change that led to this regression. As noted later in the post, this in not a bug in itself: the change simply has an unintended consequence of a devastating performance regression on this specific code.
 [^5]: It's not always clear how closely Apple clang versions track the official LLVM releases, but in this case the change in code generation can also be observed on non-Apple clang 16/17 builds
 [^6]: This would be a good time to mention that you can clone [meshoptimizer](https://github.com/zeux/meshoptimizer) repository and run `make -B config=release codebench && ./codecbench` to reproduce these results, using `CXX` environment variable if necessary to adjust the compiler version.
