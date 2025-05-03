@@ -159,15 +159,15 @@ To confirm that this is what is happening, we can use [AMD μProf](https://www.a
 
 The counter is enabled by default in the "Assess Performance (Extended)" set; profiling with that set, we get ~69 STLIs per thousand instructions. The number itself is a little surprising: with ~40 instructions in the loop body, just one of which is the offending load, we'd expect ~25 STLIs per thousand instructions - but we can compare with gcc-14 binary (~24 STLIs per thousand instructions) or clang-20 binary (~1 STLIs per thousand instructions) and confidently conclude that indeed, things are much worse now and STLI count has increased dramatically.
 
-Curiously, while clang binary generates essentially no STLIs, gcc-14 binary generates an appreciable number. This might be due to the "double" access to the FIFO edge, where the loads of individual elements of the edge need to read data from part of the earlier, wider, store - AMD's manual is silent on this but Chips and Cheese claims this introduces an extra 6-7 cycle latency, so perhaps STLI counts that in this case as well, but the latency ends up being hidden by the rest of the decoding and the actual loop performance doesn't suffer in that case.
+Curiously, while clang binary generates essentially no STLIs, gcc-14 binary generates an appreciable number. This might be due to the "double" access to the FIFO edge, where the loads of individual elements of the edge need to read data from part of the earlier, wider, store - AMD's manual is silent on this but Chips and Cheese claims this introduces an extra 6-7 cycle latency. Perhaps STLI counts that in this case as well, but the latency ends up being hidden by the rest of the decoding and the actual loop performance doesn't suffer in that case.
 
-Unfortunately, in larger loops it's a little more difficult to trace this problem back to the specific instructions that cause this. AMD supports "Instruction Based Sampling", which tracks a number of counters associated with the execution of individual instructions, but it does not support gathering data about STLF conflicts in particular, and the cache latencies it collects do not allow pinpointing the problem in this case.
+Unfortunately, in larger loops it's more difficult to trace this problem back to the specific instructions that cause this. AMD supports "Instruction Based Sampling", which tracks a number of counters associated with the execution of individual instructions, but it does not support gathering data about STLF issues in particular, and the cache latencies it collects do not allow pinpointing the problem, as the delay is not cache-related.
 
 Using `perf` with `-e ls_bad_status2.stli_other` produces the following output which makes it a little easier to reason about the cause:
 
 ![](/images/loadstore_2.jpg){: width="450"}
 
-Here, the instructions with lots of hits are the instruction that immediately follows the problematic load (it is typical for performance sampling to hit instructions that are soon after the expensive ones), and the instruction that is dependent on it. However, this only works because we already know STLI is the problem; the default profile is much less descriptive with a much longer and less precise [skid window](https://www.intel.com/content/www/us/en/docs/vtune-profiler/user-guide/2023-0/hardware-event-skid.html):
+Here, the two instructions with lots of hits are the instruction that immediately follows the problematic load (it is typical for performance sampling to hit instructions that follow the expensive ones), and the instruction that is dependent on it. However, this only works because we already know STLI is the problem; the default profile is much less descriptive with a much longer and less precise [skid window](https://www.intel.com/content/www/us/en/docs/vtune-profiler/user-guide/2023-0/hardware-event-skid.html):
 
 ![](/images/loadstore_4.jpg){: width="450"}
 
@@ -176,11 +176,11 @@ Here, the instructions with lots of hits are the instruction that immediately fo
 While profiling the codecs earlier this year, I also briefly looked at the performance numbers on Apple CPUs. These numbers were impressively high: the same index decoder ran at ~7.3 GB/s on Apple M4 (4.4 GHz), equivalent to ~7.2 cycles/triangle. The number was impressive, and suggested that code generation was probably reasonable, so I did not look further. This was a mistake, because then two things happened in close proximity:
 
 - gcc-15 was released, significantly degrading performance and causing me to look more into this general area;
-- Xcode 16.3 was released, incorporating clang-17 - which increased performance on this decoder to ~9.8 GB/s (!!!). Clearly clang-16 was not very reasonable after all!
+- Xcode 16.3 was released, incorporating clang-17 - which increased performance on this decoder to ~9.8 GB/s (!!!). Clearly clang-16 was not that reasonable after all!
 
 So let's look closer at what happens on clang when targeting ARM and running on Apple M4.
 
-When using clang-16 on the previous Xcode version, I was getting ~7.2 cycles/triangle per above. Similarly to x86_64, we will only look at the code that relates to FIFO access, as that's the most important thing for this investigation. Let's look at the assembly!
+When using clang-16 from the older Xcode 16.2, I was getting ~7.2 cycles/triangle per above. Similarly to x86_64, we will only look at the code that relates to FIFO access, as that's the most important thing for this investigation. Let's look at the assembly:
 
 ```nasm
 ; read FIFO entry as a 64-bit pair into SIMD register
@@ -200,11 +200,11 @@ stur  d0, [x12, -0x8]
 str   w7, [x12]
 ```
 
-... okay then. We are seeing what is, essentially, the same code we have already seen gcc-15 generate: when reading FIFO entry, we read it into a SIMD register using a 64-bit load; components of that register are then written to two separate FIFO entries, along with the third vertex, as separate 32-bit loads. We have just seen this strategy result in a fairly catastrophic performance cliff because the CPU can't merge two stores from a store buffer into a single load. Is this, perhaps, not the case for Apple CPUs? Let's refer to [Apple Silicon CPU Optimization Guide](https://developer.apple.com/documentation/apple-silicon/cpu-optimization-guide):
+... okay then. We are seeing what is, essentially, the same code we have already seen gcc-15 generate for x86_64: when reading FIFO entry, we read it into a SIMD register using a 64-bit load; 32-bit components of that register are then written to two separate FIFO entries, along with the third vertex, as separate 32-bit stores. We have just seen this strategy result in a fairly catastrophic performance cliff because the CPU can't forward two separate stores from a store buffer into a single load. Is this, perhaps, not the case for Apple CPUs? Let's refer to [Apple Silicon CPU Optimization Guide](https://developer.apple.com/documentation/apple-silicon/cpu-optimization-guide):
 
 ![](/images/loadstore_3.jpg){: width="600"}
 
-Interesting! It looks like on Apple chips, specifically on their performance cores, a 64-bit load may source both - or one of - 32-bit halves from the entries in the store buffer; this would explain why we are seeing such excellent performance (7.2 cycles/triangle) on M4 even though the code is seemingly inefficient. The manual, however, does say that this may introduce more strict dependencies, and does not allow more efficient single-element store forwarding, so let's look at how the code and performance changes with newer compiler.
+Interesting! It looks like on Apple chips, specifically on their performance cores, a 64-bit load may source both - or one of - 32-bit halves from the entries in the store buffer; this would explain why we are seeing solid performance (7.2 cycles/triangle) on M4 even though the code is seemingly inefficient. The manual, however, does say that this may introduce more strict dependencies, and does not allow more efficient single-element store forwarding, so let's look at how the code and performance changes with newer compiler.
 
 When using Xcode 16.3 (clang-17[^5]), our code runs at ~9.8 GB/s, or ~5.4 cycles/triangle, almost two full cycles faster than the clang-16 binary! And, lo and behold, if we look at the FIFO access we see this:
 
@@ -225,13 +225,13 @@ str   w7, [x12, 0x4]
 
 This code is, broadly, equivalent to the x86_64 code we've seen clang generate - however, it relies on two incredibly useful instructions, `ldp`/`stp`, that AArch64 has and x86_64 doesn't, that allow issuing two loads into two separate registers, or two stores. Presumably, these paired instructions are decoded into two separate micro-operations and execute separately, which completely removes "complex" store-to-load forwarding cases and, presumably, is what allows the code to run at peak efficiency here, at ~half the cycles per triangle compared to equivalent code running on Zen 4. Unfortunately, Instruments does not seem to expose performance counters that are relevant to store-load forwarding so it's difficult to confirm that this is what happens, but the performance speaks for itself - Apple CPUs are impressive.
 
-Curiously, if we use clang-16 to compile to x86_64 we will see the same, problematic, SIMD code pattern, matching gcc-15; additionally, neither clang-15 nor clang-17 exhibit this issue. So this looks to be a regression that clang-16 introduced and clang-17 promptly fixed - making me feel better about not having spotted this issue before! Note that while Apple CPUs have an unnaturally versatile load-store forwarding, I'd expect that most other ARM chips are not able to forward multiple stores into a single load - however, this would only be a problem in this case for clang-16, and earlier and later versions should all work fine in this particular case.
+Curiously, if we use clang-16 to compile to x86_64 we will see the same, problematic, SIMD code pattern, matching gcc-15; additionally, neither clang-15 nor clang-17 exhibit this issue for either architecture. So this looks to be a regression that clang-16 introduced and clang-17 promptly fixed - making me feel better about not having spotted this issue before! Note that while Apple CPUs have unnaturally versatile load-store forwarding, I'd expect that most other ARM chips are not able to forward multiple stores into a single load - similarly, this would only be a problem for clang-16, and earlier and later versions should all work fine in this particular case.
 
 I haven't tracked the clang-16 issue down to a specific commit so I don't know what exactly introduced this regression and what exactly fixed it; this can perhaps be left as an exercise to the reader.[^6]
 
 # Conclusion
 
-This hasn't been the first time I've hit store-to-load forwarding issues in the past; however, I'm more used to these happening as a result of the code that explicitly tries to load or store mismatched element sizes. For example, this problem is prevalent, and requires a lot of care, in case unions are used to operate on tagged values: something like this may often hit a case where the structure is filled using individual field writes, but is copied with a 128-bit wide load/store, which may present challenges in certain high-performance interpreters that would often expect the same value to be written and read in quick succession:
+This hasn't been the first time I've encountered store-to-load forwarding issues on x86_64 CPUs; however, I'm more used to these happening as a result of the code that explicitly tries to load or store mismatched element sizes. For example, this problem is prevalent, and requires a lot of care, when unions are used to operate on tagged values: something like this may often hit a case where the structure is filled using individual field writes, but is copied with a 128-bit wide load/store, which may present challenges in certain high-performance interpreters that would often expect the same value to be written and read in quick succession:
 
 ```c++
 struct {
@@ -244,9 +244,9 @@ struct {
 };
 ```
 
-Regular structure copies may sometimes hit this problem as well, although these cases are less often latency sensitive. The index decompression code discussed here is an interesting scenario where all individual accesses in the source code are matched precisely, but the compiler may be eager to combine multiple loads and stores together - and unless it combines the stores, the combined loads may suffer.
+Regular structure copies may sometimes hit this problem as well, although these are often less latency sensitive. The index decompression code discussed here is an interesting scenario where all individual accesses in the source code are matched precisely, but the compiler may be eager to combine multiple loads and stores together - and unless it combines the stores, the combined loads may suffer.
 
-In clang, this problem on this specific code is mercifully restricted to just a single version; hopefully, gcc will follow suit and figure out how to fix this regression before gcc-16 is released. Unfortunately, the presence or absence of this problem is often ephemeral and depends on the exact code the compiler uses; for cases where performance matters, beware store-load conflicts and pay close attention to the code compiler generates!
+In clang, this problem on this specific code is mercifully restricted to just a single compiler version; hopefully, gcc will follow suit and figure out how to fix this regression before gcc-16 is released. Unfortunately, the presence or absence of this problem is often ephemeral and depends on the exact code compiled, not just the compiler version; for cases where performance matters, beware store-load conflicts and pay close attention to the code compiler generates!
 
 [^1]: The compression ratio for triangle data is not state of the art compared to methods like Edgebreaker, but that's an explicit design point, as we want a way to encode index buffers without distoring the vertex cache optimized order. The encoding is specialized to be friendly to general purpose LZ/entropy codecs, so the encoded output could be compressed further by LZ4/Zstd if needed.
 [^2]: Or, to be specific, decimal gigabytes or gibibytes per second, which is the common unit of bandwidth measurement. If you have seen my Mastodon posts about this, or have read the numbers in my bug report, those use binary gigabytes and as such feature smaller numbers - sorry!
