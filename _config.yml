@@ -6,3 +6,4 @@ gems:
   - jekyll-redirect-from
 kramdown:
   input: GFM
+include: [ "/.well-known" ]
