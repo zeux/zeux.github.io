@@ -109,7 +109,8 @@ Of course, 1 bit per vertex is much cheaper to fill than 16... but this still ad
 There are some ways to make this code more independent of the number of vertices - e.g. dynamically switch to a full hash map - but that carries extra costs and complexities, so for now let's see what happens if we fix all of the issues by only initializing the array entries used by the index buffer when sparse access (`index_count < vertex_count`) is detected. Rerunning the code with these fixes[^4], we get 3m 31s for the raster version and 3m 57s for the raytrace version. Progress!
 
 You will notice that the degree of the gains here does not align with the information the profiler is reporting. There are a few factors that contribute here, for example the profiler has significant overhead in this case which may skew the results; but more importantly, the time distribution the profiler is reporting is for *all* the work that happens across *all* threads, whereas the wall clock time for the entire processing depends on the slowest thread. Which brings us to...
-# Balancing threading
+
+# Balancing threads
 
 Instead of looking at the distribution of functions that take time, let's instead focus on whether we are using threads well. When running the executable from the terminal, you can use `/usr/bin/time -v`  to get the CPU% the command took; for us these are 1240-1260% depending on the mode we're running at - in other words, we are using a little more than 12 threads' worth of aggregate compute.
 
@@ -148,8 +149,8 @@ Conceptually, the core of the spatial clusterizer is quite close to a sweep BVH 
 ```c++
 void bvhComputeArea(float* areas, const BVHBox* boxes, const int* order, size_t count)
 {
-	BVHBoxT accuml = { {FLT_MAX, FLT_MAX, FLT_MAX}, {-FLT_MAX, -FLT_MAX, -FLT_MAX} };
-	BVHBoxT accumr = accuml;
+	BVHBox accuml = { {FLT_MAX, FLT_MAX, FLT_MAX}, {-FLT_MAX, -FLT_MAX, -FLT_MAX} };
+	BVHBox accumr = accuml;
 
 	for (size_t i = 0; i < count; ++i)
 	{
