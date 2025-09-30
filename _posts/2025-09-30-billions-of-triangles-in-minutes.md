@@ -210,7 +210,7 @@ There are still opportunities for improvement, however. Notably, to be able to s
 
 But I'm happy to see a meaningful milestone for this code that started as a basic playground for clusterization algorithms.
 
-*Thanks to Christoph Kubisch for discussions, feedback and vk_lod_clusters integration, and to NVIDIA for sharing research, code and assets openly.*
+*Thanks to Christoph Kubisch for discussions, feedback, and vk_lod_clusters integration, to NVIDIA for sharing research, code and assets openly, and to Valve for sponsoring meshoptimizer development.*
 
 [^1]: From here on, all testing results will be on my desktop system - AMD Ryzen 7950X (16C/32T), 192 GB RAM (DDR5-4800), NVIDIA GeForce 3050 8 GB (... my main GPU is AMD Radeon 7900 GRE, but the demo in question relies on NVIDIA specific extensions).
 [^2]: Worth noting that the original Unreal Engine scene was likely assembled out of individual mesh assets that were individually imported and exported, which probably made it possible to work with on more reasonable hardware configurations... assuming you didn't need to re-process the entire scene at once.
