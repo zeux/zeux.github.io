@@ -13,7 +13,7 @@ As this was too Unreal Engine specific for me, I couldn't really experiment much
 
 [![](/images/zorah_1.jpg)](/images/zorah_1.jpg)
 
-## Technology
+# Technology
 
 The rest of this will be easier to understand if you have a reasonable grasp of Nanite. If not, I highly recommend [Nanite: A Deep Dive](https://advances.realtimerendering.com/s2021/Karis_Nanite_SIGGRAPH_Advances_2021_final.pdf) by Brian Karis et al which talks about the specifics; I'll just summarize the basic flow here.
 
@@ -27,7 +27,7 @@ To build the structure, a mesh is split into a set of clusters; neighboring clus
 
 Since Nanite was released in 2021, multiple different engines started adopting this processing paradigm. An open-source geometry processing library I work on these days, [meshoptimizer](https://github.com/zeux/meshoptimizer), since 2024 has had an example of how to combine multiple different algorithms that meshoptimizer provides to build the resulting structure[^8]. Having an end-to-end example made it much easier to improve the algorithms and experiment with variants of the higher level technique - could I perhaps use that example code to process the Zorah scene?
 
-## A sense of scale
+# A sense of scale
 
 That screenshot above certainly looks pretty; getting to that level of fidelity requires a lot of texture, shading and lighting work beyond Nanite. Fortunately, we're only concerned with the geometry part; this should make our job easy, right?
 
@@ -191,6 +191,7 @@ Doing this on Linux provides modest further performance improvements; our code n
 [![](/images/zorah_11.png)](/images/zorah_11.png)
 
 With some extra effort it's possible to generalize the solution so that it's easy to integrate on top of the default allocator; I'm planning to add this in a future meshoptimizer version, however since [meshoptimizer will be 1.0 this year](https://github.com/zeux/meshoptimizer/issues/940) this will have to wait until the next version after that - in the meantime, the code [is available under the MIT license](https://gist.github.com/zeux/6a282d99f10a76d67e07ac9104561335).
+
 # Results
 
 Are we done now? Well, more or less :) Most of the improvements, as well as a few improvements I didn't think were of general enough interest to include, have been incorporated into the demo code that's now distributed as a single-header "micro-library" via the meshoptimizer repository, [clusterlod.h](https://github.com/zeux/meshoptimizer/blob/master/demo/clusterlod.h). The code is designed to be easy to modify and adapt, but also be easy to plug in as is.
