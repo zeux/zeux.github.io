@@ -25,7 +25,7 @@ To build the structure, a mesh is split into a set of clusters; neighboring clus
 
 ![](/images/zorah_2.png)
 
-Since Nanite was released in 2021, multiple different engines started adopting this processing paradigm. An open-source geometry processing library I work on these days, [meshoptimizer](https://github.com/zeux/meshoptimizer), since 2024 has had an example of how to combine multiple different algorithms that meshoptimizer provides to build the resulting structure. Having an end-to-end example made it much easier to improve the algorithms and experiment with variants of the higher level technique - could I perhaps use that example code to process the Zorah scene?
+Since Nanite was released in 2021, multiple different engines started adopting this processing paradigm. An open-source geometry processing library I work on these days, [meshoptimizer](https://github.com/zeux/meshoptimizer), since 2024 has had an example of how to combine multiple different algorithms that meshoptimizer provides to build the resulting structure[^8]. Having an end-to-end example made it much easier to improve the algorithms and experiment with variants of the higher level technique - could I perhaps use that example code to process the Zorah scene?
 
 ## A sense of scale
 
@@ -217,4 +217,4 @@ But I'm happy to see a meaningful milestone for this code that started as a basi
 [^5]: Notwithstanding the fact that processing a 36 GB glTF with just 40 GB RAM is *probably* not the best idea.
 [^6]: I don't have a sufficiently powerful Mac to run the entire workload, but curiously on Apple M4 I've measured *significant* speedup from the similar change that converted `boxMerge` to NEON - on the order of 2x+ speedup for clusterization alone. The gains on x64 are still significant albeit more muted.
 [^7]: This is similar to a problem I ran into a decade ago, described in [A queue of page faults](/2014/12/21/page-fault-queue/) - since then it appears that Windows kernel got much better at processing soft faults, but the underlying problem remains and some costs are likely exacerbated by mitigations for various speculative attacks.
-
+[^8]: This example code, as well as much of early developments here, was motivated by [improving](https://jms55.github.io/posts/2024-11-14-virtual-geometry-bevy-0-15/) Bevy's [virtual geometry system](https://jms55.github.io/posts/2024-06-09-virtual-geometry-bevy-0-14/).
