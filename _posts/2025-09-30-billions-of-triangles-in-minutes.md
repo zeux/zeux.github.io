@@ -5,7 +5,7 @@ title: Billions of triangles in minutes
 
 Early this year, NVIDIA released their new raytracing technology, [RTX Mega Geometry](https://developer.nvidia.com/blog/nvidia-rtx-mega-geometry-now-available-with-new-vulkan-samples/), alongside an impressive [Zorah demo](https://developer.nvidia.com/rtx-kit). This demo was distributed as a ~100 GB Unreal Engine scene - that can only be opened in a special branch of Unreal Engine, NvRTX. The demo showcased the application of new driver-exposed raytracing features, specifically clustered raytracing, in combination with Nanite clustered LOD pipeline - allowing to stream and display a very highly detailed scene with full raytracing without using the Nanite proxy meshes that Unreal Engine currently generates for raytracing.
 
-As this was too Unreal Engine specific for me, I couldn't really experiment much with this - but then, in early September, NVIDIA released an update [to their vk_lod_clusters](https://github.com/nvpro-samples/vk_lod_clusters) open-source project, that - among other things - featured Zorah scene as a glTF file. Naturally, this piqued my curiosity - and led me to spending a fair amount of time to improve support for hierarchical clustered LOD in [meshoptimizer](https://github.com/zeux/meshoptimizer).
+As this was too Unreal Engine specific for me, I couldn't really experiment much with this - but then, in early September, NVIDIA released an update [to their vk_lod_clusters](https://github.com/nvpro-samples/vk_lod_clusters) open-source project, that - among other things - featured Zorah scene as a glTF file. Naturally, this piqued my curiosity - and led me to spend a fair amount of time to improve support for hierarchical clustered LOD in [meshoptimizer](https://github.com/zeux/meshoptimizer).
 
 <!--more-->
 
@@ -23,7 +23,7 @@ To build the structure, a mesh is split into a set of clusters; neighboring clus
 
 ![](/images/zorah_2.png)
 
-Since Nanite released in 2021, multiple different engines started adopting this processing paradigm. An open-source geometry processing library I work on these days, [meshoptimizer](https://github.com/zeux/meshoptimizer), since 2024 has had an example of how to combine multiple different algorithms that meshoptimizer provides to build the resulting structure. Having an end-to-end example made it much easier to improve the algorithms and experiment with variants of the higher level technique - could I perhaps use that example code to process the Zorah scene?
+Since Nanite was released in 2021, multiple different engines started adopting this processing paradigm. An open-source geometry processing library I work on these days, [meshoptimizer](https://github.com/zeux/meshoptimizer), since 2024 has had an example of how to combine multiple different algorithms that meshoptimizer provides to build the resulting structure. Having an end-to-end example made it much easier to improve the algorithms and experiment with variants of the higher level technique - could I perhaps use that example code to process the Zorah scene?
 
 ## A sense of scale
 
@@ -36,7 +36,7 @@ As mentioned, while the original Zorah scene is an Unreal Engine asset, NVIDIA p
 > - 36.1 GB on disk
 > - Render cache 62 GB on disk, it can be downloaded or generated
 
-... oh. A 36 GB glTF file that *only* contains geometry - moreover, it doesn't contain vertex attribute data for the vast majority of the meshes, just positions! (the sample code creates normals for shading from positions in the shader code)
+... oh. A 36 GB glTF file that *only* contains geometry - moreover, it doesn't contain vertex attribute data for the vast majority of the meshes, just positions! (the sample code derives normals for shading from positions in the shader code)
 
 Trying to import this glTF file in Blender takes ~10 minutes until running out of memory[^1]. Naturally, Unreal Engine is much faster - which is to say, the UE import of this file runs out of memory and crashes in just under 5 minutes![^2] Evidently, the processing is quite memory heavy and 192 GB RAM is, in fact, not enough for everyone.
 
@@ -86,7 +86,7 @@ Rasterization:
 Raytracing:
 ![](/images/zorah_4.png)
 
-Hmm, that's an awful lot of time to take for a memset!
+Hmm, that's an awful lot of time to take for a memset! (we'll come back to other issues here later)
 
 What happens here is that both clusterizers use an array indexed by the vertex index to track whether a vertex is assigned to a current meshlet. This saves us the trouble of having to look through the 64-128 vertices when trying to see if adding a triangle to the meshlet would increase the vertex count. Unfortunately, this code:
 
@@ -113,7 +113,7 @@ Let's use Superluminal to look at the results more closely:
 
 ![](/images/zorah_5.png)
 
-... ah yeah this is not great. If we look at the distribution for the number of triangles per mesh in this scene, we will see that there's a significant imbalance: a few meshes are in the tens of millions of triangles range, but most meshes don't have as much. If we get unlucky, we may start processing large meshes much later into the process if they aren't first in line to be queued for the thread pool; here we can see that in the "overhang", there's indeed a large mesh that takes ~48s to just build the clusters for the first DAG level. We need to be processing meshes like this first.
+... ah yeah this is not great. If we look at the distribution for the number of triangles per mesh in this scene, we will see that there's a significant imbalance: a few meshes are in the tens of millions of triangles, but most meshes don't have as much. If we get unlucky, we may start processing large meshes much later into the process if they aren't first in line to be queued for the thread pool; here we can see that in the "overhang", there's indeed a large mesh that takes ~48s to just build the clusters for the first DAG level. We need to be processing meshes like this first.
 
 ![](/images/zorah_6.png)
 
@@ -198,9 +198,9 @@ Because of their work I can now show another screenshot of the same Zorah asset,
 
 [![](/images/zorah_12.jpg)](/images/zorah_12.jpg)
 
-In `vk_lod_clusters` the processing is structured a little differently; as a result, it generates a slightly different amount of work compared to my simpler demo I've been using for profiling, and also includes data serialization, so it runs a little slower - ~3m 20s with all mentioned optimizations included. In that time it runs all the processing described above and generates the 62 GB cache file - including, hilariously, almost 10 seconds it takes Linux to `fopen()` this file for *writing* as it takes a while to discard the existing file contents from the file system cache, if present there! Since I'm also running my 7950X in eco mode, we'll call it around 3 minutes, give or take.
+In `vk_lod_clusters` the processing is structured a little differently; as a result, it generates a slightly different amount of work compared to my simpler demo I've been using for profiling, and also includes data serialization, so it runs a little slower - ~3m 20s with all mentioned optimizations included. In that time it performs all the processing described above and generates the 62 GB cache file - including, hilariously, almost 10 seconds it takes Linux to `fopen()` this file for *writing* as it takes a while to discard the existing file contents from the file system cache, if present there! Since I'm also running my 7950X in eco mode, we'll call it around 3 minutes, give or take.
 
-There are still opportunities for improvement, however. Notably, to be able to stream and display a scene like this efficiently, you need a separate hierarchical acceleration structure that allows to quickly determine the set of clusters to render; `vk_lod_clusters` [manages to do this using existing meshopt_ functions](https://github.com/nvpro-samples/vk_lod_clusters/blob/945d6c87f7b85c6239b1eb11515ae8f7dd8e2fc8/src/scene_cluster_lod.cpp#L370) but that code is not part of `clusterlod.h` yet. Also the default cluster partitioning algorithm used in `clusterlod.h` to create groups of clusters is currently only willing to group clusters that are topologically adjacent (as in, they share vertices); this can sometimes result in DAGs that have too many roots, as the groups aren't merged aggressively enough - and should be improved in the future as well (`vk_lod_clusters` falls back to a different `meshopt_` partitioning algorithm if it detects this case).
+There are still opportunities for improvement, however. Notably, to be able to stream and display a scene like this efficiently, you need a separate hierarchical acceleration structure that can quickly determine the set of clusters to render; `vk_lod_clusters` [manages to do this using existing meshopt_ functions](https://github.com/nvpro-samples/vk_lod_clusters/blob/945d6c87f7b85c6239b1eb11515ae8f7dd8e2fc8/src/scene_cluster_lod.cpp#L370) but that code is not part of `clusterlod.h` yet. Also the default cluster partitioning algorithm used in `clusterlod.h` to create groups of clusters is currently only willing to group clusters that are topologically adjacent (as in, they share vertices); this can sometimes result in DAGs that have too many roots, as the groups aren't merged aggressively enough - and should be improved in the future as well (`vk_lod_clusters` falls back to a different `meshopt_` partitioning algorithm if it detects this case).
 
 But I'm happy to see a meaningful milestone for this code that started as a basic playground for clusterization algorithms.
 
@@ -212,5 +212,5 @@ But I'm happy to see a meaningful milestone for this code that started as a basi
 [^4]: Unless mentioned otherwise, all improvements to the library code have already been committed to meshoptimizer - so as long as you use the `master` branch you are already getting the performance improvements.
 [^5]: Notwithstanding the fact that processing a 36 GB glTF with just 40 GB RAM is *probably* not the best idea.
 [^6]: I don't have a sufficiently powerful Mac to run the entire workload, but curiously on Apple M4 I've measured *significant* speedup from the similar change that converted `boxMerge` to NEON - on the order of 2x+ speedup for clusterization alone. The gains on x64 are still significant albeit more muted.
-[^7]: This is similar to a problem I've ran into a decade ago, described in [A queue of page faults](/2014/12/21/page-fault-queue/) - since then it appears that Windows kernel got much better at processing soft faults, but the underlying problem remains and some costs are likely exacerbated by mitigations for various speculative attacks.
+[^7]: This is similar to a problem I ran into a decade ago, described in [A queue of page faults](/2014/12/21/page-fault-queue/) - since then it appears that Windows kernel got much better at processing soft faults, but the underlying problem remains and some costs are likely exacerbated by mitigations for various speculative attacks.
 
