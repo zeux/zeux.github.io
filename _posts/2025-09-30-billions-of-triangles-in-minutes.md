@@ -1,11 +1,13 @@
 ---
 layout: post
 title: Billions of triangles in minutes
+excerpt_separator: <!--more-->
 ---
 
 Early this year, NVIDIA released their new raytracing technology, [RTX Mega Geometry](https://developer.nvidia.com/blog/nvidia-rtx-mega-geometry-now-available-with-new-vulkan-samples/), alongside an impressive [Zorah demo](https://developer.nvidia.com/rtx-kit). This demo was distributed as a ~100 GB Unreal Engine scene - that can only be opened in a special branch of Unreal Engine, NvRTX. The demo showcased the application of new driver-exposed raytracing features, specifically clustered raytracing, in combination with Nanite clustered LOD pipeline - allowing to stream and display a very highly detailed scene with full raytracing without using the Nanite proxy meshes that Unreal Engine currently generates for raytracing.
 
-As this was too Unreal Engine specific for me, I couldn't really experiment much with this - but then, in early September, NVIDIA released an update [to their vk_lod_clusters](https://github.com/nvpro-samples/vk_lod_clusters) open-source project, that - among other things - featured Zorah scene as a glTF file. Naturally, this piqued my curiosity - and led me to spend a fair amount of time to improve support for hierarchical clustered LOD in [meshoptimizer](https://github.com/zeux/meshoptimizer).
+As this was too Unreal Engine specific for me, I couldn't really experiment much with this - but then, in early September, NVIDIA released an update to their [vk_lod_clusters open-source sample](https://github.com/nvpro-samples/vk_lod_clusters), that - among other things - featured Zorah scene as a glTF file. Naturally, this piqued my curiosity - and led me to spend a fair amount of time to improve support for hierarchical clustered LOD in [meshoptimizer](https://github.com/zeux/meshoptimizer).
+
 
 <!--more-->
 
@@ -111,11 +113,11 @@ Instead of looking at the distribution of functions that take time, let's instea
 
 Let's use Superluminal to look at the results more closely:
 
-![](/images/zorah_5.png)
+[![](/images/zorah_5.png)](/images/zorah_5.png)
 
 ... ah yeah this is not great. If we look at the distribution for the number of triangles per mesh in this scene, we will see that there's a significant imbalance: a few meshes are in the tens of millions of triangles, but most meshes don't have as much. If we get unlucky, we may start processing large meshes much later into the process if they aren't first in line to be queued for the thread pool; here we can see that in the "overhang", there's indeed a large mesh that takes ~48s to just build the clusters for the first DAG level. We need to be processing meshes like this first.
 
-![](/images/zorah_6.png)
+[![](/images/zorah_6.png)](/images/zorah_6.png)
 
 While fully general solutions to scheduling problems like this are very complicated and may or may not work well, fortunately we don't need a general solution. The time it takes to process one mesh is a function of the number of triangles, so we can simply sort the meshes by triangle count in decreasing order. This ensures that we'll process the most expensive meshes first.
 
@@ -123,7 +125,7 @@ This would also be a good time to mention the memory limits. Experimentally, we 
 
 Anyhow, let's sort the meshes and rerun the code! Here's the new thread schedule:
 
-![](/images/zorah_7.png)
+[![](/images/zorah_7.png)](/images/zorah_7.png)
 
 ... sweet. While there are still a few little gaps here and there in the schedule, we now see the thread execution being perfectly balanced across 16 threads - `/usr/bin/time` reports 1574% CPU utilization. Front-loading large meshes means that smaller meshes can fill the gaps at the end fairly efficiently. Of course, if the input scene just has one or two meshes, our parallelism strategy will need to change - but for this scene, "external" parallelism where the axis is mesh count is the best as it allows us to share no data between different threads.
 
@@ -171,11 +173,11 @@ It's time to tackle the final boss: all of the aforementioned functions need to 
 
 Unfortunately, expecting this may be overly optimistic, depending on the platform you're running on. All of the experiments so far have been run on Linux (using the stock allocator without any extra configuration). And while in general we're getting very reasonable performance with little contention, even on Linux there's occasional "red" spots in the thread utilization chart, which indicates that the thread is busy waiting - and if we check, it's indeed waiting on a different thread to service the allocation.
 
-![](/images/zorah_9.png)
+[![](/images/zorah_9.png)](/images/zorah_9.png)
 
 I'm a little hesitant to conclude specifics because under a heavy thread load, Superluminal offsets the timings enough that I worry about interference between the profiler and the results. However, we could instead switch to the platform where the stock allocator is not very high quality - Windows, and observe the bleak thread utilization picture:
 
-![](/images/zorah_10.png)
+[![](/images/zorah_10.png)](/images/zorah_10.png)
 
 What happens here is an unfortunate interaction between multi-threaded allocations and default large block policy. Large blocks bypass the heap and are allocated using `VirtualAlloc`; memory allocated this way is quite expensive to work with initially[^7], so repeat allocations/deallocations will cause performance problems. Because multiple threads contend over the same heap mutex, the resulting throughput is affected very significantly.
 
@@ -183,7 +185,7 @@ Fortunately, there's a simple solution to this problem: just use a per-thread ar
 
 Doing this on Linux provides modest further performance improvements; our code now runs in ~2m 35s - around 3.5x speedup from our initial baseline, and significantly better than ~30 minutes. On Windows, before this change, the code so far runs at 4m 20s - and with the thread cache we get 2m 38s, in line with our Linux version! And the utilization looks much better - note that we're still using the global allocator for some STL code that's part of the example (but can be replaced in the future), hence the imperfect utilization.
 
-![](/images/zorah_11.png)
+[![](/images/zorah_11.png)](/images/zorah_11.png)
 
 With some extra effort it's possible to generalize the solution so that it's easy to integrate on top of the default allocator; I'm planning to add this in a future meshoptimizer version, however since [meshoptimizer will be 1.0 this year](https://github.com/zeux/meshoptimizer/issues/940) this will have to wait until the next version after that - in the meantime, the code [is available under the MIT license](https://gist.github.com/zeux/6a282d99f10a76d67e07ac9104561335).
 # Results
