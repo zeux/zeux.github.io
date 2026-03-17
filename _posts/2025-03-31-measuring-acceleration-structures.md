@@ -44,7 +44,7 @@ Running this on the latest (as of end of March) drivers of all respective vendor
 | NVIDIA GeForce RTX 4090      | 45 MB     | 25.7           |
 | NVIDIA GeForce RTX 5070      | 33 MB     | 18.8           |
 | Intel Arc B580               | 79 MB     | 45.0           |
-| Apple M4[^20]                | 123 MB    | 70.0           |
+| Apple M4[^20]                | 93 MB     | 53.0           |
 
 Now, that's quite a gap! The delta between earlier AMD GPUs and the latest NVIDIA GPUs is 3x; comparing the latest AMD and NVIDIA GPUs, we still see a 2.5x disparity in memory consumption. Intel[^6] is a little ahead of RDNA4, at 2.4x larger BLAS vs NVIDIA.
 
