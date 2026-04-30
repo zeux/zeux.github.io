@@ -103,11 +103,11 @@ Out of these, my personal recommendation would probably be `oct11x2+a9`: it shou
 
 Described in Jeremy Ong's post [Tangent Spaces and Diamond Encoding](https://www.jeremyong.com/graphics/2023/01/09/tangent-spaces-and-diamond-encoding/#:~:text=%E2%80%9CDiamond%20Encoding), this is a very neat technique that can be seen as a version of tangent angle encoding, but whereas tangent angle requires `sincos` to reconstruct, here we project the direction onto a unit square in 2D space, and encode the direction in a manner similar to octahedron encoding. This gets us cheaper decoding at the expense of slightly uneven angular error.
 
-Other than that everything relevant for tangent angle encoding applies here too: you need to select the orthogonal basis although the particular method to do it may not matter as much; and it's critical that the basis is selected based on reconstructed normal vector, which will be encoded using quantized octahedron encoding. Because we encode the diamond value separately, we have the same freedom of bit allocation.
+Other than that everything relevant for tangent angle encoding applies here too: you need to select the orthogonal basis although the particular method to do it may not matter as much; and it's critical that the basis is selected based on the reconstructed normal vector, which will be encoded using quantized octahedron encoding. Because we encode the diamond value separately, we have the same freedom of bit allocation.
 
 > In that post, Jeremy argues that orientation bit could be stored elsewhere. While I handwaved the bit away in some encodings above, primarily because I was leading to the encodings that I actually like, I would *not* recommend this unless you work with very specific types of content where mirrored UVs just don't show up. Having looked at hundreds of meshes in the last few weeks, you *will* encounter plenty of meshes with both UV orientations, you *will* encounter cases where orientation changes quickly in local proximity, and you *may* even encounter meshes where orientation diverges within a triangle, making per-meshlet orientation storage impossible![^5] Just find a bit somewhere ;)
 
-With that in mind, let's look at the same options we've examined earlier; as a reminder, the first one needs 32 bits and doesn't have space for orientation bit (store it elsewhere!), whereas the last three reserve the orientation bit and reallocate the other bits between normal and diamond storage:
+With that in mind, let's look at the same options we've examined earlier; as a reminder, the first one needs 32 bits and doesn't have space for the orientation bit (store it elsewhere!), whereas the last three reserve the orientation bit and reallocate the other bits between normal and diamond storage:
 
 | codec | bits | n_avg | n_max | t_avg | t_max |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -116,7 +116,7 @@ With that in mind, let's look at the same options we've examined earlier; as a r
 | oct10x2+d11 | 31 | 0.0662 | 0.2256 | 0.0614 | 0.2324 |
 | oct10x2s+d10 | 31 | 0.0444 | 0.1371 | 0.0912 | 0.2431 |
 
-Perhaps unsurprisingly, the normal errors are exactly the same as before: we are storing the normal in the exact same fashion! As far as the tangent error, the diamond storage holds up very well: the average errors are in fact a little smaller, whereas the maximum errors are a little larger. We would reasonably expect the maximum angular errors to be larger because the encoding is not uniform from the rotation perspective, but the extra error here is mostly quite reasonable. As before, if I had to pick one, I would pick `oct11x2+d9`, with my next choice `oct10x2s+d10` if tangent quality is critical.
+Perhaps unsurprisingly, the normal errors are exactly the same as before: we are storing the normal in the exact same fashion! As far as the tangent error, the diamond storage holds up very well: the average errors are in fact a little smaller, whereas the maximum errors are a little larger. We would reasonably expect the maximum angular errors to be larger because the encoding is not uniform from the rotation perspective, but the extra error here is mostly quite reasonable. As before, if I had to pick one, I would pick `oct11x2+d9`, with `oct10x2s+d10` as an alternative if tangent quality is critical.
 
 # Conclusion
 
@@ -135,7 +135,7 @@ For convenience, here's the full table with all experiments above, although do n
 | snorm10x6 (baseline) | 60 | 0.0310 | 0.0949 | 0.0326 | 0.0907 |
 | oct8x4 | 32 | 0.2849 | 0.9113 | 0.2882 | 0.9117 |
 | quat8x4 | 32 | 0.3208 | 0.8738 | 0.3296 | 0.9022 |
-| ***quat10x3+a2*** | 32 | 0.0632 | 0.2046 | 0.0640 | 0.1988 |
+| ***quat10x3+i2*** | 32 | 0.0632 | 0.2046 | 0.0640 | 0.1988 |
 | quat10x3-cayley | 30 | 0.1191 | 0.3202 | 0.1198 | 0.3202 |
 | oct11x2+a10 | 32 | 0.0272 | 0.1136 | 0.0909 | 0.2065 |
 | oct11x2+a9 | 31 | 0.0272 | 0.1136 | 0.1775 | 0.3588 |
