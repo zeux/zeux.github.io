@@ -141,7 +141,7 @@ For octahedron/diamond encoding, the tangent error doesn't change because diamon
 
 For quaternion encoding, as noted before, the precision equally affects all basis vectors; the average error is broadly unchanged but the maximum error shrinks noticeably too.
 
-Overall it's up to you whether to use the optimal encoding or not; it's a little more code, but for offline processing it's usually "free" - so getting a little extra quality boost may well be worthwhile.
+Overall it's up to you whether to use the optimal encoding or not; it's a little more code, but for offline processing it's usually "free" - so getting a little extra quality boost may well be worthwhile. If you are using signed octahedron encoding, per-axis quantization is already close to optimal.
 
 # Conclusion
 
@@ -172,6 +172,8 @@ For convenience, here's the average error plot as well as a full table with all 
 | **oct11x2+d9** | 31 | 0.0272 | 0.1136 | 0.1691 | 0.4485 |
 | oct10x2+d11 | 31 | 0.0662 | 0.2256 | 0.0614 | 0.2324 |
 | **oct10x2s+d10** | 31 | 0.0444 | 0.1371 | 0.0912 | 0.2431 |
+
+> After the article was published, Andrew Helmer pointed out that another possibility is to use a Fibonacci lattice ([paper](https://dl.acm.org/doi/10.1145/2816795.2818131), [Shadertoy](https://www.shadertoy.com/view/4t2XWK)), which can encode a unit vector into a single integer. Decoding requires `sincos` in addition to a few other ops and looks more expensive than octahedron decoding; the precision is pretty close if you are using an even-numbered bit count, and a little better for odd-numbered bit count when the alternative is signed octahedron encoding. I am not including this in the results above, but curious minds can investigate this further.
 
 [^1]: If you have been referring to these as binormals then I would respectfully ask you to [reconsider](https://terathon.com/blog/tangent-space.html#:~:text=Bitangent%20versus%20Binormal).
 [^2]: Since I know too much about MikkTSpace now - for UV-degenerate triangles MikkTSpace will use tangent vector `(1 0 0)` which is not necessarily orthogonal to the normal as a fallback; but forcing orthogonalization in these cases is unlikely to hurt, and this is a topic of a separate discussion.
