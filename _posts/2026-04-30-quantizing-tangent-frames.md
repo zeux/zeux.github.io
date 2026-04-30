@@ -13,6 +13,8 @@ So say you have a vertex and you would like to store tangent frames in it. Memor
 
 First of all, we will assume that your tangent frames are orthogonal: tangent is orthogonal to the normal, and bitangent[^1] is orthogonal to both of them. The former is generally true if you use MikkTSpace for tangent construction[^2]. The latter is *not* generally true even if you use MikkTSpace - as it will happily generate a tangent frame with bitangent and tangent not really orthogonal to each other, and is correct to do so when the UV mapping is skewed. However, almost every production renderer in existence throws bitangents away and reconstructs them as `cross(normal, tangent.xyz) * tangent.w`; yours should too - this is a common convention and an extra vector is too much overhead to store.
 
+> It is common to do this reconstruction in the *fragment* shader: this is cheap and reduces interpolation cost. Technically, bitangent reconstruction in the fragment shader produces different results compared to doing it in the vertex shader; if you use normal map baking workflows, your baker likely allows you to choose between these; otherwise it's unlikely to matter for rendering quality. Everything else we discuss here is presumed to run in the vertex/mesh shader.
+
 Note that the tangent is a *4 component* value: a normalized vector, and a tangent frame orientation. The orientation is always either +1 or -1, and it's important to preserve it to be able to handle arbitrary UV orientation; even if your texture mapping is not "mirrored" in a traditional sense, you still may have areas of the mesh where the orientation is reversed.
 
 In what follows, we will assume orthonormal[^3] frames: T, B and N are normalized and orthogonal to each other, forming a basis.
