@@ -153,7 +153,9 @@ If this does still seem high, you would need to measure the resulting decoding c
 
 But if you are still using 8-byte or larger tangent frames, consider that DOOM Eternal uses just three bytes[^6], repent, and quantize away!
 
-For convenience, here's the full table with all experiments above, although do note that some of these use the full 32 bits without space for the orientation bit, for which you would need to find space elsewhere in the vertex.
+For convenience, here's the average error plot as well as a full table with all experiments above, although do note that some of these use the full 32 bits without space for the orientation bit, for which you would need to find space elsewhere in the vertex.
+
+![](/images/tangentq_1.png)
 
 | codec | bits | n_avg | n_max | t_avg | t_max |
 | --- | ---: | ---: | ---: | ---: | ---: |
