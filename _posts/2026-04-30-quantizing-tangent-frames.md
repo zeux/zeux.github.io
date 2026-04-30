@@ -120,6 +120,27 @@ With that in mind, let's look at the same options we've examined earlier; as a r
 
 Perhaps unsurprisingly, the normal errors are exactly the same as before: we are storing the normal in the exact same fashion! As far as the tangent error, the diamond storage holds up very well: the average errors are in fact a little smaller, whereas the maximum errors are a little larger. We would reasonably expect the maximum angular errors to be larger because the encoding is not uniform from the rotation perspective, but the extra error here is mostly quite reasonable. As before, if I had to pick one, I would pick `oct11x2+d9`, with `oct10x2s+d10` as an alternative if tangent quality is critical.
 
+# Optimal rounding
+
+One minor caveat that I omitted for simplicity but that you may want to incorporate into your actual encodings is optimal rounding. All examples above used basic per-axis rounding: when quantizing octahedron encoding, compute each component using floating-point math, and then convert it to SNORM representation with the correct number of bits, rounding to the nearest integer.
+
+This is correct to do for independent axes; however, in many of the representations discussed, the axes are not independent because they represent a 3D vector or basis using a non-trivial transformation. As such, a more precise way to encode the exact same representation involves checking both rounding directions (`floor`/`ceil`) per component, and then picking the encoding with the minimum error. For two-component encodings like octahedron, this requires checking 4 combinations; for three-axis quaternions, this requires checking 8.
+
+The gains you get are usually just in the worst case error and are incremental; I don't feel like redoing the analysis for all the combinations but here's an example for how it affects two encodings from the distinct groups we have examined:
+
+| codec | bits | n_avg | n_max | t_avg | t_max |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| oct11x2+d9 | 31 | 0.0272 | 0.1136 | 0.1691 | 0.4485 |
+| oct11x2+d9-opt | 31 | 0.0246 | 0.0816 | 0.1687 | 0.4485 |
+| quat10x3+i2 | 32 | 0.0632 | 0.2046 | 0.0640 | 0.1988 |
+| quat10x3+i2-opt | 32 | 0.0619 | 0.1480 | 0.0619 | 0.1507 |
+
+For octahedron/diamond encoding, the tangent error doesn't change because diamond encoding is single-axis so the only change is in how the normal is encoded; and while the improvement in the average error is modest, the maximum error drops a little further.
+
+For quaternion encoding, as noted before, the precision equally affects all basis vectors; the average error is broadly unchanged but the maximum error shrinks noticeably too.
+
+Overall it's up to you whether to use the optimal encoding or not; it's a little more code, but for offline processing it's usually "free" - so getting a little extra quality boost may well be worthwhile.
+
 # Conclusion
 
 As I promised, this post does not contain original research :) because of this I've also avoided showing any specific shader code for decoding. If you're interested in implementing any of this, please consult the excellent articles linked throughout the post for specifics! You need to be careful with encoding the angle/diamond based methods as I mentioned and reconstruct the basis from the decoded normal during encoding, but otherwise all of these should be easy and quick to try out.
