@@ -50,6 +50,8 @@ As an aside, if you use octahedron encoding, you should be aware of two importan
 
 Because the TBN is an orthonormal basis, we can represent it in any way that a rotation matrix can be represented; in particular, quaternions are a very useful representation. Crytek published [Spherical Skinning with Dual-Quaternions and QTangents](https://pdfs.semanticscholar.org/73b6/fa8f3ab6348975c3715c2f2d152f6b5c5296.pdf) that presents the method, where a quaternion is constructed from the matrix and can also optionally carry the orientation sign, if it's flipped into a canonical form with `w > 0`[^4]. After decoding the quaternion, we can reconstruct `w` with `sqrt` and then reconstruct the original vectors using a [quaternion-to-matrix formula](https://www.johndcook.com/blog/2025/05/07/quaternions-and-rotation-matrices/).
 
+> In practice T and N may not be orthogonal, so it is valuable to orthogonalize the frame first: subtract `dot(N, T) * N` from the tangent, renormalize it, and reconstruct the bitangent. This makes sure the normal is preserved by the quaternion encoding even though the tangent direction changes during orthogonalization.
+
 To store all 4 quaternion components, we must make do with just 8 bits per component, with or without aforementioned orientation packing:
 
 | codec | bits | n_avg | n_max | t_avg | t_max |
