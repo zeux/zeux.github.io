@@ -50,7 +50,7 @@ As an aside, if you use octahedron encoding, you should be aware of two importan
 
 # Quaternion encoding
 
-Because the TBN is an orthonormal basis, we can represent it in any way that a rotation matrix can be represented; in particular, quaternions are a very useful representation. Crytek published [Spherical Skinning with Dual-Quaternions and QTangents](https://pdfs.semanticscholar.org/73b6/fa8f3ab6348975c3715c2f2d152f6b5c5296.pdf) that presents the method, where a quaternion is constructed from the matrix and can also optionally carry the orientation sign, if it's flipped into a canonical form with `w > 0`[^4]. After decoding the quaternion, we can reconstruct `w` with `sqrt` and then reconstruct the original vectors using a [quaternion-to-matrix formula](https://www.johndcook.com/blog/2025/05/07/quaternions-and-rotation-matrices/).
+Because the TBN is an orthonormal basis, we can represent it in any way that a rotation matrix can be represented; in particular, quaternions are a very useful representation. Crytek published [Spherical Skinning with Dual-Quaternions and QTangents](https://pdfs.semanticscholar.org/73b6/fa8f3ab6348975c3715c2f2d152f6b5c5296.pdf) that presents the method, where a quaternion is constructed from the matrix and can also optionally carry the orientation sign, if it's flipped into a canonical form with `w > 0`[^4]. After decoding the quaternion, we can reconstruct the original vectors using a [quaternion-to-matrix formula](https://www.johndcook.com/blog/2025/05/07/quaternions-and-rotation-matrices/).
 
 > In practice T and N may not be orthogonal, so it is valuable to orthogonalize the frame first: subtract `dot(N, T) * N` from the tangent, renormalize it, and reconstruct the bitangent. This makes sure the normal is preserved by the quaternion encoding even though the tangent direction changes during orthogonalization.
 
@@ -60,7 +60,7 @@ To store all 4 quaternion components, we must make do with just 8 bits per compo
 | --- | ---: | ---: | ---: | ---: | ---: |
 | quat8x4 | 32 | 0.3208 | 0.8738 | 0.3296 | 0.9022 |
 
-This is pretty underwhelming; we are getting similar results to two-vector encoding. The quaternion we are encoding is unit-length, so it can be tempting to drop the fourth component, `.w`, and reconstruct it; this affords us 10 bits per component instead of 8. Unfortunately, while it slightly improves on the average error, it makes the worst case error much worse: reconstruction of any specific quaternion component has regions of instability where the input `.w` is small, and reconstructing it from quantized `xyz` results in 0 - which can rotate the input vector too much.
+This is pretty underwhelming; we are getting similar results to two-vector encoding. The quaternion we are encoding is unit-length, so it can be tempting to drop the fourth component, `.w`, and reconstruct it; this affords us 10 bits per component instead of 8. Unfortunately, while it slightly improves on the average error, it makes the worst case error much worse: reconstruction of any specific quaternion component has regions of instability where the input `.w` is small, and reconstructing it from quantized `xyz` results in 0 - which can rotate the basis too much.
 
 A [classical solution](https://marc-b-reynolds.github.io/quaternions/2017/05/02/QuatQuantPart1.html#:~:text=Smallest%20three) to this involves dropping the *maximum* (absolute) component and storing its index which uses an extra 2 bits. In this form we could use 10 bits per axis for the three smallest values, and adjust the quantization range as their absolute value can't exceed `sqrt(2)/2`; if we hand-wave away the orientation bit which we don't quite have space for here, we could use 10 bits per axis and a 2-bit axis index:
 
@@ -76,7 +76,7 @@ This is getting quite reasonable; our errors are only ~2x larger than the origin
 
 An important property of all of these results is that the error for normal and tangent is the same. Because we are encoding a rotation, all axes of that rotation suffer equally under quantization. I'm going to make an empirical observation/argument that what we *want* here is a slightly asymmetric encoding: a lower error for normals may be desirable. Intuitively, changing the tangent direction affects the rotation of the extra normal map features whereas changing the normal direction affects lighting even if the normal map is flat; in addition, on densely tessellated meshes where normal quantization is more likely to produce visible artifacts, you're less likely to have a meaningful normal map. Finally, if the normal map is *not* flat, the quality of the normals in the normal map is also subject to quantization artifacts; although BC5 could have up to ~11 bits per channel of effective precision depending on the block, so sometimes tangent encoding may still be a limiting factor.
 
-I guess my point is: are you really going to notice if the tangent vector is rotated by an extra third of a degree? Let's assume you won't.
+I guess my point is: are you really going to notice if the tangent vector is rotated by a fraction of a degree? Let's assume you won't.
 
 # Tangent angle encoding
 
@@ -109,7 +109,7 @@ Described in Jeremy Ong's post [Tangent Spaces and Diamond Encoding](https://www
 
 Other than that everything relevant for tangent angle encoding applies here too: you need to select the orthogonal basis although the particular method to do it may not matter as much; and it's critical that the basis is selected based on the reconstructed normal vector, which will be encoded using quantized octahedron encoding. Because we encode the diamond value separately, we have the same freedom of bit allocation.
 
-> That post argues that orientation bit could be stored elsewhere. While I handwaved the bit away in some encodings above, primarily because I was leading to the encodings that I actually like, I would probably *not* recommend this unless you work with very specific types of content where mirrored UVs just don't show up. Having looked at hundreds of meshes in the last few weeks, you *will* encounter plenty of meshes with both UV orientations, you *will* encounter cases where orientation changes quickly in local proximity, and you *may* even encounter meshes where orientation diverges within a triangle, making per-meshlet orientation storage impossible![^5] Just find a bit somewhere ;)
+> That post argues that orientation bit could be stored at a higher-than-vertex granularity, e.g. per mesh/meshlet. While I handwaved the bit away in some encodings above, primarily because I was leading to the encodings that I actually like, I would probably *not* recommend this unless you work with very specific types of content where mirrored UVs just don't show up. Having looked at hundreds of meshes in the last few weeks, you *will* encounter plenty of meshes with both UV orientations, you *will* encounter cases where orientation changes quickly in local proximity, and you *may* even encounter meshes where orientation diverges within a triangle, making per-meshlet orientation storage impossible![^5] Just find a bit somewhere ;)
 
 With that in mind, let's look at the same options we've examined earlier; as a reminder, the first one needs 32 bits and doesn't have space for the orientation bit (store it elsewhere!), whereas the last three reserve the orientation bit and reallocate the other bits between normal and diamond storage:
 
@@ -151,7 +151,7 @@ Eyeballing the diamond encoding method, decoding a tangent frame encoded in this
 
 If this does still seem high, you would need to measure the resulting decoding cost and decide. Quaternion representations should be a bit cheaper to decode, but inability to redistribute the encoded bit count and inability to fit the extra bit into the 3x10+2 bit encoding is certainly not ideal.
 
-But if you are still using 8-byte or larger tangent frames, consider that DOOM Eternal uses just three bytes, repent, and quantize away!
+But if you are still using 8-byte or larger tangent frames, consider that DOOM Eternal uses just three bytes[^6], repent, and quantize away!
 
 For convenience, here's the full table with all experiments above, although do note that some of these use the full 32 bits without space for the orientation bit, for which you would need to find space elsewhere in the vertex.
 
@@ -176,3 +176,4 @@ For convenience, here's the full table with all experiments above, although do n
 [^3]: Unit-length vectors are technically also a simplification; but again one that is commonly accepted. In some cases it can be useful to be able to represent zero-length tangent vectors; this can be incorporated via an extra bit or a sentinel value in some of the encodings described. MikkTSpace can also occasionally generate zero-length tangents although this is quite rare.
 [^4]: This requires slightly tweaking `w` when it's exactly equal to 0, and requires a bit of extra care if quantization is used.
 [^5]: Okay, this is a MikkTSpace special that is perhaps not hugely relevant here because it only shows up on UV-degenerate triangles where one or two corners have fallback tangents anyway, and these frames are not orthogonal. Still, you should probably switch to meshoptimizer's tangent space generation where this problem is fixed ;)
+[^6]: In fairness, the 3-byte representation seems specific to vertex animated meshes, where you probably don't notice the artifacts at all :)
