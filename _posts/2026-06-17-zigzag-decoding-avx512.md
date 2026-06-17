@@ -274,6 +274,8 @@ That said, similarly to the previous optimization, this is more of a property of
 
 Still, that gave us a great excuse to try out a very powerful instruction! There are many other [documented unconventional](https://gist.github.com/animetosho/d3ca95da2131b5813e16b5bb1b137ca0) use cases for `gf2p8affineqb` that you can easily find online; in general if you ever are in need of a byte transform, double check if it is representable as a GF(2) matrix multiply - and rejoice if it is!
 
+> Note that `_mm_gf2p8affine_epi64_epi8` takes an extra immediate which we've hardcoded as 0; this is the `b` part of `Ax+b` transform, and while we haven't needed it it may be helpful if you need to unconditionally xor any of the output bits with 1 after the matrix multiplication.
+
 # Conclusion
 
 AVX-512 is quite fun to experiment with. I haven't looked into this since 2019; it's unfortunate that it still isn't widely available, but it gives a lot of new interesting ways to approach existing problems, even disregarding the wider registers.
