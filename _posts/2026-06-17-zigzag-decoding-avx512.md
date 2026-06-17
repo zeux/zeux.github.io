@@ -22,7 +22,7 @@ To decode this, we can directly decode either a positive or a negative value[^1]
 
 The way branchless decoding works is that `-(v & 1)` is 0 when v is even, and a mask of all 1s when v is odd. Xor-ing with that mask keeps the magnitude (`v >> 1`) as is if the mask is 0, and inverts it if the mask is all 1s - which is equivalent to the ternary expression above.
 
-The net effect is that the resulting value is a small positive value if the input was a small negative or positive value; we can then encode the result using any variable-width scheme of our choosing: common options include VByte (which encodes unsigned integer values as 1-5 bytes) and other forms of bit-wise encoding[^2].
+The net effect is that the resulting value is a small positive value if the input was a small negative or positive value; we can then encode the result using any variable-width scheme of our choosing: common options include VByte (aka LEB128, which encodes unsigned integer values as 1-5 bytes) and other forms of bit-wise encoding[^2].
 
 # SIMD decoding
 
@@ -40,8 +40,8 @@ This is a direct translation of the C code above, except that SSE2 doesn't have 
 
 ```nasm
 vpsrld xmm1, xmm0, 1    ; shift by 1
-vpandq xmm0, xmm0, xmm2 ; and
-vpsubd xmm0, xmm3, xmm0 ; sub from 0
+vpandq xmm0, xmm0, xmm2 ; and with 1 (preloaded into xmm2)
+vpsubd xmm0, xmm3, xmm0 ; sub from 0 (preloaded into xmm3)
 vpxorq xmm0, xmm0, xmm1 ; xor
 ```
 
@@ -197,7 +197,7 @@ This is similarly clear if we look at the branchless decoding:
 
 In some cases you can go one step further and decompose something like `-(v & 1)` as a function composition (equivalent to matrix multiplication); unfortunately, in our case this doesn't work because negation isn't affine, and it only works here because `v & 1` produces a 1-bit result; so it's easier to think of this transformation as something that takes the low bit and propagates it to all bits of the output: if `v & 1` is 1, the result is all 1s, otherwise it's all 0s. This is a very simple GF(2) matrix, because every row of this matrix has 1 in the column corresponding to least significant bit, with all other values set to 0.
 
-Which means we can finally specify both matrices and `xor` them together; the matrix that shifts bytes right by 1 looks like this (e.g. first row copies the second least significant bit into the output):
+Which means we can finally specify both matrices and `xor` them together; the matrix that shifts bits right by 1 looks like this (e.g. first row copies the second least significant bit into the output):
 
 ```
 00000010
