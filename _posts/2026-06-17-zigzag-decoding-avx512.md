@@ -22,7 +22,7 @@ To decode this, we can directly decode either a positive or a negative value[^1]
 
 The way branchless decoding works is that `-(v & 1)` is 0 when v is even, and a mask of all 1s when v is odd. Xor-ing with that mask keeps the magnitude (`v >> 1`) as is if the mask is 0, and inverts it if the mask is all 1s - which is equivalent to the ternary expression above.
 
-The net effect is that the resulting value is a small positive value if the input was a small negative or positive value; we can then encode the result using any variable-width scheme of our choosing: common options include VByte (which encodes unsigned integer values as 1-5 bytes) and other forms of bit-wise encoding[^6].
+The net effect is that the resulting value is a small positive value if the input was a small negative or positive value; we can then encode the result using any variable-width scheme of our choosing: common options include VByte (which encodes unsigned integer values as 1-5 bytes) and other forms of bit-wise encoding[^2].
 
 # SIMD decoding
 
@@ -36,7 +36,7 @@ __m128i xr = _mm_srli_epi32(v, 1);
 return _mm_xor_si128(xl, xr);
 ```
 
-This is a direct translation of the C code above, except that SSE2 doesn't have an obvious first class way to negate integers, so you need to subtract from 0 instead. This compiles exactly as you would expect (and also supports any integer width and can use wider AVX2 or AVX-512 vectors in an obvious way)[^2]:
+This is a direct translation of the C code above, except that SSE2 doesn't have an obvious first class way to negate integers, so you need to subtract from 0 instead. This compiles exactly as you would expect (and also supports any integer width and can use wider AVX2 or AVX-512 vectors in an obvious way)[^3]:
 
 ```nasm
 vpsrld xmm1, xmm0, 1    ; shift by 1
@@ -75,7 +75,7 @@ __m128i x = _mm_srli_epi32(v, 1);
 return _mm_mask_xor_epi32(x, m, x, _mm_set1_epi32(-1));
 ```
 
-Again, by itself this does not seem useful; however, given a sufficiently smart compiler[^3], or a sufficiently deep knowledge of AVX-512 instructions, this can be optimized further. Specifically, we are doing an `and` operation and using the result to compute the mask; but, AVX-512 includes a dedicated instruction for this, similar to a scalar `test` instruction from x86, that performs `and`, compares the result to 0 and sets the mask when it's not 0: exactly what we need! The code above, then, is equivalent to:
+Again, by itself this does not seem useful; however, given a sufficiently smart compiler[^4], or a sufficiently deep knowledge of AVX-512 instructions, this can be optimized further. Specifically, we are doing an `and` operation and using the result to compute the mask; but, AVX-512 includes a dedicated instruction for this, similar to a scalar `test` instruction from x86, that performs `and`, compares the result to 0 and sets the mask when it's not 0: exactly what we need! The code above, then, is equivalent to:
 
 ```csharp
 __mmask8 m = _mm_test_epi32_mask(v, _mm_set1_epi32(1));
@@ -105,7 +105,7 @@ return _mm_mask_sub_epi16(x, m, _mm_set1_epi16(-1), x);
 
 We heroically reduced the instruction count by 1, but not all instructions are created equal. Is the result faster? The answer is, as all good answers are in cases like this, "it depends".
 
-First, if we look at Zen 4 instruction latency tables: we will note that while masked execution seems to be "free" (`vpxor`/`vpsub` with a mask has the same latency and throughput as the unmasked variants), `vptestmd` latency according to [uops.info](https://uops.info) is 3 cycles; shift does not depend on the result, but the conditional `xor`/`sub` does, so our total latency here is 4 cycles - one cycle longer than the original version.[^4] So in cases where your code is latency-bound, this is probably a bad idea.
+First, if we look at Zen 4 instruction latency tables: we will note that while masked execution seems to be "free" (`vpxor`/`vpsub` with a mask has the same latency and throughput as the unmasked variants), `vptestmd` latency according to [uops.info](https://uops.info) is 3 cycles; shift does not depend on the result, but the conditional `xor`/`sub` does, so our total latency here is 4 cycles - one cycle longer than the original version.[^5] So in cases where your code is latency-bound, this is probably a bad idea.
 
 That said, it should be rare that the entire zigzag decoding is on a latency-critical path; even in typical code that takes the decoded value and accumulates it, the latency-critical path is the addition "spine", and as long as you can read the inputs independently, an extra cycle of latency might not hurt.
 
@@ -124,7 +124,7 @@ Each instruction here can be dispatched once per cycle per port it can get execu
 Experimentally, for meshoptimizer:
 
 - In vertex codec, this is not very useful because the loop where this can be applied is bottlenecked by a combination of a latency "spine" that accumulates deltas and vector stores that overwhelm the store unit. The rest of the code has enough execution resources: even though the new code requires fewer of them, it does not change the performance.
-- In meshlet codec, part of the decoding process is an actual throughput-bottlenecked loop (yay!); and in that loop, using this decoding method does indeed improve decoding performance measurably. However, meshlet codec currently does not have an AVX-512 (or even an AVX2) path; and, simply making the decoding loop wider to match the AVX-512 register width may have a more significant impact.
+- In meshlet codec, part of the decoding process is an actual throughput-bottlenecked loop (yay!); and in that loop, using this decoding method does indeed improve decoding performance measurably (~3%). However, meshlet codec currently does not have an AVX-512 (or even an AVX2) path; and making the decoding loop wider to match the AVX-512 register width might have a more significant impact.
 
 In addition, this code works fine when compiled with GCC, but Clang decides it is a smart compiler and removes our mask trick entirely! Which ends up producing the exact same code we started from:
 
@@ -135,7 +135,7 @@ vpsubd  xmm0, xmm2, xmm0
 vpxor   xmm0, xmm1, xmm0
 ```
 
-This behavior is simultaneously entirely unhelpful and also typical of Clang: LLVM loves to canonicalize vector intrinsics into forms that are ostensibly easier for the compiler to reason about, and then apply generic optimizations to these that are often either ignoring or misunderstanding the actual hardware bottlenecks. This is just fine for code that starts as scalar code and is auto-vectorized, but is actively harmful in this and many other cases when explicit SIMD intrinsics are used; there are sometimes ways to work around this, e.g. in the meshlet codec the actual expression we need is `unzigzag32(v) + 1`, which can be restructured a little bit to replace conditional `xor` with a more complicated conditional `sub` that LLVM leaves alone.
+This behavior is simultaneously entirely unhelpful and also typical of Clang: LLVM loves to canonicalize vector intrinsics into forms that are ostensibly easier for the compiler to reason about, and then applies generic optimizations to these that are often either ignoring or misunderstanding the actual hardware bottlenecks. This is just fine for code that starts as scalar code and is auto-vectorized, but is actively harmful in this and many other cases when explicit SIMD intrinsics are used; there are sometimes ways to work around this, e.g. in the meshlet codec the actual expression we need is `unzigzag32(v) + 1`, which can be restructured a little bit to replace conditional `xor` with a more complicated conditional `sub` that LLVM leaves alone.
 
 For all of these reasons this optimization didn't quite make the cut, although I might revisit this at some point. But there is another interesting optimization we can consider!
 
@@ -143,7 +143,7 @@ For all of these reasons this optimization didn't quite make the cut, although I
 
 I've already mentioned it above briefly but it bears repeating: unzigzag is a very boring transformation of the underlying bits. If the low bit is 0, we simply shift the entire value right by 1. If the low bit is 1, then the resulting highest bit is 1, and all other bits are just inverted bits of the original value shifted by 1. There *must* be some circuit that just does it for us!
 
-Enter GFNI, or ["Galois Field New Instructions"](https://www.intel.com/content/www/us/en/content-details/644497/galois-field-new-instructions-gfni-technology-guide.html). This is another extended instruction set; it's technically not even part of AVX-512: it has a separate feature bit in the CPUID mask and must be checked separately; because of that, it's also not part of AVX10.2 instruction set. However, all AVX10.2 CPUs support it, all AMD CPUs that support AVX-512 support it, and even though some earlier Intel CPUs (like Cascade Lake) support AVX-512 without supporting GFNI, at this point the existence of consumer Intel CPUs that have AVX-512 is questionable so we might as well assume the best.[^5] Definitely make sure to still check the CPUID bit, but my point is that relying on GFNI in addition to AVX-512 should not restrict our supported systems much in practice.
+Enter GFNI, or ["Galois Field New Instructions"](https://www.intel.com/content/www/us/en/content-details/644497/galois-field-new-instructions-gfni-technology-guide.html). This is another extended instruction set; it's technically not even part of AVX-512: it has a separate feature bit in the CPUID mask and must be checked separately; because of that, it's also not part of AVX10.2 instruction set. However, all AVX10.2 CPUs support it, all AMD CPUs that support AVX-512 support it, and even though some earlier Intel CPUs (like Cascade Lake) support AVX-512 without supporting GFNI, at this point the existence of consumer Intel CPUs that have AVX-512 is questionable so we might as well assume the best.[^6] Definitely make sure to still check the CPUID bit, but my point is that relying on GFNI in addition to AVX-512 should not restrict our supported systems much in practice.
 
 With that preamble out of the way, what do these instructions actually do? The most important instruction for our use case has a beautiful name `vgf2p8affineqb` and performs an 8x8 matrix multiplication in GF(2).
 
@@ -181,7 +181,7 @@ vpsrlw xmm2,xmm2,0x1
 vpternlogq xmm2,xmm1,xmm9,0x6c
 ```
 
-Shift, and, sub are matching the code we've looked at before, but the compiler replaced `xor` together with the extra `and` here with `vpternlogq` - which takes 3 arguments and a truth table defining how each of the 8 combinations of bits in the source arguments maps to the new result. This is nice because this makes this code as expensive as wider (16 or 32-bit) zigzag decoding even though it technically needs to work around the lack of 8-bit shifts[^7]. Let's see if we can do better.
+Shift, and, sub are matching the code we've looked at before, but the compiler replaced `xor` together with the extra `and` here with `vpternlogq` - which takes 3 arguments and a truth table defining how each of the 8 combinations of bits in the source arguments maps to the new result. This is nice because this makes the code as expensive as wider (16 or 32-bit) zigzag decoding even though it technically needs to work around the lack of 8-bit shifts[^7]. Let's see if we can do better.
 
 As a reminder, the transform we need to represent is:
 
@@ -283,11 +283,11 @@ It's a little sad that other instruction sets now have obvious gaps in relation 
 And I'm sure the AVX-512 story for meshoptimizer codecs is far from over too; there are still a few unexplored avenues and decisions that may not make sense on AVX-512 I should revisit. Maybe I will write another blog post after I do ;)
 
 [^1]: `~(v >> 1)` is equivalent to `-(v >> 1) - 1`; the extra offset is necessary as for negative numbers, we encode an offset magnitude into the higher bits.
-[^2]: This is using VEX encoded instructions, both to make AVX-512 comparisons more obvious, and to avoid discussing caveats around register renaming.
-[^3]: Neither GCC nor Clang are sufficiently smart here; GCC does not recognize the pattern, and Clang does something terrible we will come back to in a moment.
-[^4]: There is some confusion in the uops.info tables about what the latency of `vpxord` is on Zen 4; I'm going to mostly ignore this as SURELY this must be a 1-cycle latency instruction.
-[^5]: Yes, I know that Intel did used to ship laptop chips with AVX-512 enabled! I owned one in 2019 which is what the original AVX-512 support in meshoptimizer was tested on. But even that chip already had GFNI.
-[^6]: Here the assumption is that it's important to maximize the number of leading zero bits to improve downstream compression; note that if you are targeting a general purpose LZ+entropy coder instead, [simpler options exist too](https://cbloomrants.blogspot.com/2023/07/notes-on-float-and-multi-byte-delta.html).
+[^2]: Here the assumption is that it's important to maximize the number of leading zero bits to improve downstream compression; note that if you are targeting a general purpose LZ+entropy coder instead, [simpler options exist too](https://cbloomrants.blogspot.com/2023/07/notes-on-float-and-multi-byte-delta.html).
+[^3]: This is using VEX encoded instructions, both to make AVX-512 comparisons more obvious, and to avoid discussing caveats around register renaming.
+[^4]: Neither GCC nor Clang are sufficiently smart here; GCC does not recognize the pattern, and Clang does something terrible we will come back to in a moment.
+[^5]: There is some confusion in the uops.info tables about what the latency of `vpxord` is on Zen 4; I'm going to mostly ignore this as SURELY this must be a 1-cycle latency instruction.
+[^6]: Yes, I know that Intel did used to ship laptop chips with AVX-512 enabled! I owned one in 2019 which is what the original AVX-512 support in meshoptimizer was tested on. But even that chip already had GFNI.
 [^7]: Ironically, 8-bit shifts can be emulated with GFNI too, as we'll see in a moment! But it would have been nice to get immediate 8-bit shifts still.
 [^8]: This is arguably overkill here, as the full transform looks very simple on the bit level; however transform composition can be useful in more complex cases.
 [^9]: Stored as a row-major bit sequence, and the byte order is a bit funky because the most significant byte stores the first row that determines the least significant output bit.
