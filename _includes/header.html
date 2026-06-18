@@ -86,10 +86,16 @@
   }
   .header-anchor {
     position: absolute;
-    left: 0;
+    left: 0.4em;
     color: #ccc;
     text-decoration: none;
     visibility: hidden;
+  }
+  @media (min-width: 48em) {
+    /* sidebar layout has a left gutter, so hang the anchor fully left */
+    .header-anchor {
+      left: 0;
+    }
   }
   .post h1:hover .header-anchor,
   .post h2:hover .header-anchor,
