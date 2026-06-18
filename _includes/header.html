@@ -34,22 +34,26 @@
   <!-- Disable favicon -->
   <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 
+  <!-- Preload the font faces needed for the first paint everywhere -->
+  <link rel="preload" href="/fonts/pt_sans-web-regular-webfont.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/pt_sans-web-bold-webfont.woff2" as="font" type="font/woff2" crossorigin>
+
   <!-- CSS -->
   <style type="text/css">
   @font-face {
     font-family: 'PT Sans'; font-style: normal; font-weight: 400;
     font-display: fallback;
-    src: local('PT Sans'), local('PTSans-Regular'), url(/fonts/pt_sans-web-regular-webfont.woff) format('woff');
+    src: local('PT Sans'), local('PTSans-Regular'), url(/fonts/pt_sans-web-regular-webfont.woff2) format('woff2');
   }
   @font-face {
     font-family: 'PT Sans'; font-style: normal; font-weight: 700;
     font-display: fallback;
-    src: local('PT Sans Bold'), local('PTSans-Bold'), url(/fonts/pt_sans-web-bold-webfont.woff) format('woff');
+    src: local('PT Sans Bold'), local('PTSans-Bold'), url(/fonts/pt_sans-web-bold-webfont.woff2) format('woff2');
   }
   @font-face {
     font-family: 'PT Sans'; font-style: italic; font-weight: 400;
     font-display: fallback;
-    src: local('PT Sans Italic'), local('PTSans-Italic'), url(/fonts/pt_sans-web-italic-webfont.woff) format('woff');
+    src: local('PT Sans Italic'), local('PTSans-Italic'), url(/fonts/pt_sans-web-italic-webfont.woff2) format('woff2');
   }
 
   {% include css/poole.css %}
