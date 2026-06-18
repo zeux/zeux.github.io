@@ -74,6 +74,28 @@
     font-size: 0.9em;
     line-height: 1.4;
   }
+
+  .post h1[id], .post h2[id], .post h3[id] {
+    position: relative;
+    margin-left: -0.9em;
+    padding-left: 0.9em;
+  }
+  .header-anchor {
+    position: absolute;
+    left: 0;
+    color: #ccc;
+    text-decoration: none;
+    visibility: hidden;
+  }
+  .post h1:hover .header-anchor,
+  .post h2:hover .header-anchor,
+  .post h3:hover .header-anchor {
+    visibility: visible;
+  }
+  .header-anchor:hover {
+    color: #268bd2;
+    text-decoration: none;
+  }
   </style>
 
   <!-- RSS -->
