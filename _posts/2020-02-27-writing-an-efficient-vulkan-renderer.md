@@ -30,7 +30,7 @@ Memory management remains an exceedingly complex topic, and in Vulkan it gets ev
 
 A perfectly reasonable first step is to integrate `VulkanMemoryAllocator` (henceforth abbreviated as VMA), which is an open-source library developed by AMD that solves some memory management details for you by providing a general purpose resource allocator on top of Vulkan functions. Even if you do use that library, there are still multiple performance considerations that apply; the rest of this section will go over memory caveats without assuming you use VMA; all of the guidance applies equally to VMA.
 
-## Memory heap selection
+### Memory heap selection
 
 When creating a resource in Vulkan, you have to choose a heap to allocate memory from. Vulkan device exposes a set of memory types where each memory type has flags that define the behavior of that memory, and a heap index that defines the available size.
 
@@ -46,7 +46,7 @@ When dealing with dynamic resources, in general allocating in non-device-local h
 
 When allocating resources from `VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT`, in case of VRAM oversubscription you can run out of memory; in this case you should fall back to allocating the resources in non-device-local `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` memory. Naturally you should make sure that large frequently used resources such as render targets are allocated first. There are other things you can do in an event of an oversubscription, such as migrating resources from GPU memory to CPU memory for less frequently used resources – this is outside of the scope of this article; additionally, on some operating systems like Windows 10 correct handling of oversubscription requires APIs that are not currently available in Vulkan.
 
-## Memory suballocation
+### Memory suballocation
 
 Unlike some other APIs that allow an option to perform one memory allocation per resource, in Vulkan this is impractical for large applications – drivers are only required to support up to 4096 individual allocations. In addition to the total number being limited, allocations can be slow to perform, may waste memory due to assuming worst case possible alignment requirements, and also require extra overhead during command buffer submission to ensure memory residency. Because of this, suballocation is necessary. A typical pattern of working with Vulkan involves performing large (e.g. 16 MB – 256 MB depending on how dynamic the memory requirements are) allocations using `vkAllocateMemory`, and performing suballocation of objects within this memory, effectively managing it yourself. Critically, the application needs to handle alignment of memory requests correctly, as well as `bufferImageGranularity` limit that restricts valid configurations of buffers and images.
 
@@ -58,7 +58,7 @@ Briefly, `bufferImageGranularity` restricts the relative placement of buffer and
 
 On many GPUs the required alignment for image resources is substantially bigger than it is for buffers which makes the last option attractive – in addition to reducing waste due to lack of extra padding between buffers and images, it reduces internal fragmentation due to image alignment when an image follows a buffer resource. VMA provides implementations for option 2 (by default) and option 3 (see `VMA_POOL_CREATE_IGNORE_BUFFER_IMAGE_GRANULARITY_BIT`).
 
-## Dedicated allocations
+### Dedicated allocations
 
 While the memory management model that Vulkan provides implies that the application performs large allocations and places many resources within one allocation using suballocation, on some GPUs it’s more efficient to allocate certain resources as one dedicated allocation. That way the driver can allocate the resources in faster memory under special circumstances.
 
@@ -66,7 +66,7 @@ To that end, Vulkan provides an extension (core in 1.1) to perform dedicated all
 
 In general, applications may see performance improvements from dedicated allocations on large render targets that require a lot of read/write bandwidth depending on the hardware and drivers.
 
-## Mapping memory
+### Mapping memory
 
 Vulkan provides two options when mapping memory to get a CPU-visible pointer:
 
@@ -81,7 +81,7 @@ The only downside is that this technique makes the 256 MB chunk of VRAM that is 
 
 Unlike earlier APIs with a slot-based binding model, in Vulkan the application has more freedom in how to pass resources to shaders. Resources are grouped into descriptor sets that have an application-specified layout, and each shader can use several descriptor sets that can be bound individually. It’s the responsibility of the application to manage the descriptor sets to make sure that CPU doesn’t update a descriptor set that’s in use by the GPU, and to provide the descriptor layout that has an optimal balance between CPU-side update cost and GPU-side access cost. In addition, since different rendering APIs use different models for resource binding and none of them match Vulkan model exactly, using the API in an efficient and cross-platform way becomes a challenge. We will outline several possible approaches to working with Vulkan descriptor sets that strike different points on the scale of usability and performance.
 
-## Mental model
+### Mental model
 
 When working with Vulkan descriptor sets, it’s useful to have a mental model of how they might map to hardware. One such possibility – and the expected design – is that descriptor sets map to a chunk of GPU memory that contains descriptors – opaque blobs of data, 16-64 bytes in size depending on the resource, that completely specify all resource parameters necessary for shaders to access resource data. When dispatching shader work, CPU can specify a limited number of pointers to descriptor sets; these pointers become available to shaders as the shader threads launch.
 
@@ -89,7 +89,7 @@ With that in mind, Vulkan APIs can map more or less directly to this model – c
 
 Note that this model ignores several complexities, such as dynamic buffer offsets, limited number of hardware resources for descriptor sets, etc. Additionally, this is just one possible implementation – some GPUs have a less generic descriptor model and require the driver to perform additional processing when descriptor sets are bound to the pipeline. However, it’s a useful model to plan for descriptor set allocation/usage.
 
-## Dynamic descriptor set management
+### Dynamic descriptor set management
 
 Given the mental model above, you can treat descriptor sets as GPU-visible memory – it’s the responsibility of the application to group descriptor sets into pools and keep them around until GPU is done reading them.
 
@@ -104,7 +104,7 @@ Two alternatives that provide a better balance wrt memory use are:
 -	Measure an average number of descriptors used in a shader pipeline per type for a characteristic scene and allocate pool sizes accordingly. For example, if in a given scene we need 3000 descriptor sets, 13400 texture descriptors, and 1700 buffer descriptors, then the average number of descriptors per set is 4.47 textures (rounded up to 5) and 0.57 buffers (rounded up to 1), so a reasonable configuration of a pool is maxSets=1024, 5\*1024 texture descriptors, 1024 buffer descriptors. When a pool is out of descriptors of a given type, we allocate a new one – so this scheme is guaranteed to work and should be reasonably efficient on average.
 -	Group shader pipeline objects into size classes, approximating common patterns of descriptor use, and pick descriptor set pools using the appropriate size class. This is an extension of the scheme described above to more than one size class. For example, it’s typical to have large numbers of shadow/depth prepass draw calls, and large numbers of regular draw calls in a scene – but these two groups have different numbers of required descriptors, with shadow draw calls typically requiring 0 to 1 textures per set and 0 to 1 buffers when dynamic buffer offsets are used. To optimize memory use, it’s more appropriate to allocate descriptor set pools separately for shadow/depth and other draw calls. Similarly to general-purpose allocators that can have size classes that are optimal for a given application, this can still be managed in a lower-level descriptor set management layer as long as it’s configured with application specific descriptor set usages beforehand.
 
-## Choosing appropriate descriptor types
+### Choosing appropriate descriptor types
 
 For each resource type, Vulkan provides several options to access these in a shader; application is responsible for choosing an optimal descriptor type.
 
@@ -116,7 +116,7 @@ For textures, if filtering is required, there is a choice of combined image/samp
 
 The relative performance of these methods is highly dependent on the usage pattern; however, in general immutable descriptors map better to the recommended usage model in other newer APIs like Direct3D 12, and give driver more freedom to optimize the shader. This does alter renderer design to a certain extent, making it necessary to implement certain dynamic portions of the sampler state, like per-texture LOD bias for texture fade-in during streaming, using shader ALU instructions.
 
-## Slot-based binding
+### Slot-based binding
 
 A simplistic alternative to Vulkan binding model is Metal/Direct3D11 model where an application can bind resources to slots, and the runtime/driver manage descriptor memory and descriptor set parameters. This model can be implemented on top of Vulkan descriptor sets; while not providing the most optimal results, it generally is a good model to start with when porting an existing renderer, and with careful implementation it can be surprisingly efficient.
 
@@ -135,7 +135,7 @@ To reach good performance with this approach, you need to follow several guideli
 
 In general, the approach outlined above can be very efficient in terms of performance – it’s not as efficient as approaches with more static descriptor sets that are described below, but it can still run circles around older APIs if implemented carefully. On some drivers, unfortunately the allocate & update path is not very optimal – on some mobile hardware, it may make sense to cache descriptor sets based on the descriptors they contain if they can be reused later in the frame.
 
-## Frequency-based descriptor sets
+### Frequency-based descriptor sets
 
 While slot-based resource binding model is simple and familiar, it doesn’t result in optimal performance. Some mobile hardware may not support multiple descriptor sets; however, in general Vulkan API and driver expect an application to manage descriptor sets based on frequency of change.
 
@@ -157,7 +157,7 @@ For a complex renderer, different shaders might need to use different layouts �
 
 The scheme described above assumes that in most cases, per-draw data is larger than the size that can be efficiently set via push constants. Push constants can be set without updating or rebinding descriptor sets; with a guaranteed limit of 128 bytes per draw call, it’s tempting to use them for per-draw data such as a 4x3 transform matrix for an object. However, on some architectures the actual number of constants available to push quickly depends on the descriptor setup the shaders use, and is closer to 12 bytes or so. Exceeding this limit can force the driver to spill the push constants into driver-managed ring buffer, which can end up being more expensive than moving this data to a dynamic uniform buffer on the application side. While limited use of push constants may still be a good idea for some designs, it’s more appropriate to use them in a fully bindless scheme described in the next section.
 
-## Bindless descriptor designs
+### Bindless descriptor designs
 
 Frequency-based descriptor sets reduce the descriptor set binding overhead; however, you still need to bind one or two descriptor sets per draw call. Maintaining material descriptor sets requires a management layer that needs to update GPU-visible descriptor sets whenever material parameters change; additionally, since texture descriptors are cached in material data, this makes global texture streaming systems hard to deal with – whenever some mipmap levels in a texture get streamed in or out, all materials that refer to this texture need to be updated. This requires complex interaction between material system and texture streaming system and introduces extra overhead whenever a texture is adjusted – which partially offsets the benefits of the frequency-based scheme. Finally, due to the need to set up descriptor sets per draw call it’s hard to adapt any of the aforementioned schemes to GPU-based culling or command submission.
 
@@ -257,7 +257,7 @@ In older APIs, there is a single timeline for GPU commands; commands executed on
 
 In contrast, in Vulkan the application is responsible for managing command buffer memory, recording commands in multiple threads into multiple command buffers, and submitting them for execution with appropriate granularity. While with carefully written code a single-core Vulkan renderer can be significantly faster than older APIs, the peak efficiency and minimal latency is obtained by utilizing many cores in the system for command recording, which requires careful memory management.
 
-## Mental model
+### Mental model
 
 Similarly to descriptor sets, command buffers are allocated out of command pools; it’s valuable to understand how a driver might implement this to be able to reason about the costs and usage implications.
 
@@ -267,7 +267,7 @@ Each command pool can only be used from one thread concurrently, so the operatio
 
 Note that there is no guarantee that `vkFreeCommandBuffers` actually returns memory to the pool; alternative designs may involve multiple command buffers allocating chunks within larger pages, which would make it hard for `vkFreeCommandBuffers` to recycle memory. Indeed, on one mobile vendor, `vkResetCommandPool` is necessary to reuse memory for future command recording in a default setup when pools are allocated without `VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT`.
 
-## Multi-threaded command recording
+### Multi-threaded command recording
 
 Two crucial restrictions in Vulkan for command pool usage are:
 
@@ -282,13 +282,13 @@ Note that depending on the frame structure, the setup above may result in unbala
 
 This requires introducing the concept of size classes to the command buffer manager. With a command pool per thread and a manual reuse of allocated command buffers as suggested above, it’s possible to keep a free list per size class, with size classes defined based on the number of draw calls (e.g. “<100”, “100-400”, etc.) and/or the complexity of individual draw calls (depth-only, gbuffer). Picking the buffer based on the expected usage leads to a more stable memory consumption. Additionally, for passes that are too small it is worthwhile to reduce the parallelism when recording these - for example, if a pass has <100 draw calls, instead of splitting it into 4 recording jobs on a 4-core system, it can be more efficient to record it in one job since that can reduce the overhead of command memory management and command buffer submission.
 
-## Command buffer submission
+### Command buffer submission
 
 While it’s important to record multiple command buffers on multiple threads for efficiency, since state isn’t reused across command buffers and there are other scheduling limitations, command buffers need to be reasonably large to make sure GPU is not idle during command processing. Additionally, each submission has some overhead both on the CPU side and on the GPU side. In general a Vulkan application should target <10 submits per frame (with each submit accounting for 0.5ms or more of GPU workload), and <100 command buffers per frame (with each command buffer accounting for 0.1ms or more of GPU workload). This might require adjusting the concurrency limits for command recording for individual passes, e.g. if a shadow pass for a specific light has <100 draw calls, it might be necessary to limit the concurrency on the recording for this pass to just one thread; additionally, for even shorter passes combining them with neighboring passes into one command buffer becomes beneficial. Finally, the fewer submissions a frame has the better – this needs to be balanced with submitting enough GPU work earlier in the frame to increase CPU and GPU parallelism though, for example it might make sense to submit all command buffers for shadow rendering before recording commands for other parts of the frame.
 
 Crucially, the number of submissions refers to the total number of `VkSubmitInfo` structured submitted in all `vkQueueSubmit` calls in a frame, not to the number of `vkQueueSubmit` calls per se. For example, when submitting 10 command buffers, it’s much more efficient to use one `VkSubmitInfo` that submits 10 command buffers compared to 10 `VkSubmitInfo` structures with one command buffer per each, even if in both cases only one `vkQueueSubmit` call is performed. Essentially, `VkSubmitInfo` is a unit of synchronization/scheduling on GPU since it has its own set of fences/semaphores.
 
-## Secondary command buffers
+### Secondary command buffers
 
 When one of the render passes in the application contains a lot of draw calls, such as the gbuffer pass, for CPU submission efficiency it’s important to split the draw calls into multiple groups and record them on multiple threads. There are two ways to do this:
 
@@ -297,7 +297,7 @@ When one of the render passes in the application contains a lot of draw calls, s
 
 While on immediate mode GPUs the first approach can be viable, and it can be a bit easier to manage wrt synchronization points on the CPU, it’s vital to use the second approach on GPUs that use tiled rendering instead. Using the first approach on tilers would require that the contents of the tiles is flushed to memory and loaded back from memory between each command buffer, which is catastrophic for performance.
 
-## Command buffer reuse
+### Command buffer reuse
 
 With the guidance on the command buffer submission above, in most cases submitting a single command buffer multiple times after recording becomes impractical. In general approaches that pre-record command buffers for parts of the scene are counter-productive since they can result in excessive GPU load due to inefficient culling required to keep command buffer workload large and can trigger inefficient code paths on some tiled renderers, and instead applications should focus on improving the threading and draw call submission cost on the CPU. As such, applications should use `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT` to make sure the driver has freedom to generate commands that don’t need to be replayed more than once.
 
@@ -311,7 +311,7 @@ For optimal rendering, the pipeline barrier setup must be perfect. A missing bar
 
 Because of this, it’s vital to understand the behavior or barriers, the consequences of overspecifying them as well as how to work with them.
 
-## Mental model
+### Mental model
 
 The specification describes barriers in terms of execution dependencies and memory visibility between pipeline stages (e.g. a resource was previously written to by a compute shader stage, and will be read by the transfer stage), as well as layout changes for images (e.g. a resource was previously in the format that is optimal to write via the color attachment output and should be transitioned to a format that is optimal to read from the shader). However, it might be easier to think about barriers in terms of their consequences – as in, what can happen on a GPU when a barrier is used. Note that the GPU behavior is of course dependent on the specific vendor and architecture, but it helps to map barriers that are specified in an abstract fashion to more concrete constructs to understand their performance implications.
 
@@ -325,7 +325,7 @@ A barrier can cause three different things to happen:
 
 With this in mind, let’s try to understand the guidance for using barriers.
 
-## Performance guidelines
+### Performance guidelines
 
 When generating commands for each individual barrier, the driver only has a local view of the barrier and is unaware of past or future barriers. Because of this, the first important rule is that barriers need to be batched as aggressively as possible. Given a barrier that implies a wait-for-idle for fragment stage and an L2 texture cache flush, the driver will dutifully generate that every time you call `vkCmdPipelineBarrier`. If you specify multiple resources in a single `vkCmdPipelineBarrier` call, the driver will only generate one L2 texture cache flush command if it’s necessary for any transitions, reducing the cost.
 
@@ -341,13 +341,13 @@ Alternatively, in some cases the algorithm can be restructured to reduce the num
 
 As far as resource decompression goes, it’s hard to give a general advice – on some architectures this never happens, and on some it does but depending on the algorithm it might not be avoidable. Using vendor specific tools such as Radeon Graphics Profiler is critical to understanding the performance impact decompression has on your frame; in some cases, it may be possible to adjust the algorithm to not require the decompression in the first place, for example by moving the work to a different stage. Of course it should be noted that resource decompression may happen in cases where it’s completely unnecessary and is a result of overspecifying barriers – for example, if you render to a framebuffer that contains a depth buffer and never read depth contents in the future, you should leave the depth buffer in `VK_IMAGE_LAYOUT_DEPTH_STENCIL_OPTIMAL` layout instead of needlessly transitioning it into `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` which might trigger a decompression (remember, the driver doesn’t know if you are going to read the resource in the future!).
 
-## Simplifying barrier specification
+### Simplifying barrier specification
 
 With all the complexity involved in specifying barriers, it helps to have examples of commonly required barriers. Fortunately, Khronos Group provides many examples of valid and optimal barriers for various types of synchronization as part of [Vulkan-Docs repository on GitHub](https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples). These can serve to improve the understanding of general barrier behavior, and can also be used directly in a shipping application.
 
 Additionally, for cases not covered by these examples and, in general, to simplify the specification code and make it more correct, it is possible to switch to a simpler model where, instead of fully specifying access masks, stages and image layouts, the only concept that needs to be known about a resource is the resource state that encapsulates the stages that can use the resource and the usage mode for most common types of access. Then all transitions involve transitioning a resource from state A from state B, which is much easier to understand. To that end, Tobias Hector, a member of Khronos Group and a co-author of the Vulkan specification, wrote an open-source library, simple_vulkan_synchronization, that translates resource state (otherwise known as access type in the library) transitions into Vulkan barrier specification. The library is small and simple and provides support for split barriers as well as full pipeline barriers.
 
-## Predicting the future with render graphs
+### Predicting the future with render graphs
 
 The performance guidelines outlined in the previous section are hard to follow in practice, especially given conventional immediate mode rendering architectures.
 
@@ -371,7 +371,7 @@ Different engines pick different parameters of the solution, for example Frostbi
 
 One concept that is relatively unique to Vulkan compared to both older APIs and new explicit APIs is render passes. Render passes allow an application to specify a large part of their render frame as a first-class object, splitting the workload into individual sub-passes and explicitly enumerating dependencies between sub-passes to allow the driver to schedule the work and place appropriate synchronization commands. In that sense, render passes are similar to render graphs described above and can be used to implement these with some limitations (for example, render passes currently can only express rasterization workloads which means that multiple render passes should be used if compute workloads are necessary to support). This section, however, will focus on simpler uses of render passes that are more practical to integrate into existing renderers, and still provide performance benefits.
 
-## Load & store operations
+### Load & store operations
 
 One of the most important features of render passes is the ability to specify load and store operations. Using these, the application can choose whether the initial contents of each framebuffer attachments needs to be cleared, loaded from memory, or remain unspecified and unused by the application, and whether after the render pass is done the attachment needs to be stored to memory.
 
@@ -381,7 +381,7 @@ To allow maximum freedom for the driver, it’s important to specify the weakest
 
 Similarly, `VK_ATTACHMENT_STORE_OP_DONT_CARE` should be used in case the application is not expecting to read the data rendered to the attachment - this is commonly the case for depth buffers and MSAA targets.
 
-## Fast MSAA resolve
+### Fast MSAA resolve
 
 After rendering data to an MSAA texture, it’s common to resolve it into a non-MSAA texture for further processing. If fixed-function resolve functionality is sufficient, there are two ways to implement this in Vulkan:
 
@@ -412,7 +412,7 @@ While the first problem is more benign, the second and third problem can lead to
 
 This model, however, presents challenges when implementing renderers on top of Vulkan. There are multiple ways to solve this problem, with different tradeoffs wrt complexity, efficiency, and renderer design.
 
-## Just-In-Time compilation
+### Just-In-Time compilation
 
 The most straightforward way to support Vulkan is to use just-in-time compilation for pipeline objects. In many engines due to the lack of first-class concepts that match Vulkan, the rendering backend must gather information about various parts of the pipeline state as a result of various state setup calls, similarly to what a Direct3D 11 driver might do. Then, just before the draw/dispatch where the full state is known, all individual bits of state would be grouped together and looked up in a hash table; if there’s already a pipeline state object in the cache, it can be used directly, otherwise a new object can be created.
 
@@ -426,7 +426,7 @@ For multi-threaded submission, accessing the cache can result in contention betw
 
 The cache would have two parts, the immutable part that never changes during the frame, and the mutable part. To perform a pipeline cache lookup, we first check if the immutable cache has the object – this is done without any synchronization. In the event of the cache miss, we lock a critical section and check if the mutable cache has the object; if it doesn’t, we unlock the critical section, create the pipeline object, and then lock it again and insert the object into the cache, potentially displacing another object (additional or synchronization might be required if, when two threads request the same object, only one compilation request is issued to the driver). At the end of the frame, all objects from the mutable cache are added to the immutable cache and the mutable cache is cleared, so that on the next frame access to these objects can be free-threaded.
 
-## Pipeline cache and cache pre-warming
+### Pipeline cache and cache pre-warming
 
 While just-in-time compilation can work, it results in significant amount of stuttering during gameplay. Whenever an object with a new set of shaders/state enters the frame, we end up having to compile a pipeline object for it which could be slow. This is a similar problem to what Direct3D 11 titles would have, however in Direct3D 11 the drivers did a lot of work behind the scenes to try to hide the compilation latency, precompiling some shaders earlier and implementing custom schemes for patching bytecode on the fly that didn’t require a full recompilation. In Vulkan, the expectation is that the application handles pipeline object creation manually and intelligently, so a naive approach doesn’t work very well.
 
@@ -444,7 +444,7 @@ This database can then be shipped with the game; at game startup, the in-memory 
 
 If a particular set of state combinations wasn’t discovered during QA playthroughs, the system can still function correctly – at the expense of some amount of stuttering. The resulting scheme is more or less universal and practical – but requires a potentially large effort to play through enough levels with enough different graphics settings to capture most realistic workloads, making it somewhat hard to manage.
 
-## Ahead of time compilation
+### Ahead of time compilation
 
 The “perfect” solution – one that Vulkan was designed for – is to remove just-in-time compilation caches and pre-warming, and instead just have every single possible pipeline object available ahead of time.
 

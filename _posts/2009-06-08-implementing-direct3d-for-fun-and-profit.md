@@ -7,7 +7,7 @@ I can't believe I'm writing this, it's been what, 2 months? During that time a l
 
 Every object in core Direct3D (I'll be talking about 9 today, but the same thing should apply to 10 and 11) is an interface. This means that the details of actual implementation is hidden from us, but this also means that we can implement those interfaces. Why could we want to do that?
 
-### Reverse engineering
+## Reverse engineering
 
 If you work in game industry/computer graphics, or, well, any other IT-related field, I suppose, then you should be constantly gaining new knowledge; otherwise your qualification as a specialist will decrease very fast. There are lots of ways to learn, and one of the best is to learn from others experience. Unfortunately, while there is a lot of information on the technology of some titles, most are not described at all. Also sometimes the descriptions are inaccurate – after all, devil is in the details. So what you can do is take an existing title and reverse-engineer it – that is, gain information about implementation details from the outside. _Disclaimer: Of course, this information is provided only for educational value. Reverse engineering can violate the laws of your country and/or the EULA of the product. Don't use it if it does._
 
@@ -17,7 +17,7 @@ PerfHUD is more useful in some areas, but you need to create Direct3D device wit
 
 There are even some programs that simplify the following for you, allowing you to run any title in PerfHUD-compatible mode.
 
-### Multithreaded rendering
+## Multithreaded rendering
 
 In fact, this is already described in a Gamefest 2008 presentation “Practical Parallel Rendering with DirectX 9 and 10, Windows PC Command Buffer Recording” (you can get slides and example code [here](http://www.emergent.net/GameFest2008)). Basically, since neither Direct3D9 nor Direct3D10 support proper multithreading (creating device as multithreaded means that all device calls will be synchronized with one per-device critical section), you can emulate it via a special proxy device, which records all rendering calls in a buffer, and then uses the buffer to replay the command stream via real device. This saves processing time for other rendering work you do alongside API calls by allowing it to work in multiple threads, and is a good stub for deferred context functionality that's available on other platforms (including Direct3D11 and all console platforms). I use this technique in my pet engine mainly for the purpose of portability – I can render different parts of the scene into different contexts simultaneously, and then “kick” the deferred context via the main one. On PS3 the “kick” part is very lightweight, so the savings are huge; on Windows during the “kick” part deferred context replays the command stream, so it can be quite heavy, but it's faster than doing everything in one thread, and the code works the same way. When I start supporting Direct3D11, the same code will work concurrently, provided a good driver/runtime support of course.
 
@@ -25,7 +25,7 @@ Note that I don't use Emergent library as is – I consider it too heavyweight a
 
 Currently my implementation has a fixed size command buffer, so if you exceed it, you're doomed. There are several more or less obvious ways to fix this, but I hope that by the time I get to it I'll already have D3D11 in place.
 
-### Asset pipeline
+## Asset pipeline
 
 My asset pipeline is more or less the same for all asset types – there is a source for the asset (Maya/Max scene, texture, sound file, etc.), which is converted via some set of actions to a platform-specific binary that can be loaded by the engine. In this way the complexity of dealing with different resource formats, complex structures, data non suitable for runtime, etc. is moved from engine to tools, which is great since it reduces the amount of runtime code, making it more robust and easier to maintain. The data is saved to a custom format which is optimized for loading time (target endianness, platform-specific data layout/format for graphics resources, compression). I think I'll blog about some interesting aspects/choices in the future as time permits (for example, about my experience of using build systems, such as SCons and Jam, for data builds), but for now I'll focus on a tool that builds textures.
 

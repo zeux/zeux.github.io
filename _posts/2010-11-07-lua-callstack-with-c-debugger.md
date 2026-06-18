@@ -17,7 +17,7 @@ Assuming we don't want to modify C++/Lua code in any way, nor do we want to rest
 
 It is possible that you don't have a working Lua debugger, do not have it attached or that it does not work at the moment (oh, and the deadline was yesterday). I'm going to describe the last two approaches here.
 
-### Use a stack dumping function
+## Use a stack dumping function
 
 This approach is superior to the third one because you can have arbitrarily complex logic in the stack dumping function - i.e. you can print local variables along with the call stack - and it's less tedious. Just make sure your stack dumping function does not crash :) However, unless you have good debugger support for this, calling the function so that the program can work after the point can be problematic.
 
@@ -65,7 +65,7 @@ Depending on the platform ABI, the relevant setup is different; for example:
 
 You'll see the call stack and the game will crash, but now you have additional context for the problem and can debug the crash further. If you're using this method a lot, I suggest making a less trivial function, which is able to dump locals. Just in case, `dprintf` in the code above dumps the string to debug window (using `OutputDebugStringA`); use whatever debugging output available on your platform.
 
-### Inspect Lua data structures
+## Inspect Lua data structures
 
 The approach with calling the function is dangerous, since it can stop or corrupt the execution flow; also it requires code execution, which may be unavailable - for example, you can't use it if you're debugging via crash dumps on some platforms. Therefore it's useful to know how Lua represents the call stack, so that you're able to get the call stack information using the safe debugger features, i.e. object state inspection.
 

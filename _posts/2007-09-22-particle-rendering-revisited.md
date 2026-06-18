@@ -31,7 +31,7 @@ Note that it looks like point sprites. It has a disadvantage in that we have 4 v
 
 Now let’s go over platform-specific implementation details.
 
-### Direct3D 9
+## Direct3D 9
 
 Unfortunately, D3D9 does not have “quad” primitive type, so we’ll have to use a dummy index buffer. The setup is as follows:
 
@@ -73,15 +73,15 @@ if (SUCCEEDED(d3d->CheckDeviceFormat(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_
 
 I love ATi D3D9 hacks, they are ingenious.
 
-### XBox 360
+## XBox 360
 
 You can perform rendering with the proposed method as is – the only difference is that you’ll have to fetch vertex data manually in vertex shader via vfetch command because there is no explicit instancing support. For further reference, look at CustomVFetch sample.
 
-### PS3
+## PS3
 
 You can perform rendering with the proposed method as is – you’ll have to set frequency divider operation to MODULO with frequency = 4 for corner stream, and to DIVIDE with frequency = 4 for particle data stream.
 
-### Direct3D 10
+## Direct3D 10
 
 I have not actually implemented this for Direct3D 10, but it should be pretty straightforward – you’ll have to create proper input layout (with D3D10_INPUT_PER_INSTANCE_DATA set for all elements except corner data), create index buffer with 6 indices as for D3D9, and then render via DrawIndexedInstanced(6, particle_count, 0, 0, 0);
 

@@ -9,7 +9,7 @@ The task at hand is relatively simple – given a set of points representing sha
 
 Note that all points are assumed to be in world space, and for a lot of algorithms it’s preferred to take vertices of convex hull of receivers, clipped by view frustum, instead of actual receivers’ vertices – it’s not always required, but for the sake of simplicity we will assume that all receivers’ points are inside view frustum. Of course casters’ points are arbitrary.
 
-### Uniform Shadow Mapping
+## Uniform Shadow Mapping
 
 Uniform shadow mapping is shadow mapping with a simple orthographic projection, without any perspective reparametrization. As unit cube clipping is an operation that’s usually done *after* constructing some approximate matrix, let’s suppose we already have a view and projection matrix for our light configuration – note that in case of uniform light the only thing we care about is that view matrix has the same direction as the light, and the projection matrix represents some orthographic projection – everything else is irrelevant, so we can take arbitrary view position, more or less arbitrary up vector, construct a view matrix, and assume that projection matrix is actually identity matrix.
 
@@ -57,7 +57,7 @@ Now that we have our XY and Z extents, we construct a scaling/biasing matrix tha
 
 Now that we’ve solved the problem for uniform shadow mapping, let’s move on to various perspective reparametrization algorithms.
 
-### Trapezoidal Shadow Mapping
+## Trapezoidal Shadow Mapping
 
 The brief outline of TSM algorithm is as follows – construct light viewprojection matrix, transform receivers’ points to light PPS, approximate them by a trapezoid, construct a matrix that maps trapezoid to unit cube, multiply light viewprojection matrix by the trapezoid mapping matrix.
 
@@ -67,7 +67,7 @@ As we selected XY extents as intersection of casters’ and receivers’ extents
 
 Also note, that as TSM produces a frustum with relatively high FOV, the distortion of post-perspective W coordinate can affect Z coordinate badly. Some solutions for these problems are already presented in the original TSM paper (though expect another post about various methods for fixing Z errors).
 
-### Light-space Perspective Shadow Mapping
+## Light-space Perspective Shadow Mapping
 
 The brief outline of LiSPSM algorithm is as follows – construct light space with certain restrictions, transform all “interesting” points in the light space, build a perspective frustum that encloses all points, transform it back from light space to world space.
 
@@ -75,7 +75,7 @@ The problem is that if you treat only receivers’ points as “interesting”, 
 
 In short, I don’t know a good solution. If the light faces the viewer, we can use the approach for normal positional light for PSM (read below). Otherwise, it does not seem we can do anything. Currently I focus my frustum on both casters’ and receivers’ points. If you know a solution, I’d be more than happy to hear it.
 
-### Perspective Shadow Mapping
+## Perspective Shadow Mapping
 
 Note that I am not going to describe unit cube clipping for the PSM from the original paper by Stamminger and Drettakis, because there is a much better PSM algorithm, described in GPU Gems 1 by Simon Kozlov (Chapter 14, “Perspective Shadow Maps: Care and Feeding”).
 
@@ -111,7 +111,7 @@ For inverted light, construct an inverted projection matrix instead of a normal 
 
 Thanks to Simon Kozlov for suggesting solution for shadow clipping problems, basically all the text in this section consists of his ideas.
 
-### eXtended Perspective Shadow Mapping
+## eXtended Perspective Shadow Mapping
 
 I am not going to describe algorithm and clipping problems in details, as they are well summarized in the original paper. The only mention I will make is that at the step 11 of the algorithm, all points with w < epsilonW are clipped. This sometimes causes clipping of shadows. The solution is to modify the extents building procedure as follows: instead of throwing away points with w < epsilonW completely, just don’t compute Z bounds for them. This is a hack, and it works only because we’re doing 2D rectangle intersection while doing unit cube clipping.
 

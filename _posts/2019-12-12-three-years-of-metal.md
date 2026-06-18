@@ -20,7 +20,7 @@ The drivers are also better than ever - generally speaking we don’t see driver
 
 We’ve also spent some time improving our Metal backend, focusing on three areas:
 
-## Reworking the shader compilation toolchain
+### Reworking the shader compilation toolchain
 
 One other thing that happened in the last three years is the release and development of Vulkan. While it would seem that the APIs are completely different (and they are), Vulkan ecosystem gave the rendering community a fantastic set of open-source tools that, when combined, result in an easy-to-use production quality compilation toolset.
 
@@ -28,7 +28,7 @@ We used the libraries to build a compilation toolchain that can take HLSL source
 
 It is somewhat ironic that Apple didn’t have anything to do with this, but here we are. Huge thanks to the contributors and maintainers of [glslang](https://github.com/KhronosGroup/glslang), [spirv-opt](https://github.com/KhronosGroup/SPIRV-Tools) and [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross). We have contributed a set of patches to these libraries to help us ship the new toolchain as well, and use it to retarget our shaders to Vulkan, Metal and OpenGL APIs.
 
-## macOS support
+### macOS support
 
 macOS port was always a possibility but wasn’t a big focus for us until we started missing some features and decided that we should invest into Metal on macOS to get faster renderer and unlock some future projects.
 
@@ -42,7 +42,7 @@ We still support all versions of macOS Metal (10.11+), although we started remov
 
 The performance benefits were in line with our expectations; in terms of market share, today we are at ~25% OpenGL and ~75% Metal users on macOS platform, which is a pretty healthy split. This means that at some point in the future it may be practical for us to stop supporting desktop OpenGL at all, as no other platforms we support use it, which is great in terms of being able to focus on APIs that are easier to handle and get good performance with.
 
-## Iterating on performance and memory consumption
+### Iterating on performance and memory consumption
 
 We are historically pretty conservative with the graphics API features that we use, and Metal is no exception. There are several big feature updates that Metal has acquired over the years, including improved resource allocation APIs with explicit heaps, tile shaders with Metal 2, argument buffers and GPU-side command generation, etc.
 

@@ -11,7 +11,7 @@ Last week Bruce Dawson published a post [Hidden Costs of Memory Allocation](http
 
 Turns out, nothing is free - and allocating a multi-megabyte block has a real cost. What's worse, this cost is not paid when the allocation is performed - it can be paid when you perform a memory access or even when a background thread in another process fills it with zeros. The post mentioned above describes the problem in more detail using synthetic tests - I want to focus on an easily measurable impact in a real application.
 
-### Measuring the cost
+## Measuring the cost
 
 One of my projects, [qgrep](https://github.com/zeux/qgrep), is a fast grep database designed to quickly search through code bases of varying sizes using regular expressions. Performance is the main feature of this project (if you don't care about performance you can just use `grep`) - most of the work involved was optimization and there were some interesting decisions made and algorithms used that I may blog about in the future. For now let's focus on memory.
 
@@ -56,7 +56,7 @@ When the pool is not used, we end up requesting ~600 Mb from the system; when th
 
 The results in the table above mostly make sense - there must be some overhead associated with allocating memory and as Bruce Dawson's post suggests this overhead grows with the total requested size. Switching to 64-bit improves performance since we have more registers so compiler can optimize inner loops better. However, there is an outlier - in 32-bit on Windows using the custom pool increases our performance almost two-fold. Wait, what?
 
-### Finding the reason
+## Finding the reason
 
 Let's use the excellent [Visual Studio Concurrency Visualizer](http://msdn.microsoft.com/en-us/library/dd537632.aspx) tool[^4] to find out what's going on! Here are the screenshots with 8-thread mode (click to enlarge):
 
@@ -80,7 +80,7 @@ Bruce Dawson measures the cost of page faults to be 175 &mu;s per Mb, which for 
 
 It looks like based on the observed behavior we can come to a conclusion - you will pay 175 &mu;s for every megabyte of pagefaults (so ~680 ns for one page fault), page fault processing is single-threaded and if you happen to hit a page fault in two threads their execution will be serialized. Which can be a significant problem if you're processing a lot of data using all available cores with otherwise heavily optimized code.
 
-### The devil is in the detail
+## The devil is in the detail
 
 But wait, why do we not see the problem on x64? Does the kernel map pages on x64 in a more performant way? Yeah, right.
 
@@ -120,7 +120,7 @@ Upon a cursory glance at [magazine_malloc.c](http://www.opensource.apple.com/sou
 
 Interestingly, the timing differences for `mmap` may suggest that the OSX kernel actually does not serialize page fault requests from multiple cores - disabling the pool with 8 threads results in extra 58 ms for extra 500 Mb of allocated memory (8.4 Gb/s), whereas disabling the pool with 1 thread results in 94 ms cost for 200 Mb of memory (2 Gb/s), so the processing seems to scale with the number of cores. It should be possible to confirm or disprove this by reading the kernel sources but this post already took too long to write - please leave a comment if you know whether this is accurate!
 
-### Conclusion
+## Conclusion
 
 This article takes another look on an effect of (soft) page faults on performance. Note that the resulting performance difference is very dramatic - admittedly, this is a somewhat special case because the rest of the processing is highly optimized (page faults at 5.7 Gb/s start to be noticeable once your processing itself performs at 6 Gb/s...).
 
