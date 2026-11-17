@@ -7,3 +7,16 @@ gems:
 kramdown:
   input: GFM
 include: [ "/.well-known" ]
+collections:
+  bits:
+    output: true
+    permalink: /bits/:year/:month/:day/:title/
+defaults:
+  - scope:
+      type: posts
+    values:
+      layout: post
+  - scope:
+      type: bits
+    values:
+      layout: post

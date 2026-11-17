@@ -18,5 +18,7 @@ DRAFT
 <script type="text/javascript">
 {% include js/header-anchors.js %}
 </script>
+{% unless page.collection == 'bits' %}
 {% include comments.html %}
+{% endunless %}
 {% include footer.html %}

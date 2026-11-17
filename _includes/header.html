@@ -114,6 +114,7 @@
 
   <!-- RSS -->
   <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed/">
+  <link rel="alternate" type="application/rss+xml" title="RSS (bits)" href="/bits/feed/">
 
   {% if page.math %}
   <!-- Katex -->
@@ -156,6 +157,17 @@
           <small><a href="{{ post.url }}">{{ post.title }}</a></small>
         </li>
       {% endfor %}
+      </ul>
+
+      <h4>Bits</h4>
+      <p>
+      Bits are <a href="/bits/">short notes</a> with a separate <a href="/bits/feed/">RSS feed</a>. Here is the last bit:
+      </p>
+      <ul style="padding-left: 20px;">
+      {% assign bit = site.bits | last %}
+        <li>
+          <small><a href="{{ bit.url }}">{{ bit.title }}</a></small>
+        </li>
       </ul>
     </div>
   </div>
