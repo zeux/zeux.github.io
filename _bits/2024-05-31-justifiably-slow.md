@@ -1,14 +1,12 @@
 ---
-layout: post
 title: X is justifiably slow
 excerpt_separator: <!--more-->
+redirect_from: "/2024/05/31/justifiably-slow/"
 ---
 
 I regularly hear or read statements like this: "X is slow but this is to be expected because it needs to do a lot of work". It can be said about an application or a component in a larger system, and can refer to other resources that aren't time. I often find these profoundly unhelpful as they depend much more on the speaker's intuition and understanding of the problem, than X itself.
 
 <!--more-->
-
-> This post is much shorter than usual, and it was originally written in 2022 and published [on Cohost](https://cohost.org/zeux/post/357091-x-is-justifiably-slo). I'm going to experiment with posting shorter technical content like this more regularly in the coming months, including reposting my earlier Cohost posts (of which this is one of).
 
 X[^1] may be slow because it's using an inefficient algorithm. When a database query takes a while to return a large volume of results, it may be because there's no index for that query - the query engine might be relatively well optimized, but the poor algorithmic complexity wins.
 
