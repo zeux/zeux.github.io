@@ -152,7 +152,7 @@
       If you like this blog, you should follow it <a href="/feed/">via RSS</a> and read <a href="/archives/">older posts</a>. Here are the recent posts:
       </p>
       <ul style="padding-left: 20px;">
-      {% for post in site.posts limit:10 %}
+      {% for post in site.posts limit:9 %}
         <li>
           <small><a href="{{ post.url }}">{{ post.title }}</a></small>
         </li>
@@ -161,13 +161,15 @@
 
       <h4>Bits</h4>
       <p>
-      Bits are <a href="/bits/">short notes</a> with a separate <a href="/bits/feed/">RSS feed</a>. Here is the last bit:
+      Bits are <a href="/bits/">short notes</a> with a separate <a href="/bits/feed/">RSS feed</a>. Here are the recent bits:
       </p>
       <ul style="padding-left: 20px;">
-      {% assign bit = site.bits | last %}
+      {% assign bits = site.bits | reverse %}
+      {% for bit in bits limit:3 %}
         <li>
           <small><a href="{{ bit.url }}">{{ bit.title }}</a></small>
         </li>
+      {% endfor %}
       </ul>
     </div>
   </div>
